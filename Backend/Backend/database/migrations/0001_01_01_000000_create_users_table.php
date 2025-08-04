@@ -12,13 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
+            $table->id('use_id'); // ID personnalisé
+            $table->string('use_email')->unique();
+            $table->string('use_mot_de_passe');
+            $table->date('use_date_naissance')->nullable();
+            $table->boolean('use_consentement')->default(false);
+            $table->dateTime('use_derniere_connexion')->nullable();
+
+            // Champs Laravel pour Auth
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
             $table->rememberToken();
-            $table->timestamps();
+            $table->timestamps(); // created_at / updated_at
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
