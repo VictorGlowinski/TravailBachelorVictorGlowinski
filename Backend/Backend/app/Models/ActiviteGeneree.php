@@ -31,15 +31,14 @@ class ActiviteGeneree extends Model
         return $this->belongsTo(Jour::class, 'gen_jour_id', 'jou_id');
     }
 
-    public static function getAllActivitesGenerees($keyword)
+    public function scopeSearch($query, ?string $keyword)
     {
-        if (empty($keyword)) {
-            return self::all();
-        }
-        return self::where('gen_nom', 'like', '%' . $keyword . '%')
-            ->orWhere('gen_type', 'like', '%' . $keyword . '%')
-            ->orWhere('gen_commentaire', 'like', '%' . $keyword . '%')
-            ->get();
+        if (!$keyword) return $query;
+        return $query->where(function ($q) use ($keyword) {
+            $q->where('gen_nom', 'like', "%{$keyword}%")
+              ->orWhere('gen_type', 'like', "%{$keyword}%")
+              ->orWhere('gen_commentaire', 'like', "%{$keyword}%");
+        });
     }
 
     public static function getActiviteGenereeById($id)

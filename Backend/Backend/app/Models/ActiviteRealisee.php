@@ -31,18 +31,18 @@ class ActiviteRealisee extends Model
         return $this->belongsTo(User::class, 'rea_user_id', 'id');
     }
 
-    public static function getAllActivitesRealisees($keyword)
+    public function scopeSearch($query, ?string $keyword)
     {
-        if (empty($keyword)) {
-            return self::all();
-        }
-        return self::where('rea_nom', 'like', '%' . $keyword . '%')
-            ->orWhere('rea_type', 'like', '%' . $keyword . '%')
-            ->orWhere('rea_duree', 'like', '%' . $keyword . '%')
-            ->orWhere('rea_date', 'like', '%' . $keyword . '%')
-            ->orWhere('rea_distance', 'like', '%' . $keyword . '%')
-            ->orWhere('rea_commentaire', 'like', '%' . $keyword . '%')
-            ->get();
+        if (!$keyword) return $query;
+        return $query->where(function ($q) use ($keyword) {
+            $q->where('rea_nom', 'like', "%{$keyword}%")
+            ->orWhere('rea_date', 'like', "%{$keyword}%")
+            ->orWhere('rea_duree', 'like', "%{$keyword}%")
+            ->orWhere('rea_distance', 'like', "%{$keyword}%")
+            ->orWhere('rea_intensite', 'like', "%{$keyword}%")
+            ->orWhere('rea_type', 'like', "%{$keyword}%")
+            ->orWhere('rea_commentaire', 'like', "%{$keyword}%");
+        });
     }
 
     public static function getActiviteRealiseeById($id)
@@ -71,7 +71,7 @@ class ActiviteRealisee extends Model
         }
         return false;
     }
-    
+
     public static function getActivitesByUserId($userId)
     {
         return self::where('rea_user_id', $userId)->get();

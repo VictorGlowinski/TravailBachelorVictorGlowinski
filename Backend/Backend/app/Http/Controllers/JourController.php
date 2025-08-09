@@ -4,14 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Jour;
 
 class JourController extends Controller
 {
     public function index(Request $request)
     {
-        // Logic to retrieve and return all "jour" records
-        $jours = Jour::getAllJours();
-        return response()->json($jours);
+        $keyword = $request->query('q');
+        return Jour::query()->search($keyword)->get();
     }
 
     public function show($id)

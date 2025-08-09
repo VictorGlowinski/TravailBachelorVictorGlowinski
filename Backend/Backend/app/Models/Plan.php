@@ -28,14 +28,16 @@ class Plan extends Model
         return $this->belongsTo(User::class, 'pla_user_id', 'id');
     }
 
-    public static function getAllPlans($keyword)
+    public function scopeSearch($query, ?string $keyword)
     {
-        if (empty($keyword)) {
-            return self::all();
-        }
-        return self::where('pla_nom', 'like', '%' . $keyword . '%')
-            ->orWhere('pla_description', 'like', '%' . $keyword . '%')
-            ->get();
+        if (!$keyword) return $query;
+        return $query->where(function ($q) use ($keyword) {
+            $q->where('pla_nom', 'like', "%{$keyword}%")
+                ->orWhere('pla_date_debut', 'like', "%{$keyword}%")
+                ->orWhere('pla_date_fin', 'like', "%{$keyword}%")
+                ->orWhere('pla_description', 'like', "%{$keyword}%");
+
+        });
     }
 
     public static function getPlanById($id)

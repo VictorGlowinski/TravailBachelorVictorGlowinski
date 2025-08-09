@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\ActiviteRealisee;
 
 class ActiviteRealiseeController extends Controller
 {
@@ -13,9 +14,8 @@ class ActiviteRealiseeController extends Controller
     
     public function index(Request $request)
     {
-        // Logic to retrieve and return all realized activities
-        $activities = ActiviteRealisee::getAllActivitesRealisees();
-        return response()->json($activities);
+        $keyword = $request->query('q');
+        return ActiviteRealisee::query()->search($keyword)->get();
     }
 
     public function show($id)

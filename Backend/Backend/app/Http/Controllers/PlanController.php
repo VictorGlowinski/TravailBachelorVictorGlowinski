@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Plan;
 
 class PlanController extends Controller
 {
@@ -13,9 +14,8 @@ class PlanController extends Controller
 
     public function index(Request $request)
     {
-        // Logic to retrieve and return all plans
-        $plans = Plan::getAllPlans();
-        return response()->json($plans);
+        $keyword = $request->query('q');
+        return Plan::query()->search($keyword)->get();
     }
 
     public function show($id)

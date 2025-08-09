@@ -25,15 +25,14 @@ class Jour extends Model
         return $this->belongsTo(Plan::class, 'jou_plan_id', 'pla_id');
     }
 
-    public static function getAllJours($keyword)
+    public function scopeSearch($query, ?string $keyword)
     {
-        if (empty($keyword)) {
-            return self::all();
-        }
-        return self::where('jou_description', 'like', '%' . $keyword . '%')
-            ->orWhere('jou_date', 'like', '%' . $keyword . '%')
-            
-            ->get();
+        if (!$keyword) return $query;
+
+        return $query->where(function ($q) use ($keyword) {
+            $q->where('jou_description', 'like', "%{$keyword}%")
+            ->orWhere('jou_date', 'like', "%{$keyword}%");
+        });
     }
 
     public static function getJourById($id)

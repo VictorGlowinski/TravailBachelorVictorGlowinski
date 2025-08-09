@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\EvaluationInitiale;
 
 class EvaluationInitialeController extends Controller
 {
@@ -13,10 +14,10 @@ class EvaluationInitialeController extends Controller
 
     public function index(Request $request)
     {
-        // Logic to retrieve and return all initial evaluations
-        $evaluations = EvaluationInitiale::getAllEvaluationsInitiales();
-        return response()->json($evaluations);
+        $keyword = $request->query('q');
+        return EvaluationInitiale::query()->search($keyword)->get();
     }
+
 
     public function show($id)
     {

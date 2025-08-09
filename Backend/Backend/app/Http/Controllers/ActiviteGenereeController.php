@@ -14,9 +14,8 @@ class ActiviteGenereeController extends Controller
     
     public function index(Request $request)
     {
-        // Logic to retrieve and return all generated activities
-        $activities = ActiviteGeneree::getAllActivitesGenerees();
-        return response()->json($activities);
+        $keyword = $request->query('q');
+        return ActiviteGeneree::query()->search($keyword)->get();
     }
 
     public function show($id)

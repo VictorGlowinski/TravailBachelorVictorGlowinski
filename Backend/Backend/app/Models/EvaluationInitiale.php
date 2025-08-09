@@ -41,12 +41,19 @@ class EvaluationInitiale extends Model
     }
 
     
-
-    public static function getAllEvaluationsInitiales($keyword)
+    public function scopeSearch($query, ?string $keyword)
     {
-        if (empty($keyword)) {
-            return self::all();
-        }
+        if (!$keyword) return $query;
+        return $query->where(function ($q) use ($keyword) {
+            $q->where('eva_vo2max', 'like', "%{$keyword}%")
+              ->orWhere('eva_freq_max', 'like', "%{$keyword}%")
+              ->orWhere('eva_seuil_ventilatoire', 'like', "%{$keyword}%")
+              ->orWhere('eva_ftp_cyclisme', 'like', "%{$keyword}%")
+              ->orWhere('eva_vma', 'like', "%{$keyword}%")
+              ->orWhere('eva_cooper', 'like', "%{$keyword}%")
+              ->orWhere('eva_sueil_natation', 'like', "%{$keyword}%");
+        });
+
     }
 
     public static function getEvaluationInitialeById($id)

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Anamnese;
 use Illuminate\Http\Request;
 
 class AnamneseController extends Controller
@@ -13,10 +14,10 @@ class AnamneseController extends Controller
 
     public function index(Request $request)
     {
-        // Logic to retrieve and return all anamnesis records
-        $anamnesis = Anamnese::getAllAnamneses();
-        return response()->json($anamnesis);
+        $keyword = $request->query('q');
+        return Anamnese::query()->search($keyword)->get();
     }
+
 
     public function show($id)
     {

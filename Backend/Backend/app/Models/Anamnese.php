@@ -30,29 +30,33 @@ class Anamnese extends Model
 
   
     protected $casts = [
-        'ana_id' => 'integer',
-        'ana_user_id' => 'integer',
-        'ana_date' => 'datetime',
+        'ana_id'         => 'integer',
+        'ana_user_id'    => 'integer',
+        'ana_date'       => 'datetime',   // nécessite une colonne date/datetime
+        'ana_age'        => 'integer',
+        'ana_poids_kg'   => 'float',
+        'ana_taille_cm'  => 'float',
+        'ana_imc'        => 'float',
     ];
 
-    public static function user()
+    public function user()
     {
         return $this->belongsTo(User::class, 'ana_user_id', 'id');
     }
 
-    public static function getAllAnamneses($keyword)
+    public function scopeSearch($query, ?string $keyword)
     {
-        if (empty($keyword)) {
-            return self::all();
-        }
-        return self::where('ana_blessures', 'like', '%' . $keyword . '%')
-            ->orWhere('ana_etat_actuel', 'like', '%' . $keyword . '%')
-            ->orWhere('ana_sexe', 'like', '%' . $keyword . '%')
-            ->orWhere('ana_objectif', 'like', '%' . $keyword . '%')
-            ->orWhere('ana_commentaire', 'like', '%' . $keyword . '%')
-            ->orWhere('ana_traitement', 'like', '%' . $keyword . '%')
-            ->orWhere('ana_diagnostics', 'like', '%' . $keyword . '%')
-            ->get();
+        if (!$keyword) return $query;
+
+        return $query->where(function ($q) use ($keyword) {
+            $q->where('ana_blessures', 'like', "%{$keyword}%")
+            ->orWhere('ana_etat_actuel', 'like', "%{$keyword}%")
+            ->orWhere('ana_sexe', 'like', "%{$keyword}%")
+            ->orWhere('ana_objectif', 'like', "%{$keyword}%")
+            ->orWhere('ana_commentaire', 'like', "%{$keyword}%")
+            ->orWhere('ana_traitement', 'like', "%{$keyword}%")
+            ->orWhere('ana_diagnostics', 'like', "%{$keyword}%");
+        });
     }
 
     public static function getAnamneseById($id)
