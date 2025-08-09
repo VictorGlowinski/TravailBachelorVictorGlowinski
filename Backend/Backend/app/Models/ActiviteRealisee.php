@@ -6,5 +6,75 @@ use Illuminate\Database\Eloquent\Model;
 
 class ActiviteRealisee extends Model
 {
-    //
+    protected $table = 'activite_realisee'; // Nom de la table
+    protected $primaryKey = 'rea_id'; // Nom personnalisé pour l'ID
+    protected $fillable = [
+        'rea_user_id',
+        'rea_nom',
+        'rea_type',
+        'rea_duree',
+        'rea_date',
+        'rea_distance',
+        'rea_intensite',
+        'rea_commentaire'
+    ];
+
+    protected $casts = [
+        'rea_id' => 'integer',
+        'rea_user_id' => 'integer',
+        'rea_duree' => 'time',
+        'rea_distance' => 'float',
+    ];
+
+    public static function user()
+    {
+        return $this->belongsTo(User::class, 'rea_user_id', 'id');
+    }
+
+    public static function getAllActivitesRealisees($keyword)
+    {
+        if (empty($keyword)) {
+            return self::all();
+        }
+        return self::where('rea_nom', 'like', '%' . $keyword . '%')
+            ->orWhere('rea_type', 'like', '%' . $keyword . '%')
+            ->orWhere('rea_duree', 'like', '%' . $keyword . '%')
+            ->orWhere('rea_date', 'like', '%' . $keyword . '%')
+            ->orWhere('rea_distance', 'like', '%' . $keyword . '%')
+            ->orWhere('rea_commentaire', 'like', '%' . $keyword . '%')
+            ->get();
+    }
+
+    public static function getActiviteRealiseeById($id)
+    {
+        return self::find($id);
+    }
+    public static function createActiviteRealisee($data)
+    {
+        return self::create($data);
+    }
+    public static function updateActiviteRealisee($id, $data)
+    {
+        $activite = self::find($id);
+        if ($activite) {
+            $activite->update($data);
+            return $activite;
+        }
+        return null;
+    }
+    public static function deleteActiviteRealisee($id)
+    {
+        $activite = self::find($id);
+        if ($activite) {
+            $activite->delete();
+            return true;
+        }
+        return false;
+    }
+    
+    public static function getActivitesByUserId($userId)
+    {
+        return self::where('rea_user_id', $userId)->get();
+    }
+
 }

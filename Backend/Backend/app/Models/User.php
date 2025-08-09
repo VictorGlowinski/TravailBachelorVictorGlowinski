@@ -18,9 +18,11 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
         'email',
         'password',
+        'use_date_naissance',
+        'use_consentement',
+        'use_derniere_connexion',
     ];
 
     /**
@@ -43,6 +45,19 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'use_date_naissance' => 'date',
+            'use_consentement' => 'boolean',
+            'use_derniere_connexion' => 'datetime',
         ];
+    }
+
+    public function deleteUser($id)
+    {
+        $user = User::find($id);
+        if ($user) {
+            $user->delete();
+            return true;
+        }
+        return false;
     }
 }

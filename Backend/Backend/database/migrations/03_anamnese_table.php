@@ -27,6 +27,8 @@ return new class extends Migration
             $table->string('ana_exp_sportive')->nullable();
             $table->string('ana_objectif')->nullable();
             $table->text('ana_commentaire')->nullable(); 
+            $table->text('ana_traitement')->nullable();
+            $table->string('ana_diagnostics')->nullable();
 
             $table->timestamps();
         });
