@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('activiteGeneree', function (Blueprint $table) {
+        Schema::create('activite_generee', function (Blueprint $table) {
             $table->id('gen_id'); // nom personnalisé pour l’ID
             $table->unsignedBigInteger('gen_jour_id');
             $table->foreign('gen_jour_id')->references('jou_id')->on('jour')->onDelete('cascade');
 
             $table->string('gen_nom')->nullable(); // nom de l'activité, peut être généré automatiquement
             $table->string('gen_type');
-            $table->time('gen_duree');
+            $table->string('gen_duree');
             $table->float('gen_distance');
             $table->string('gen_intensite');
             $table->text('gen_commentaire');

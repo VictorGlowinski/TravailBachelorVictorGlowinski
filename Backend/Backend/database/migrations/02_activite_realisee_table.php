@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('activite_realisee', function (Blueprint $table) {
             $table->id('rea_id'); // nom personnalisé pour l’ID
             $table->unsignedBigInteger('rea_user_id');
-            $table->foreign('rea_user_id')->references('use_id')->on('users')->onDelete('cascade');
+            $table->foreign('rea_user_id')->references('id')->on('users')->onDelete('cascade');
             $table->string('rea_nom' )->nullable();
             $table->string('rea_type');
-            $table->time('rea_duree');
+            $table->string('rea_duree');
             $table->date('rea_date');
             $table->float('rea_distance');
             $table->string('rea_intensite')->nullable();

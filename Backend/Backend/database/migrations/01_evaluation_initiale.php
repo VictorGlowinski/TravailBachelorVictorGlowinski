@@ -13,20 +13,25 @@ return new class extends Migration
     {
         Schema::create('evaluation_initiale', function (Blueprint $table) {
             $table->id('eva_id');
-            $table->foreignId('eva_user_id')->constrained('users', 'use_id')->onDelete('cascade');
-            $table->integer('eva_vo2max')->nullable();
+            $table->foreignId('eva_user_id')->constrained('users', 'id')->onDelete('cascade');
+            $table->float('eva_vo2max')->nullable();
+            $table->integer('eva_freq_repos')->nullable();
             $table->integer('eva_freq_max')->nullable();
-            $table->integer('eva_seuil_ventilatoire')->nullable();
             $table->integer('eva_ftp_cyclisme')->nullable();
-            $table->integer('eva_vma')->nullable();
-            $table->integer('eva_cooper')->nullable();
-            $table->integer('eva_sueil_natation')->nullable();
-            $table->integer('eva_echeance');
-            $table->integer('eva_nb_heure_dispo');
+            $table->float('eva_vma')->nullable();
+            $table->string('eva_cooper')->nullable();
+            $table->string('eva_seuil_natation')->nullable();
+            $table->string('eva_seuil_cyclisme')->nullable();
+            $table->string('eva_seuil_course')->nullable();
+            $table->date('eva_echeance')->nullable();
+            $table->integer('eva_nb_heure_dispo')->nullable();
+            $table->string('eva_commentaire')->nullable();
 
             $table->timestamps();
         });
     }
+
+
 
     /**
      * Reverse the migrations.

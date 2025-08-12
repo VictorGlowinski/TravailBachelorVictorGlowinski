@@ -50,6 +50,10 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        Auth::user()->update([
+            'use_derniere_connexion' => now()
+        ]);
     }
 
     /**

@@ -22,7 +22,7 @@ class ActiviteGeneree extends Model
     protected $casts = [
         'gen_id'        => 'integer',
         'gen_jour_id'   => 'integer',
-        'gen_duree'     => 'integer',
+        'gen_duree'     => 'string',
         'gen_distance'  => 'integer',
     ];
 

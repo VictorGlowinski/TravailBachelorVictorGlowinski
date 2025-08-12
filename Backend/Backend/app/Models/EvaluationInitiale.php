@@ -11,31 +11,37 @@ class EvaluationInitiale extends Model
     protected $fillable = [
         'eva_user_id',
         'eva_vo2max',
+        'eva_freq_repos',
         'eva_freq_max',
-        'eva_seuil_ventilatoire',
         'eva_ftp_cyclisme',
         'eva_vma',
         'eva_cooper',
-        'eva_sueil_natation',
+        'eva_seuil_natation',
+        'eva_seuil_cyclisme',
+        'eva_seuil_course',
         'eva_echeance',
-        'eva_nb_heure_dispo'
+        'eva_nb_heure_dispo',
+        'eva_commentaire'
     ];
 
     protected $casts = [
         'eva_id' => 'integer',
         'eva_user_id' => 'integer',
-        'eva_vo2max' => 'integer',
+        'eva_vo2max' => 'float',
+        'eva_freq_repos' => 'integer',
         'eva_freq_max' => 'integer',
-        'eva_seuil_ventilatoire' => 'integer',
         'eva_ftp_cyclisme' => 'integer',
-        'eva_vma' => 'integer',
-        'eva_cooper' => 'integer',
-        'eva_sueil_natation' => 'integer',
-        'eva_echeance' => 'integer',
+        'eva_vma' => 'float',
+        'eva_cooper' => 'string',
+        'eva_seuil_natation' => 'string',
+        'eva_seuil_cyclisme' => 'string',
+        'eva_seuil_course' => 'string',
+        'eva_echeance' => 'date',
         'eva_nb_heure_dispo' => 'integer',
+        'eva_commentaire' => 'string'
     ];
 
-    public static function user()
+    public function user()
     {
         return $this->belongsTo(User::class, 'eva_user_id', 'id');
     }

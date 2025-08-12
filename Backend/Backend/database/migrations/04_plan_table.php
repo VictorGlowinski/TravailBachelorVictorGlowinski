@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('plan', function (Blueprint $table) {
             $table->id('pla_id'); // nom personnalisé pour l’ID
             $table->unsignedBigInteger('pla_user_id');
-            $table->foreign('pla_user_id')->references('use_id')->on('users')->onDelete('cascade');
+            $table->foreign('pla_user_id')->references('id')->on('users')->onDelete('cascade');
             $table->string('pla_nom');
             $table->date('pla_debut')->nullable();
             $table->date('pla_fin')->nullable();

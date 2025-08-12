@@ -27,6 +27,8 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            'use_date_naissance' => ['nullable', 'date', 'before:today'],
+            'use_consentement' => ['boolean'],
         ];
     }
 }

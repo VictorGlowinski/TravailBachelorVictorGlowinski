@@ -22,7 +22,7 @@ class ActiviteRealisee extends Model
     protected $casts = [
         'rea_id' => 'integer',
         'rea_user_id' => 'integer',
-        'rea_duree' => 'time',
+        'rea_duree' => 'string',
         'rea_distance' => 'float',
     ];
 

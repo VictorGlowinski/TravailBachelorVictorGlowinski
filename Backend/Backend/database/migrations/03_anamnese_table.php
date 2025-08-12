@@ -13,7 +13,7 @@ return new class extends Migration
 
             // Clé étrangère vers users.use_id
             $table->unsignedBigInteger('ana_user_id');
-            $table->foreign('ana_user_id')->references('use_id')->on('users')->onDelete('cascade');
+            $table->foreign('ana_user_id')->references('id')->on('users')->onDelete('cascade');
 
             $table->float('ana_imc')->nullable();
             $table->string('ana_blessures')->nullable();
