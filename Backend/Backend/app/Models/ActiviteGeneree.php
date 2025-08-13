@@ -26,7 +26,7 @@ class ActiviteGeneree extends Model
         'gen_distance'  => 'integer',
     ];
 
-    public static function jour()
+    public function jour()
     {
         return $this->belongsTo(Jour::class, 'gen_jour_id', 'jou_id');
     }

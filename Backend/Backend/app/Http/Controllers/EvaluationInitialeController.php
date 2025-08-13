@@ -31,13 +31,13 @@ class EvaluationInitialeController extends Controller
 
     public function store(Request $request)
     {
-        $evaluation = EvaluationInitiale::createEvaluation($request->all());
+        $evaluation = EvaluationInitiale::createEvaluationInitiale($request->all());
         return response()->json($evaluation, 201);
     }
 
     public function update(Request $request, $id)
     {
-        $evaluation = EvaluationInitiale::updateEvaluation($id, $request->all());
+        $evaluation = EvaluationInitiale::updateEvaluationInitiale($id, $request->all());
         if ($evaluation) {
             return response()->json($evaluation);
         } else {
@@ -47,7 +47,7 @@ class EvaluationInitialeController extends Controller
 
     public function destroy($id)
     {
-        $success = EvaluationInitiale::deleteEvaluation($id);
+        $success = EvaluationInitiale::deleteEvaluationInitiale($id);
         if ($success) {
             return response()->json(['message' => 'Evaluation deleted successfully']);
         } else {
@@ -55,10 +55,10 @@ class EvaluationInitialeController extends Controller
         }
     }
 
-    public function getEvaluationsByUserId($userId)
+    public function getEvaluationInitialeByUserId($userId)
     {
         // Logic to retrieve all initial evaluations for a specific user
-        $evaluations = EvaluationInitiale::getEvaluationsByUserId($userId);
+        $evaluations = EvaluationInitiale::getEvaluationInitialeByUserId($userId);
         return response()->json($evaluations);
     }
 }

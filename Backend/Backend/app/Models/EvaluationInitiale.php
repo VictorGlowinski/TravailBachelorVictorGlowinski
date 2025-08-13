@@ -67,15 +67,16 @@ class EvaluationInitiale extends Model
         return self::find($id);
     }
 
-    public static function updateEvaluationInitiale($data)
+    public static function updateEvaluationInitiale($id, $data)
     {
-        $evaluation = self::find($data['eva_id']);
+        $evaluation = self::find($id);
         if ($evaluation) {
             $evaluation->update($data);
             return $evaluation;
         }
         return null;
     }
+
 
     public static function createEvaluationInitiale($data)
     {

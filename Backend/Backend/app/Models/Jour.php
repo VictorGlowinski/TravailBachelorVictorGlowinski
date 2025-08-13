@@ -20,7 +20,7 @@ class Jour extends Model
         'jou_date' => 'date',
     ];
 
-    public static function plan()
+    public function plan()
     {
         return $this->belongsTo(Plan::class, 'jou_plan_id', 'pla_id');
     }

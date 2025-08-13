@@ -12,18 +12,18 @@ class Plan extends Model
         'pla_user_id',
         'pla_nom',
         'pla_description',
-        'pla_date_debut',
-        'pla_date_fin'
+        'pla_debut',
+        'pla_fin'
     ];
 
     protected $casts = [
         'pla_id' => 'integer',
         'pla_user_id' => 'integer',
-        'pla_date_debut' => 'date',
-        'pla_date_fin' => 'date',
+        'pla_debut' => 'date',
+        'pla_fin' => 'date',
     ];
 
-    public static function user()
+    public function user()
     {
         return $this->belongsTo(User::class, 'pla_user_id', 'id');
     }
@@ -33,9 +33,8 @@ class Plan extends Model
         if (!$keyword) return $query;
         return $query->where(function ($q) use ($keyword) {
             $q->where('pla_nom', 'like', "%{$keyword}%")
-                ->orWhere('pla_date_debut', 'like', "%{$keyword}%")
-                ->orWhere('pla_date_fin', 'like', "%{$keyword}%")
-                ->orWhere('pla_description', 'like', "%{$keyword}%");
+                ->orWhere('pla_debut', 'like', "%{$keyword}%")
+                ->orWhere('pla_fin', 'like', "%{$keyword}%");
 
         });
     }

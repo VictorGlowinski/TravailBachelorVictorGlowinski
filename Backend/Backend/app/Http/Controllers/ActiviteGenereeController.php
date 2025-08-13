@@ -37,7 +37,7 @@ class ActiviteGenereeController extends Controller
 
     public function update(Request $request, $id)
     {
-        $activity = ActiviteGeneree::getActiviteGenereeById($id, $request->all());
+        $activity = ActiviteGeneree::updateActiviteGeneree($id, $request->all());
         if ($activity) {
             return response()->json($activity);
         } else {

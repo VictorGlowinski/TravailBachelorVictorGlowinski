@@ -26,7 +26,7 @@ class ActiviteRealisee extends Model
         'rea_distance' => 'float',
     ];
 
-    public static function user()
+    public function user()
     {
         return $this->belongsTo(User::class, 'rea_user_id', 'id');
     }
