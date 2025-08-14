@@ -5,52 +5,230 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Plan;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
+use Exception;
+use Illuminate\Support\Facades\Log;
 
 class PlanController extends Controller
 {
-    // Controller methods for handling plans
-    // This could include methods for creating, updating, deleting, and retrieving plans
-    // For example:
-
-    public function index(Request $request)
+    /**
+     * Afficher tous les plans avec recherche optionnelle
+     */
+    public function index(Request $request): JsonResponse
     {
-        $keyword = $request->query('q');
-        return Plan::query()->search($keyword)->get();
-    }
-
-    public function show($id)
-    {
-        // Logic to retrieve a specific plan by ID
-        $plan = Plan::getPlanById($id);
-        if ($plan) {
-            return response()->json($plan);
+        try {
+            $keyword = $request->query('q');
+            $userId = $request->query('user_id');
+            
+            $query = Plan::query();
+            
+            // Recherche par mot-clé
+            if ($keyword) {
+                $query->where('pla_nom', 'like', "%{$keyword}%");
+            }
+            
+            // Filtrer par utilisateur
+            if ($userId) {
+                $query->where('pla_user_id', $userId);
+            }
+            
+            $plans = $query->get();
+            
+            return response()->json([
+                'success' => true,
+                'plans' => $plans,
+                'count' => $plans->count()
+            ]);
+            
+        } catch (Exception $e) {
+            Log::error('Erreur récupération plans:', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des plans'
+            ], 500);
         }
-        return response()->json(['message' => 'Plan not found'], 404);
     }
 
-    public function store(Request $request)
-    {   
-        $plan = Plan::createPlan($request->all());
-        return response()->json($plan, 201);
-    }
-
-    public function update(Request $request, $id)
+    /**
+     * Afficher un plan spécifique
+     */
+    public function show($id): JsonResponse
     {
-        $plan = Plan::updatePlan($id, $request->all());
-        if ($plan) {
-            return response()->json($plan);
-        } else {
-            return response()->json(['message' => 'Plan not found'], 404);
+        try {
+            $plan = Plan::find($id);
+            
+            if (!$plan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Plan non trouvé'
+                ], 404);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'plan' => $plan
+            ]);
+            
+        } catch (Exception $e) {
+            Log::error('Erreur récupération plan:', ['id' => $id, 'error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération du plan'
+            ], 500);
         }
     }
 
-    public function destroy($id)
+    /**
+     * Créer un nouveau plan
+     */
+    public function store(Request $request): JsonResponse
     {
-        $success = Plan::deletePlan($id);
-        if ($success) {
-            return response()->json(['message' => 'Plan deleted successfully']);
-        } else {
-            return response()->json(['message' => 'Plan not found'], 404);
+        try {
+            // ✅ VALIDATION des données
+            $validated = $request->validate([
+                'pla_user_id' => 'required|integer|exists:users,id',
+                'pla_nom' => 'required|string|max:255',
+                'pla_debut' => 'nullable|date',
+                'pla_fin' => 'nullable|date|after_or_equal:pla_debut'
+            ]);
+            
+            // ✅ CRÉATION avec les méthodes Eloquent standard
+            $plan = Plan::create($validated);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Plan créé avec succès',
+                'plan' => $plan // ✅ CORRECTION : Format attendu par OpenAIController
+            ], 201);
+            
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Données invalides',
+                'errors' => $e->errors()
+            ], 422);
+            
+        } catch (Exception $e) {
+            Log::error('Erreur création plan:', ['data' => $request->all(), 'error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la création du plan',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Mettre à jour un plan existant
+     */
+    public function update(Request $request, $id): JsonResponse
+    {
+        try {
+            $plan = Plan::find($id);
+            
+            if (!$plan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Plan non trouvé'
+                ], 404);
+            }
+            
+            // ✅ VALIDATION des données
+            $validated = $request->validate([
+                'pla_user_id' => 'sometimes|required|integer|exists:users,id',
+                'pla_nom' => 'sometimes|required|string|max:255',
+                'pla_debut' => 'nullable|date',
+                'pla_fin' => 'nullable|date|after_or_equal:pla_debut'
+            ]);
+            
+            // ✅ MISE À JOUR avec Eloquent
+            $plan->update($validated);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Plan mis à jour avec succès',
+                'plan' => $plan->fresh() // Recharger les données
+            ]);
+            
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Données invalides',
+                'errors' => $e->errors()
+            ], 422);
+            
+        } catch (Exception $e) {
+            Log::error('Erreur mise à jour plan:', ['id' => $id, 'error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour du plan'
+            ], 500);
+        }
+    }
+
+    /**
+     * Supprimer un plan
+     */
+    public function destroy($id): JsonResponse
+    {
+        try {
+            $plan = Plan::find($id);
+            
+            if (!$plan) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Plan non trouvé'
+                ], 404);
+            }
+            
+            // ✅ SUPPRESSION avec Eloquent
+            $plan->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Plan supprimé avec succès'
+            ]);
+            
+        } catch (Exception $e) {
+            Log::error('Erreur suppression plan:', ['id' => $id, 'error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression du plan'
+            ], 500);
+        }
+    }
+
+    /**
+     * ✅ AJOUT : Récupérer les plans d'un utilisateur spécifique
+     */
+    public function getByUser($userId): JsonResponse
+    {
+        try {
+            $user = User::find($userId);
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Utilisateur non trouvé'
+                ], 404);
+            }
+            
+            $plans = Plan::where('pla_user_id', $userId)->get();
+            
+            return response()->json([
+                'success' => true,
+                'user_id' => $userId,
+                'plans' => $plans,
+                'count' => $plans->count()
+            ]);
+            
+        } catch (Exception $e) {
+            Log::error('Erreur récupération plans utilisateur:', ['user_id' => $userId, 'error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des plans'
+            ], 500);
         }
     }
 }

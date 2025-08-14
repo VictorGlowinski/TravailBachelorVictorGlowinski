@@ -3,15 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\Jour;
+use App\Models\ActiviteGeneree;
 
 class Plan extends Model
 {
-    protected $table = 'plan'; // Nom de la table
-    protected $primaryKey = 'pla_id'; // Nom personnalisé pour l'ID
+    protected $table = 'plan';
+    protected $primaryKey = 'pla_id';
+    
     protected $fillable = [
         'pla_user_id',
         'pla_nom',
-        'pla_description',
         'pla_debut',
         'pla_fin'
     ];
@@ -23,54 +26,35 @@ class Plan extends Model
         'pla_fin' => 'date',
     ];
 
+    // ✅ RELATIONS SEULEMENT
     public function user()
     {
         return $this->belongsTo(User::class, 'pla_user_id', 'id');
     }
 
+    public function jours()
+    {
+        return $this->hasMany(Jour::class, 'jou_plan_id', 'pla_id');
+    }
+
+    public function activites()
+    {
+        return $this->hasManyThrough(
+            ActiviteGeneree::class,
+            Jour::class,
+            'jou_plan_id',  // Clé étrangère sur la table jours
+            'gen_jour_id',  // Clé étrangère sur la table activites_generees
+            'pla_id',       // Clé locale sur la table plans
+            'jou_id'        // Clé locale sur la table jours
+        );
+    }
+
+    // ✅ SCOPES SI NÉCESSAIRES
     public function scopeSearch($query, ?string $keyword)
     {
         if (!$keyword) return $query;
-        return $query->where(function ($q) use ($keyword) {
-            $q->where('pla_nom', 'like', "%{$keyword}%")
-                ->orWhere('pla_debut', 'like', "%{$keyword}%")
-                ->orWhere('pla_fin', 'like', "%{$keyword}%");
-
-        });
+        
+        return $query->where('pla_nom', 'like', "%{$keyword}%");
     }
 
-    public static function getPlanById($id)
-    {
-        return self::find($id);
-    }
-
-    public static function createPlan($data)
-    {
-        return self::create($data);
-    }
-
-    public static function updatePlan($id, $data)
-    {
-        $plan = self::find($id);
-        if ($plan) {
-            $plan->update($data);
-            return $plan;
-        }
-        return null;
-    }
-
-    public static function deletePlan($id)
-    {
-        $plan = self::find($id);
-        if ($plan) {
-            $plan->delete();
-            return true;
-        }
-        return false;
-    }
-
-    public static function getPlansByUserId($userId)
-    {
-        return self::where('pla_user_id', $userId)->get();
-    }
 }
