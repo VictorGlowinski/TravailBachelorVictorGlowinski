@@ -38,3 +38,8 @@ Route::prefix('ai')->group(function () {
     Route::post('/generate-training-activities', [OpenAIController::class, 'generateTrainingActivities']);
     Route::post('/debug-activities', [OpenAIController::class, 'debugTrainingActivities']); 
 });
+
+Route::post('/register', [UserController::class, 'register']);
+Route::post('/login', [UserController::class, 'login']);
+Route::post('/logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
+Route::get('/me', [UserController::class, 'me'])->middleware('auth:sanctum');

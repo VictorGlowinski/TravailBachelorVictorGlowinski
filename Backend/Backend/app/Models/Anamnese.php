@@ -25,7 +25,6 @@ class Anamnese extends Model
         'ana_commentaire',
         'ana_traitement',
         'ana_diagnostics'
-
     ];
 
   
