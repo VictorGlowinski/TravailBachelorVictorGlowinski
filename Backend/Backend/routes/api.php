@@ -18,9 +18,14 @@ Route::apiResource('plan', PlanController::class);
 
 Route::get('/plans/{planId}/jours', [JourController::class, 'getByPlan']);
 Route::get('/jours/{jourId}/activites', [ActiviteGenereeController::class, 'getByJour']);
-Route::apiResource('evaluation-initiale', EvaluationInitialeController::class);
 Route::apiResource('activite-realisee', ActiviteRealiseeController::class);
+
+Route::get('/anamnese/user/{userId}', [AnamneseController::class, 'getAnamneseByUserId']);
 Route::apiResource('anamnese', AnamneseController::class);
+
+Route::get('/evaluation-initiale/user/{userId}', [EvaluationInitialeController::class, 'getEvaluationInitialeByUserId']);
+Route::apiResource('evaluation-initiale', EvaluationInitialeController::class);
+
 // Route resource pour les utilisateurs (inclut automatiquement store, index, show, update, destroy)
 Route::apiResource('users', UserController::class);
 

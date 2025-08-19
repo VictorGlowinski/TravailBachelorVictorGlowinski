@@ -26,11 +26,13 @@ export default function TabLayout() {
         // to prevent a hydration error in React Navigation v6.
         headerShown: useClientOnlyValue(false, true),
       }}>
+      
+      {/* Onglet Accueil */}
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: 'Accueil',
+          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
           headerRight: () => (
             <Link href="/modal" asChild>
               <Pressable>
@@ -47,13 +49,78 @@ export default function TabLayout() {
           ),
         }}
       />
+
+      {/* Onglet Plans d'entraînement */}
+      <Tabs.Screen
+        name="plan"
+        options={{
+          title: 'Plans',
+          tabBarIcon: ({ color }) => <TabBarIcon name="list-alt" color={color} />,
+          headerRight: () => (
+            <Link href="/(tabs)/creationPlan" asChild>
+              <Pressable>
+                {({ pressed }) => (
+                  <FontAwesome
+                    name="plus"
+                    size={25}
+                    color={Colors[colorScheme ?? 'light'].text}
+                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
+                  />
+                )}
+              </Pressable>
+            </Link>
+          ),
+        }}
+      />
+
+      {/* Onglet Calendrier */}
+      <Tabs.Screen
+        name="calendrier"
+        options={{
+          title: 'Calendrier',
+          tabBarIcon: ({ color }) => <TabBarIcon name="calendar" color={color} />,
+        }}
+      />
+
+      {/* Onglet Profil */}
+      <Tabs.Screen
+        name="profil"
+        options={{
+          title: 'Profil',
+          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+          // ✅ SUPPRIMER le headerRight car maintenant tout se passe dans la page profil
+        }}
+      />
+
+      {/* Masquer les pages non utilisées dans les onglets */}
       <Tabs.Screen
         name="two"
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          href: null, // Masque cet onglet
         }}
       />
+
+      <Tabs.Screen
+        name="creationAnamnese"
+        options={{
+          href: null, // Masque cet onglet (sera accessible via navigation)
+        }}
+      />
+
+      <Tabs.Screen
+        name="creationEvaluationInitiale"
+        options={{
+          href: null, // Masque cet onglet (sera accessible via navigation)
+        }}
+      />
+
+      <Tabs.Screen
+        name="creationPlan"
+        options={{
+          href: null, // Masque cet onglet (sera accessible via navigation)
+        }}
+      />
+      
     </Tabs>
   );
 }
