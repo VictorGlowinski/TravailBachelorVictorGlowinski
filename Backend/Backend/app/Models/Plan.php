@@ -57,4 +57,16 @@ class Plan extends Model
         return $query->where('pla_nom', 'like', "%{$keyword}%");
     }
 
+    public function getPlanByUserID($userId)
+    {
+        return $this->where('pla_user_id', $userId)->get();
+    }
+
+    public function getUserPlanComplete($userId)
+    {
+        return $this->with(['jours.activites'])
+                    ->where('pla_user_id', $userId)
+                    ->get();
+    }
+
 }

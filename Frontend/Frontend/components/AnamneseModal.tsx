@@ -325,7 +325,7 @@ const loadAnamneseData = async () => {
               { label: "État actuel", key: "etat_actuel" },
               { label: "Objectifs", key: "objectif" },
               { label: "Expérience sportive", key: "exp_sportive" },
-              { label: "Antécédents", key: "diagnostics" },
+              { label: "Antécédents et diagnostics", key: "diagnostics" },
               { label: "Traitements", key: "traitement" },
             ].map(({ label, key }) => (
               <View key={key} style={{ marginBottom: 20 }}>

@@ -15,6 +15,8 @@ function TabBarIcon(props: {
   return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
 }
 
+// app/(tabs)/_layout.tsx - CORRIGER la duplication
+
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
@@ -22,8 +24,6 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
         headerShown: useClientOnlyValue(false, true),
       }}>
       
@@ -50,26 +50,13 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Onglet Plans d'entraînement */}
+      {/* ✅ Onglet Plans d'entraînement - GARDER SEULEMENT CELUI-CI */}
       <Tabs.Screen
         name="plan"
         options={{
           title: 'Plans',
           tabBarIcon: ({ color }) => <TabBarIcon name="list-alt" color={color} />,
-          headerRight: () => (
-            <Link href="/(tabs)/creationPlan" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="plus"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
+          // ✅ SUPPRIMER le headerRight qui pointe vers lui-même
         }}
       />
 
@@ -88,7 +75,6 @@ export default function TabLayout() {
         options={{
           title: 'Profil',
           tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
-          // ✅ SUPPRIMER le headerRight car maintenant tout se passe dans la page profil
         }}
       />
 
@@ -109,13 +95,6 @@ export default function TabLayout() {
 
       <Tabs.Screen
         name="creationEvaluationInitiale"
-        options={{
-          href: null, // Masque cet onglet (sera accessible via navigation)
-        }}
-      />
-
-      <Tabs.Screen
-        name="creationPlan"
         options={{
           href: null, // Masque cet onglet (sera accessible via navigation)
         }}

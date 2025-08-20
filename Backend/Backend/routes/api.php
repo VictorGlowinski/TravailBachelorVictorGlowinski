@@ -14,9 +14,7 @@ use Illuminate\Http\Request;
 // Routes pour les ressources API
 Route::apiResource('activite-generee', ActiviteGenereeController::class);
 Route::apiResource('jour', JourController::class);
-Route::apiResource('plan', PlanController::class);
 
-Route::get('/plans/{planId}/jours', [JourController::class, 'getByPlan']);
 Route::get('/jours/{jourId}/activites', [ActiviteGenereeController::class, 'getByJour']);
 Route::apiResource('activite-realisee', ActiviteRealiseeController::class);
 
@@ -26,6 +24,10 @@ Route::apiResource('anamnese', AnamneseController::class);
 Route::get('/evaluation-initiale/user/{userId}', [EvaluationInitialeController::class, 'getEvaluationInitialeByUserId']);
 Route::apiResource('evaluation-initiale', EvaluationInitialeController::class);
 
+Route::apiResource('plan', PlanController::class);
+Route::get('/plans/{planId}/jours', [JourController::class, 'getByPlan']);
+Route::get('/plans/user/{userId}', [PlanController::class, 'getPlanByUserID']);
+Route::get('/plans/user/{userId}/complete', [PlanController::class, 'getUserPlanComplete']);
 // Route resource pour les utilisateurs (inclut automatiquement store, index, show, update, destroy)
 Route::apiResource('users', UserController::class);
 

@@ -10,6 +10,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB; 
+
 
 class PlanController extends Controller
 {
@@ -231,4 +233,69 @@ class PlanController extends Controller
             ], 500);
         }
     }
+
+    public function getUserPlanComplete($userId): JsonResponse
+{
+    try {
+        $user = User::find($userId);
+        if (!$user) {
+            return response()->json(['error' => 'Utilisateur non trouvé'], 404);
+        }
+
+        // ✅ UTILISER Eloquent avec relations
+        $plan = Plan::with(['jours.activites'])
+                   ->where('pla_user_id', $userId)
+                   ->first();
+
+        if (!$plan) {
+            return response()->json([], 404);
+        }
+
+        // ✅ TRANSFORMER les données pour le frontend
+        $planData = [
+            'pla_id' => $plan->pla_id,
+            'pla_nom' => $plan->pla_nom,
+            'pla_date_debut' => $plan->pla_debut,
+            'pla_date_fin' => $plan->pla_fin,
+            'pla_nb_semaines' => null,
+            'jours' => []
+        ];
+
+        // ✅ TRANSFORMER les jours
+        foreach ($plan->jours as $jour) {
+            $jourData = [
+                'jou_id' => $jour->jou_id,
+                'jou_description' => $jour->jou_description,
+                'jou_date' => $jour->jou_date,
+                'activites' => []
+            ];
+
+            // ✅ TRANSFORMER les activités
+            foreach ($jour->activites as $activite) {
+                $jourData['activites'][] = [
+                    'gen_id' => $activite->gen_id,
+                    'gen_nom' => $activite->gen_nom,
+                    'gen_type' => $activite->gen_type,
+                    'gen_duree' => $activite->gen_duree,
+                    'gen_distance' => $activite->gen_distance,
+                    'gen_intensite' => $activite->gen_intensite,
+                    'gen_commentaire' => $activite->gen_commentaire,
+                    'gen_source' => $activite->gen_source
+                ];
+            }
+
+            $planData['jours'][] = $jourData;
+        }
+
+        return response()->json($planData);
+        
+    } catch (Exception $e) {
+        Log::error('Erreur getUserPlanComplete:', [
+            'user_id' => $userId, 
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return response()->json(['error' => 'Erreur lors de la récupération du plan'], 500);
+    }
+}
 }
