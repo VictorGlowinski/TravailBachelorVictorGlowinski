@@ -28,7 +28,8 @@ export default function AnamneseModal({ visible, onClose, userId }: AnamneseModa
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [anamneseId, setAnamneseId] = useState<string | null>(null);
-  
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const [formData, setFormData] = useState({
     age: "",
     blessures: "",
@@ -40,7 +41,6 @@ export default function AnamneseModal({ visible, onClose, userId }: AnamneseModa
     contrainte_pro: "",
     contrainte_fam: "",
     exp_sportive: "",
-    objectif: "",
     commentaire: "",
     traitement: "",
     diagnostics: "",
@@ -89,7 +89,6 @@ const loadAnamneseData = async () => {
           contrainte_pro: anamnese.ana_contrainte_pro || "",
           contrainte_fam: anamnese.ana_contrainte_fam || "",
           exp_sportive: anamnese.ana_exp_sportive || "",
-          objectif: anamnese.ana_objectif || "",
           commentaire: anamnese.ana_commentaire || "",
           traitement: anamnese.ana_traitement || "",
           diagnostics: anamnese.ana_diagnostics || "",
@@ -126,7 +125,6 @@ const loadAnamneseData = async () => {
         ana_contrainte_pro: formData.contrainte_pro,
         ana_contrainte_fam: formData.contrainte_fam,
         ana_exp_sportive: formData.exp_sportive,
-        ana_objectif: formData.objectif,
         ana_commentaire: formData.commentaire,
         ana_traitement: formData.traitement,
         ana_diagnostics: formData.diagnostics
@@ -178,6 +176,76 @@ const loadAnamneseData = async () => {
     onClose();
   };
 
+  const deleteAnamnese = async () => {
+    if (!userId || !anamneseId) return;
+    
+    // ✅ CONFIRMATION avant suppression
+    Alert.alert(
+      "Supprimer l'anamnèse",
+      "Êtes-vous sûr de vouloir supprimer définitivement cette anamnèse ?",
+      [
+        {
+          text: "Annuler",
+          style: "cancel"
+        },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              const response = await fetch(`${API_BASE_URL}/anamnese/${anamneseId}`, {
+                method: "DELETE",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              });
+
+              if (response.ok) {
+                Alert.alert(
+                  "Succès", 
+                  "Anamnèse supprimée avec succès !",
+                  [
+                    { 
+                      text: "OK", 
+                      onPress: () => {
+                        // ✅ FERMER le modal et réinitialiser
+                        setFormData({
+                          age: "",
+                          blessures: "",
+                          etat_actuel: "",
+                          sexe: "",
+                          poids_kg: "",
+                          taille_cm: "",
+                          imc: "",
+                          contrainte_pro: "",
+                          contrainte_fam: "",
+                          exp_sportive: "",
+                          commentaire: "",
+                          traitement: "",
+                          diagnostics: "",
+                        });
+                        setAnamneseId(null);
+                        onClose();
+                      }
+                    }
+                  ]
+                );
+              } else {
+                throw new Error("Erreur lors de la suppression");
+              }
+            } catch (error) {
+              console.error('❌ Erreur suppression:', error);
+              Alert.alert("Erreur", "Impossible de supprimer l'anamnèse. Veuillez réessayer.");
+            } finally {
+              setIsDeleting(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <Modal
       visible={visible}
@@ -187,7 +255,7 @@ const loadAnamneseData = async () => {
     >
       <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
         
-        {/* Header simple */}
+        {/* ✅ HEADER MODIFIÉ avec bouton supprimer */}
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
@@ -204,33 +272,59 @@ const loadAnamneseData = async () => {
             {mode === 'view' ? 'Consultation' : 'Modification'} anamnèse
           </Text>
           
-          <Pressable 
-            onPress={() => {
-              if (mode === 'view') {
-                setMode('edit');
-              } else {
-                saveChanges();
-              }
-            }}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <ActivityIndicator size="small" color="#007AFF" />
-            ) : (
-              <FontAwesome 
-                name={mode === 'view' ? 'edit' : 'check'} 
-                size={20} 
-                color="#007AFF" 
-              />
+          {/* ✅ BOUTONS d'action */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
+            {/* Bouton Supprimer - visible uniquement en mode view */}
+            {mode === 'view' && (
+              <Pressable 
+                onPress={deleteAnamnese}
+                disabled={isDeleting}
+                style={{
+                  opacity: isDeleting ? 0.5 : 1
+                }}
+              >
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color="#e74c3c" />
+                ) : (
+                  <FontAwesome name="trash" size={20} color="#e74c3c" />
+                )}
+              </Pressable>
             )}
-          </Pressable>
+            
+            {/* Bouton Modifier/Sauvegarder */}
+            <Pressable 
+              onPress={() => {
+                if (mode === 'view') {
+                  setMode('edit');
+                } else {
+                  saveChanges();
+                }
+              }}
+              disabled={isSaving || isDeleting}
+              style={{
+                opacity: (isSaving || isDeleting) ? 0.5 : 1
+              }}
+            >
+              {isSaving ? (
+                <ActivityIndicator size="small" color="#007AFF" />
+              ) : (
+                <FontAwesome 
+                  name={mode === 'view' ? 'edit' : 'check'} 
+                  size={20} 
+                  color="#007AFF" 
+                />
+              )}
+            </Pressable>
+          </View>
         </View>
 
-        {/* Contenu */}
-        {isLoading ? (
+        {/* ✅ CONTENU avec état de chargement pour suppression */}
+        {(isLoading || isDeleting) ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <ActivityIndicator size="large" color="#007AFF" />
-            <Text style={{ marginTop: 10 }}>Chargement...</Text>
+            <Text style={{ marginTop: 10 }}>
+              {isLoading ? 'Chargement...' : 'Suppression en cours...'}
+            </Text>
           </View>
         ) : (
           <ScrollView style={{ flex: 1, padding: 20 }}>
@@ -323,7 +417,6 @@ const loadAnamneseData = async () => {
             {[
               { label: "Blessures", key: "blessures" },
               { label: "État actuel", key: "etat_actuel" },
-              { label: "Objectifs", key: "objectif" },
               { label: "Expérience sportive", key: "exp_sportive" },
               { label: "Antécédents et diagnostics", key: "diagnostics" },
               { label: "Traitements", key: "traitement" },
@@ -348,6 +441,33 @@ const loadAnamneseData = async () => {
                 />
               </View>
             ))}
+
+            {/* ✅ SECTION DANGER en bas du formulaire (optionnel) */}
+            {mode === 'view' && ( 
+                <Pressable
+                  onPress={deleteAnamnese}
+                  disabled={isDeleting}
+                  style={{
+                    backgroundColor: '#e74c3c',
+                    padding: 10,
+                    borderRadius: 6,
+                    alignItems: 'center',
+                    opacity: isDeleting ? 0.5 : 1
+                  }}
+                >
+                  {isDeleting ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <>
+                      <FontAwesome name="trash" size={16} color="white" />
+                      <Text style={{ color: 'white', fontWeight: 'bold', marginTop: 4 }}>
+                        Supprimer l'anamnèse
+                      </Text>
+                    </>
+                  )}
+                </Pressable>
+              
+            )}
 
             <View style={{ height: 50 }} />
           </ScrollView>

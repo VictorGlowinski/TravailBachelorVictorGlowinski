@@ -45,4 +45,26 @@ class Jour extends Model
         });
     }
 
+    public static function getTodayActivitiesForUser($userId)
+    {
+        $today = now()->format('Y-m-d');
+        
+        return self::whereDate('jou_date', $today)
+                ->whereHas('plan', function($query) use ($userId) {
+                    $query->where('pla_user_id', $userId);
+                })
+                ->with(['activites', 'plan'])
+                ->first();
+    }
+
+    public static function getActivitiesForUserAndDate($userId, $date)
+    {
+        return self::whereDate('jou_date', $date)
+                ->whereHas('plan', function($query) use ($userId) {
+                    $query->where('pla_user_id', $userId);
+                })
+                ->with(['activites', 'plan'])
+                ->first();
+    }
+
 }

@@ -1,14 +1,29 @@
 // app/(tabs)/plan.tsx - AFFICHER le plan directement
-import { Pressable, Alert, ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { Pressable, Alert, ActivityIndicator, ScrollView, Text, View, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 import planStyles from '@/styles/screens/PlanStyles';
 import { useTheme } from '@/styles/screens/ThemeStyle';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import ActiviteGenereeModal from '@/components/ActiviteGenereeModal';
+import DateTimePicker from '@react-native-community/datetimepicker';
+
 
 export default function PlanScreen() {
   const theme = useTheme();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  //afficher le detail des jours d'entrainement
+  const [selectedJour, setSelectedJour] = useState<any>(null);
+  const [selectedDayNumber, setSelectedDayNumber] = useState<number>(0);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [startDate, setStartDate] = useState<string>('');
+  const [showStartDatePicker, setShowStartDatePicker] = useState<boolean>(false);
+  const [tempStartDate, setTempStartDate] = useState<Date | null>(null);
+
+
+
   const [userData, setUserData] = useState<{
     hasAnamnese: boolean;
     hasEvaluation: boolean;
@@ -42,6 +57,134 @@ export default function PlanScreen() {
     };
     getUserId();
   }, []);
+
+  const handleStartDateChange = (event: any, selectedDate?: Date) => {
+  if (Platform.OS === 'android') {
+    // ✅ Sur Android, garder le comportement natif
+    setShowStartDatePicker(false);
+    if (selectedDate && event.type !== 'dismissed') {
+      const formattedDate = selectedDate.toISOString().split('T')[0];
+      setStartDate(formattedDate);
+    }
+  } else {
+    // ✅ Sur iOS, ne pas fermer automatiquement
+    if (selectedDate && event.type !== 'dismissed') {
+      setTempStartDate(selectedDate);
+    } else if (event.type === 'dismissed') {
+      setShowStartDatePicker(false);
+      setTempStartDate(null);
+    }
+  }
+};
+
+// ✅ FONCTION pour confirmer la date (iOS)
+const confirmStartDate = () => {
+  if (tempStartDate) {
+    const formattedDate = tempStartDate.toISOString().split('T')[0];
+    setStartDate(formattedDate);
+  }
+  setShowStartDatePicker(false);
+  setTempStartDate(null);
+};
+
+// ✅ FONCTION pour annuler la sélection
+const cancelStartDateSelection = () => {
+  setShowStartDatePicker(false);
+  setTempStartDate(null);
+};
+
+  // FONCTION pour ouvrir le modal
+  const openJourModal = (jour: any, dayNumber: number) => {
+    console.log('📱 Ouverture modal pour jour:', dayNumber, jour);
+    setSelectedJour(jour);
+    setSelectedDayNumber(dayNumber);
+    setModalVisible(true);
+  };
+
+  // FONCTION pour fermer le modal
+  const closeJourModal = () => {
+    setModalVisible(false);
+    setSelectedJour(null);
+    setSelectedDayNumber(0);
+  };
+
+  const formatDateForDisplay = (dateString: string) => {
+  if (!dateString) return '';
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  } catch (error) {
+    return dateString;
+  }
+};
+
+
+// MODIFIER generatePlan pour inclure la date
+const generatePlan = async () => {
+  if (!currentUserId) {
+    Alert.alert("Erreur", "Utilisateur non identifié");
+    return;
+  }
+
+  if (!userData.hasAnamnese || !userData.hasEvaluation) {
+    Alert.alert(
+      "Données manquantes", 
+      "Vous devez compléter votre anamnèse ET votre évaluation initiale avant de générer un plan d'entraînement.",
+      [{ text: "OK", style: "default" }]
+    );
+    return;
+  }
+
+  if (!startDate) {
+    Alert.alert("Date manquante", "Veuillez sélectionner une date de début pour votre plan d'entraînement.");
+    return;
+  }
+
+  setIsLoading(true);
+  try {
+    console.log('🚀 Génération du plan pour userId:', currentUserId);
+
+    const planData = {
+      user_id: parseInt(currentUserId, 10),
+      start_date: startDate, // ✅ INCLURE la date de début
+    };
+
+    const response = await fetch(`${API_BASE_URL}/ai/generate-complete-plan`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(planData),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log('✅ Plan généré:', result);
+      
+      // Recharger les données après génération
+      if (currentUserId) {
+        await checkUserData(currentUserId);
+      }
+      
+      Alert.alert("Succès", "Plan d'entraînement généré avec succès !");
+    } else {
+      const errorData = await response.json();
+      console.error('❌ Erreur API:', errorData);
+      throw new Error(errorData.message || "Erreur lors de la génération du plan");
+    }
+  } catch (error) {
+    console.error("❌ Erreur génération plan:", error);
+    Alert.alert("Erreur", "Impossible de générer le plan d'entraînement. Veuillez réessayer.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // ✅ MODIFIER pour récupérer le plan COMPLET avec jours et activités
   const checkUserData = async (userId: string) => {
@@ -142,64 +285,7 @@ export default function PlanScreen() {
     }
   };
 
-  // generatePlan reste identique
-  const generatePlan = async () => {
-    if (!currentUserId) {
-      Alert.alert("Erreur", "Utilisateur non identifié");
-      return;
-    }
-
-    if (!userData.hasAnamnese || !userData.hasEvaluation) {
-      Alert.alert(
-        "Données manquantes", 
-        "Vous devez compléter votre anamnèse ET votre évaluation initiale avant de générer un plan d'entraînement.",
-        [{ text: "OK", style: "default" }]
-      );
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      console.log('🚀 Génération du plan pour userId:', currentUserId);
-
-      const planData = {
-        user_id: parseInt(currentUserId, 10),
-        anamnese: userData.anamneseData,
-        evaluation: userData.evaluationData,
-      };
-
-      const response = await fetch(`${API_BASE_URL}/ai/generate-complete-plan`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify(planData),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Plan généré:', result);
-        
-        // Recharger les données après génération
-        if (currentUserId) {
-          await checkUserData(currentUserId);
-        }
-        
-        Alert.alert("Succès", "Plan d'entraînement généré avec succès !");
-      } else {
-        const errorData = await response.json();
-        console.error('❌ Erreur API:', errorData);
-        throw new Error(errorData.message || "Erreur lors de la génération du plan");
-      }
-    } catch (error) {
-      console.error("❌ Erreur génération plan:", error);
-      Alert.alert("Erreur", "Impossible de générer le plan d'entraînement. Veuillez réessayer.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  
   // ✅ FONCTION pour formater la date
   const formatDate = (dateString: string) => {
   if (!dateString) return ''; // ✅ OK - chaîne vide
@@ -246,7 +332,7 @@ const deletePlan = async () => {
             
             try {
               // ✅ CORRIGER l'URL et la méthode
-              const response = await fetch(`${API_BASE_URL}/plans/${userData.planData.pla_id}`, {
+              const response = await fetch(`${API_BASE_URL}/plan/${userData.planData.pla_id}`, {
                 method: "DELETE",
                 headers: {
                   "Content-Type": "application/json",
@@ -285,7 +371,6 @@ const deletePlan = async () => {
   }
 };
 
-
 return (
   <ScrollView 
     style={[planStyles.container, { backgroundColor: theme.colors.background }]}
@@ -297,7 +382,6 @@ return (
       <Text style={[planStyles.mainTitle, { color: theme.colors.primary }]}>
         Mon Plan d'Entraînement
       </Text>
-      
     </View>
 
     {/* ✅ LOADING STATE */}
@@ -315,43 +399,105 @@ return (
       <View style={planStyles.generateSection}>
         <View style={[planStyles.prerequisCard, { backgroundColor: theme.colors.surface }]}>
           <Text style={[planStyles.cardTitle, { color: theme.colors.primary }]}>Prérequis</Text>
+
           <View style={planStyles.prerequisList}>
             <View style={planStyles.prerequisItem}>
               <View style={[planStyles.statusIcon, { backgroundColor: userData.hasAnamnese ? theme.colors.success : theme.colors.error }]}>
                 <Text style={planStyles.statusIconText}>{userData.hasAnamnese ? '✓' : '✗'}</Text>
               </View>
-              <Text style={[planStyles.prerequisText, { color: theme.colors.primary }]}>Anamnèse complétée</Text>
+              <Text style={[planStyles.prerequisText, { color: theme.colors.primary }]}>
+                Anamnèse {userData.hasAnamnese ? 'complétée' : 'à compléter'}
+              </Text>
             </View>
             
             <View style={planStyles.prerequisItem}>
               <View style={[planStyles.statusIcon, { backgroundColor: userData.hasEvaluation ? theme.colors.success : theme.colors.error }]}>
                 <Text style={planStyles.statusIconText}>{userData.hasEvaluation ? '✓' : '✗'}</Text>
               </View>
-              <Text style={[planStyles.prerequisText, { color: theme.colors.primary }]}>Évaluation complétée</Text>
+              <Text style={[planStyles.prerequisText, { color: theme.colors.primary }]}>
+                Évaluation {userData.hasEvaluation ? 'complétée' : 'à compléter'}
+              </Text>
             </View>
           </View>
-        </View>
 
-        <Pressable 
-          style={[
-            planStyles.generateButton,
-            {
-              opacity: (!userData.hasAnamnese || !userData.hasEvaluation) ? 0.6 : 1,
-              backgroundColor: (!userData.hasAnamnese || !userData.hasEvaluation) ? theme.colors.disabled : theme.colors.accent
-            }
-          ]} 
-          onPress={generatePlan}
-          disabled={!userData.hasAnamnese || !userData.hasEvaluation}
-        >
-          <Text style={[
-            planStyles.generateButtonText,
-            { color: (!userData.hasAnamnese || !userData.hasEvaluation) ? theme.colors.secondary : 'white' }
-          ]}>
-            {(!userData.hasAnamnese || !userData.hasEvaluation) ? 
-             "Complétez vos données d'abord" : 
-             "Générer mon plan d'entraînement"}
-          </Text>
-        </Pressable>
+          {/* ✅ SECTION DATE DE DÉBUT - OBLIGATOIRE */}
+          {(userData.hasAnamnese && userData.hasEvaluation) && (
+            <View style={planStyles.dateSection}>
+              <Text style={[planStyles.dateLabel, { color: theme.colors.primary }]}>
+                Date de début <Text style={[planStyles.required, { color: theme.colors.error }]}>*</Text>
+              </Text>
+              <Text style={[planStyles.dateDescription, { color: theme.colors.secondary }]}>
+                Sélectionnez la date à laquelle vous souhaitez commencer votre plan d'entraînement
+              </Text>
+              
+              <Pressable
+                style={[
+                  planStyles.dateInput,
+                  { 
+                    backgroundColor: theme.colors.background,
+                    borderColor: startDate ? theme.colors.border : theme.colors.error,
+                    borderWidth: startDate ? 1 : 2,
+                  }
+                ]}
+                onPress={() => setShowStartDatePicker(true)}
+              >
+                <Text style={[
+                  planStyles.dateInputText,
+                  { 
+                    color: startDate ? theme.colors.primary : theme.colors.error
+                  }
+                ]}>
+                  {startDate ? formatDateForDisplay(startDate) : "Sélectionner une date de début *"}
+                </Text>
+                <FontAwesome 
+                  name="calendar" 
+                  size={16} 
+                  color={startDate ? theme.colors.secondary : theme.colors.error} 
+                />
+              </Pressable>
+
+              {/* ✅ MESSAGE D'ERREUR si date manquante */}
+              {!startDate && (userData.hasAnamnese && userData.hasEvaluation) && (
+                <Text style={[planStyles.errorText, { color: theme.colors.error }]}>
+                  La date de début est obligatoire pour générer votre plan
+                </Text>
+              )}
+            </View>
+          )}
+
+          {/* ✅ BOUTON pour générer le plan */}
+          <View style={planStyles.generateButtonContainer}>
+            <Pressable
+              style={[
+                planStyles.generateButton,
+                { 
+                  backgroundColor: (userData.hasAnamnese && userData.hasEvaluation && startDate) ? 
+                                   theme.colors.accent : theme.colors.disabled,
+                  opacity: (userData.hasAnamnese && userData.hasEvaluation && startDate) ? 1 : 0.6
+                }
+              ]}
+              onPress={generatePlan}
+              disabled={!userData.hasAnamnese || !userData.hasEvaluation || !startDate || isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="white" size="small" />
+              ) : (
+                <Text style={planStyles.generateButtonText}>
+                  Générer mon plan d'entraînement
+                </Text>
+              )}
+            </Pressable>
+
+            {/* ✅ Messages d'aide conditionnels */}
+            {(!userData.hasAnamnese || !userData.hasEvaluation) && (
+              <Text style={[planStyles.helpText, { color: theme.colors.warning }]}>
+                Complétez votre anamnèse et évaluation pour générer votre plan personnalisé
+              </Text>
+            )}
+            
+            
+          </View>
+        </View>
       </View>
     )}
 
@@ -360,19 +506,23 @@ return (
       <View style={planStyles.planSection}>
         {/* Bouton supprimer */}
         <View style={{ padding: 20 }}>
-          <Pressable style={[
-            planStyles.deleteButton,
-            { 
-              backgroundColor: 'transparent',
-              borderWidth: 2,
-              borderColor: theme.colors.error,
-            }
-          ]} onPress={deletePlan}>
+          <Pressable 
+            style={[
+              planStyles.deleteButton,
+              { 
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                borderColor: theme.colors.error,
+              }
+            ]} 
+            onPress={deletePlan}
+          >
             <Text style={[planStyles.deleteButtonText, { color: theme.colors.error }]}>
               Supprimer le plan
             </Text>
           </Pressable>
         </View>
+
         {/* Header du plan */}
         <View style={[planStyles.planHeader, { backgroundColor: theme.colors.surface }]}>
           <View style={planStyles.planTitleContainer}>
@@ -401,9 +551,7 @@ return (
           </View>
         </View>
 
-        
-
-        {/* Liste des jours */}
+        {/* Liste des jours avec modal */}
         {userData.planData.jours && userData.planData.jours.length > 0 ? (
           <View style={planStyles.daysSection}>
             <Text style={[planStyles.sectionTitle, { color: theme.colors.primary }]}>
@@ -411,7 +559,11 @@ return (
             </Text>
             
             {userData.planData.jours.map((jour: any, index: number) => (
-              <View key={jour.jou_id || index} style={[planStyles.dayCard, { backgroundColor: theme.colors.surface }]}>
+              <Pressable 
+                key={jour.jou_id || index}
+                style={[planStyles.dayCard, { backgroundColor: theme.colors.surface }]}
+                onPress={() => openJourModal(jour, index + 1)}
+              >
                 <View style={planStyles.dayHeader}>
                   <View style={[planStyles.dayNumberBadge, { backgroundColor: theme.colors.accent }]}>
                     <Text style={planStyles.dayNumberText}>{index + 1}</Text>
@@ -426,68 +578,28 @@ return (
                       </Text>
                     )}
                   </View>
+                  {/* ✅ Indicateur de clic */}
+                  <FontAwesome name="chevron-right" size={16} color={theme.colors.secondary} />
                 </View>
 
-                {/* Description du jour */}
-                {jour.jou_description && (
-                  <View style={[planStyles.dayDescriptionContainer, { backgroundColor: theme.colors.background }]}>
-                    <Text style={[planStyles.dayDescription, { color: theme.colors.secondary }]}>
-                      {String(jour.jou_description)}
-                    </Text>
-                  </View>
-                )}
-
-                {/* Activités */}
+                {/* ✅ Aperçu des activités au lieu du détail complet */}
                 {jour.activites && jour.activites.length > 0 ? (
-                  <View style={planStyles.activitiesContainer}>
-                    {jour.activites.map((activite: any, actIndex: number) => (
-                      <View key={activite.gen_id || actIndex} style={[planStyles.activityCard, { backgroundColor: theme.colors.background }]}>
-                        <Text style={[planStyles.activityName, { color: theme.colors.primary }]}>
-                          {activite.gen_nom || 'Activité'}
-                        </Text>
-                        
-                        <View style={planStyles.tagsContainer}>
-                          {activite.gen_type && String(activite.gen_type).trim() !== '' && (
-                            <View style={[planStyles.tag, planStyles.typeTag]}>
-                              <Text style={planStyles.tagText}>
-                                {String(activite.gen_type)}
-                              </Text>
-                            </View>
-                          )}
-                          
-                          {activite.gen_duree_minutes && (
-                            <View style={[planStyles.tag, planStyles.durationTag]}>
-                              <Text style={planStyles.tagText}>
-                                {String(activite.gen_duree_minutes)} min
-                              </Text>
-                            </View>
-                          )}
-                          
-                          {activite.gen_intensite && String(activite.gen_intensite).trim() !== '' && (
-                            <View style={[planStyles.tag, planStyles.intensityTag]}>
-                              <Text style={planStyles.tagText}>
-                                {String(activite.gen_intensite)}
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-
-                        {activite.gen_description && String(activite.gen_description).trim() !== '' && (
-                          <Text style={[planStyles.activityDescription, { color: theme.colors.secondary }]}>
-                            {String(activite.gen_description)}
-                          </Text>
-                        )}
-                      </View>
-                    ))}
+                  <View style={[planStyles.activitiesPreview, { backgroundColor: theme.colors.background }]}>
+                    <Text style={[planStyles.activitiesCount, { color: theme.colors.accent }]}>
+                      {jour.activites.length} activité{jour.activites.length > 1 ? 's' : ''} programmée{jour.activites.length > 1 ? 's' : ''}
+                    </Text>
+                    <Text style={[planStyles.tapToView, { color: theme.colors.secondary }]}>
+                      Appuyez pour voir le détail
+                    </Text>
                   </View>
                 ) : (
-                  <View style={planStyles.noActivityContainer}>
-                    <Text style={[planStyles.noActivityText, { color: theme.colors.secondary }]}>
-                      Aucune activité programmée
+                  <View style={[planStyles.activitiesPreview, { backgroundColor: theme.colors.background }]}>
+                    <Text style={[planStyles.restDay, { color: theme.colors.secondary }]}>
+                      Jour de repos
                     </Text>
                   </View>
                 )}
-              </View>
+              </Pressable>
             ))}
           </View>
         ) : (
@@ -502,6 +614,70 @@ return (
         )}
       </View>
     )}
+
+    {/* ✅ MODAL pour afficher les détails du jour */}
+    <ActiviteGenereeModal
+      visible={modalVisible}
+      onClose={closeJourModal}
+      jour={selectedJour}
+      dayNumber={selectedDayNumber}
+    />
+
+    {/* ✅ DateTimePicker pour la date de début */}
+    {showStartDatePicker && (
+  <>
+    {Platform.OS === 'ios' && (
+      <View style={[planStyles.datePickerContainer, { backgroundColor: theme.colors.surface }]}>
+        {/* ✅ Header avec boutons */}
+        <View style={[planStyles.datePickerHeader, { borderBottomColor: theme.colors.border }]}>
+          <Pressable
+            style={[planStyles.datePickerButton, { backgroundColor: 'transparent' }]}
+            onPress={cancelStartDateSelection}
+          >
+            <Text style={[planStyles.datePickerButtonText, { color: theme.colors.error }]}>
+              Annuler
+            </Text>
+          </Pressable>
+          
+          <Text style={[planStyles.datePickerTitle, { color: theme.colors.primary }]}>
+            Date de début
+          </Text>
+          
+          <Pressable
+            style={[planStyles.datePickerButton, { backgroundColor: theme.colors.accent }]}
+            onPress={confirmStartDate}
+          >
+            <Text style={[planStyles.datePickerButtonText, { color: 'white' }]}>
+              OK
+            </Text>
+          </Pressable>
+        </View>
+        
+        {/* ✅ DatePicker iOS */}
+        <DateTimePicker
+          value={tempStartDate || (startDate ? new Date(startDate) : new Date())}
+          mode="date"
+          display="spinner"
+          onChange={handleStartDateChange}
+          minimumDate={new Date()}
+          maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() + 1))}
+          style={planStyles.datePickerIOS}
+        />
+      </View>
+    )}
+    
+    {Platform.OS === 'android' && (
+      <DateTimePicker
+        value={startDate ? new Date(startDate) : new Date()}
+        mode="date"
+        display="default"
+        onChange={handleStartDateChange}
+        minimumDate={new Date()}
+        maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() + 1))}
+      />
+    )}
+  </>
+)}
   </ScrollView>
 );
 }

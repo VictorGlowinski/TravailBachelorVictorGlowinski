@@ -11,6 +11,7 @@ import { useTheme } from '@/styles/screens/ThemeStyle'; // ✅ Import du thème
 import { router } from 'expo-router';
 import AnamneseModal from '@/components/AnamneseModal'; 
 import EvaluationInitialeModal from '@/components/EvaluationInitialeModal';
+import UserSettingsModal from '@/components/UserSettingsModal'; // ✅ Nouveau modal
 
 // Interface pour les données
 interface UserData {
@@ -34,6 +35,7 @@ export default function ProfilScreen() {
     const [anamneseModalVisible, setAnamneseModalVisible] = useState(false);
     const [evaluationModalVisible, setEvaluationModalVisible] = useState(false);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const [settingsModalVisible, setSettingsModalVisible] = useState(false);
 
     const openAnamneseModal = () => {
     setAnamneseModalVisible(true);
@@ -41,6 +43,10 @@ export default function ProfilScreen() {
 
     const openEvaluationModal = () => {
         setEvaluationModalVisible(true);
+    };
+
+    const openSettingsModal = () => {
+        setSettingsModalVisible(true);
     };
 
     useEffect(() => {
@@ -172,58 +178,66 @@ export default function ProfilScreen() {
             contentContainerStyle={profilStyles.scrollContent}
             showsVerticalScrollIndicator={false}
         >
-            {/* ✅ HEADER MODERNISÉ */}
-            <View style={[profilStyles.header, { backgroundColor: theme.colors.surface }, theme.shadows]}>
-                <View style={profilStyles.avatarContainer}>
-                    <View style={[profilStyles.avatar, { backgroundColor: theme.colors.accent }]}>
-                        <FontAwesome name="user" size={32} color="white" />
+            {/* ✅ HEADER MODERNISÉ avec engrenage */}
+<View style={[profilStyles.header, { backgroundColor: theme.colors.surface }, theme.shadows]}>
+    {/* ✅ ENGRENAGE EN HAUT À DROITE - BIEN POSITIONNÉ */}
+    <Pressable 
+        style={[profilStyles.settingsButton, { backgroundColor: theme.colors.surfaceVariant }]}
+        onPress={openSettingsModal}
+    >
+        <FontAwesome name="cog" size={20} color={theme.colors.secondary} />
+    </Pressable>
+
+    <View style={profilStyles.avatarContainer}>
+        <View style={[profilStyles.avatar, { backgroundColor: theme.colors.accent }]}>
+            <FontAwesome name="user" size={32} color="white" />
+        </View>
+    </View>
+    
+    {user && (
+        <View style={profilStyles.userInfo}>
+            <Text style={[profilStyles.welcomeText, { color: theme.colors.primary }]}>
+                Bienvenue !
+            </Text>
+            <Text style={[profilStyles.emailText, { color: theme.colors.secondary }]}>
+                {user.email}
+            </Text>
+            
+            {/* ✅ BADGES DE PROGRESSION */}
+            {!isLoading && (
+                <View style={profilStyles.progressBadges}>
+                    <View style={[
+                        profilStyles.progressBadge, 
+                        { backgroundColor: userData.hasAnamnese ? theme.colors.success : theme.colors.warning }
+                    ]}>
+                        <FontAwesome 
+                            name={userData.hasAnamnese ? "check" : "clock-o"} 
+                            size={12} 
+                            color="white" 
+                        />
+                        <Text style={profilStyles.badgeText}>
+                            Anamnèse {userData.hasAnamnese ? "✓" : "En attente"}
+                        </Text>
+                    </View>
+                    
+                    <View style={[
+                        profilStyles.progressBadge, 
+                        { backgroundColor: userData.hasEvaluation ? theme.colors.success : theme.colors.warning }
+                    ]}>
+                        <FontAwesome 
+                            name={userData.hasEvaluation ? "check" : "clock-o"} 
+                            size={12} 
+                            color="white" 
+                        />
+                        <Text style={profilStyles.badgeText}>
+                            Évaluation {userData.hasEvaluation ? "✓" : "En attente"}
+                        </Text>
                     </View>
                 </View>
-                
-                {user && (
-                    <View style={profilStyles.userInfo}>
-                        <Text style={[profilStyles.welcomeText, { color: theme.colors.primary }]}>
-                            Bienvenue !
-                        </Text>
-                        <Text style={[profilStyles.emailText, { color: theme.colors.secondary }]}>
-                            {user.email}
-                        </Text>
-                        
-                        {/* ✅ BADGES DE PROGRESSION */}
-                        {!isLoading && (
-                            <View style={profilStyles.progressBadges}>
-                                <View style={[
-                                    profilStyles.progressBadge, 
-                                    { backgroundColor: userData.hasAnamnese ? theme.colors.success : theme.colors.warning }
-                                ]}>
-                                    <FontAwesome 
-                                        name={userData.hasAnamnese ? "check" : "clock-o"} 
-                                        size={12} 
-                                        color="white" 
-                                    />
-                                    <Text style={profilStyles.badgeText}>
-                                        Anamnèse {userData.hasAnamnese ? "✓" : "En attente"}
-                                    </Text>
-                                </View>
-                                
-                                <View style={[
-                                    profilStyles.progressBadge, 
-                                    { backgroundColor: userData.hasEvaluation ? theme.colors.success : theme.colors.warning }
-                                ]}>
-                                    <FontAwesome 
-                                        name={userData.hasEvaluation ? "check" : "clock-o"} 
-                                        size={12} 
-                                        color="white" 
-                                    />
-                                    <Text style={profilStyles.badgeText}>
-                                        Évaluation {userData.hasEvaluation ? "✓" : "En attente"}
-                                    </Text>
-                                </View>
-                            </View>
-                        )}
-                    </View>
-                )}
-            </View>
+            )}
+        </View>
+    )}
+</View>
 
             {/* ✅ LOADING STATE AMÉLIORÉ */}
             {isLoading && (
@@ -393,33 +407,17 @@ export default function ProfilScreen() {
                 {showInfo && (
                     <View style={[profilStyles.helpContent, { backgroundColor: theme.colors.background }]}>
                         <View style={profilStyles.helpItem}>
-                            <View style={[profilStyles.helpBullet, { backgroundColor: '#4A90E2' }]}>
-                                <Text style={profilStyles.helpBulletText}>1</Text>
-                            </View>
+                            {/* <View style={[profilStyles.helpBullet, { backgroundColor: '#4A90E2' }]}></View> */}
                             <View style={profilStyles.helpTextContainer}>
                                 <Text style={[profilStyles.helpItemTitle, { color: theme.colors.primary }]}>
-                                    Anamnèse
+                                    Pourquoi est-ce nécessaire de fournir des informations médicales et physiques ?
                                 </Text>
                                 <Text style={[profilStyles.helpItemText, { color: theme.colors.secondary }]}>
-                                    Historique médical, blessures, habitudes de vie
+                                    L'ia a besoin de ces informations pour personnaliser votre expérience et vous fournir des recommandations adaptées.
+                                    Plus les informations sont précises et nombreuses, meilleures seront les suggestions.
                                 </Text>
                             </View>
                         </View>
-
-                        <View style={profilStyles.helpItem}>
-                            <View style={[profilStyles.helpBullet, { backgroundColor: '#E74C3C' }]}>
-                                <Text style={profilStyles.helpBulletText}>2</Text>
-                            </View>
-                            <View style={profilStyles.helpTextContainer}>
-                                <Text style={[profilStyles.helpItemTitle, { color: theme.colors.primary }]}>
-                                    Évaluation physique
-                                </Text>
-                                <Text style={[profilStyles.helpItemText, { color: theme.colors.secondary }]}>
-                                    Tests physiques, objectifs, échéances
-                                </Text>
-                            </View>
-                        </View>
-
                         <View style={[profilStyles.helpNote, { backgroundColor: theme.colors.surfaceVariant }]}>
                             <FontAwesome name="shield" size={16} color={theme.colors.success} />
                             <Text style={[profilStyles.helpNoteText, { color: theme.colors.secondary }]}>
@@ -429,6 +427,8 @@ export default function ProfilScreen() {
                     </View>
                 )}
             </View>
+
+        
 
             {/* ✅ BOUTON DÉCONNEXION MODERNISÉ */}
             <View style={profilStyles.logoutSection}>
@@ -451,6 +451,13 @@ export default function ProfilScreen() {
             <EvaluationInitialeModal
                 visible={evaluationModalVisible}
                 onClose={() => setEvaluationModalVisible(false)}
+                userId={currentUserId}
+            />
+
+            {/* ✅ NOUVEAU MODAL PARAMÈTRES */}
+            <UserSettingsModal
+                visible={settingsModalVisible}
+                onClose={() => setSettingsModalVisible(false)}
                 userId={currentUserId}
             />
         </ScrollView>

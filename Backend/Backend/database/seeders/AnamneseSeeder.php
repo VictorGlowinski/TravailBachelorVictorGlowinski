@@ -28,7 +28,6 @@ class AnamneseSeeder extends Seeder
             'ana_contrainte_pro' => 'Travail de bureau',
             'ana_contrainte_fam' => 'Pas de contrainte',
             'ana_exp_sportive' => '5 ans de triathlon amateur',
-            'ana_objectif'     => 'Préparer un Ironman',
             'ana_commentaire'  => 'Pas de contre-indication médicale, exercice en fonction de la douleur rotulienne',
             'ana_traitement'   => 'Physiothérapie 2x/semaine',
             'ana_diagnostics'  => 'Tendinite rotulienne'
@@ -47,7 +46,6 @@ class AnamneseSeeder extends Seeder
             'ana_contrainte_pro' => 'Travail debout',
             'ana_contrainte_fam' => 'Enfants en bas âge',
             'ana_exp_sportive' => 'Course à pied, cyclisme',
-            'ana_objectif'     => 'Triathlon olympique',
             'ana_commentaire'  => '',
             'ana_traitement'   => '',
             'ana_diagnostics'  => ''
@@ -64,7 +62,6 @@ class AnamneseSeeder extends Seeder
             'ana_contrainte_pro' => 'Travail sédentaire',
             'ana_contrainte_fam' => 'Pas de contrainte',
             'ana_exp_sportive' => 'Natation, musculation',
-            'ana_objectif'     => 'Triathlon sprint',
             'ana_commentaire'  => '',
             'ana_traitement'   => 'Rendez-vous chez le physiothérapeute occasionnel',
             'ana_diagnostics'  => 'Scoliose légère'

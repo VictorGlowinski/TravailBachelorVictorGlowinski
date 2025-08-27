@@ -412,7 +412,19 @@ const profilStyles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-  },
+  },// styles/screens/ProfilStyles.ts - AJOUTER le style de l'engrenage
+
+settingsButton: {
+  position: 'absolute',
+  top: 20,
+  right: 20,
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 10,
+},
 });
 
 export default profilStyles;

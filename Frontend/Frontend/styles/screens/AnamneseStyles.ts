@@ -219,6 +219,130 @@ const anamneseStyles = StyleSheet.create({
     marginLeft: 8,
     padding: 4,
   },
+  
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
+    marginBottom: 20,
+  },
+  mainTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    // color sera définie dynamiquement
+  },
+  subtitle: {
+    fontSize: 16,
+    marginTop: 4,
+    // color sera définie dynamiquement
+  },
+  progressSection: {
+    gap: 8,
+  },
+  
+  loadingCard: {
+    margin: 20,
+    padding: 30,
+    borderRadius: 16,
+    alignItems: 'center',
+    // backgroundColor sera définie dynamiquement
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 16,
+    textAlign: 'center',
+    // color sera définie dynamiquement
+  },
+  formSection: {
+    padding: 20,
+    gap: 20,
+  },
+  fieldCard: {
+    borderRadius: 16,
+    padding: 20,
+    gap: 15,
+    // backgroundColor sera définie dynamiquement
+  },
+  fieldTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    // color sera définie dynamiquement
+  },
+  fieldDescription: {
+    fontSize: 14,
+    lineHeight: 20,
+    // color sera définie dynamiquement
+  },
+  
+  inputContainer: {
+    gap: 8,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    // color sera définie dynamiquement
+  },
+  
+  chipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  
+  actionsSection: {
+    padding: 20,
+    gap: 15,
+  },
+
+  keyboardButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  
+calculatedField: {
+  marginBottom: 20,
+},
+calculatedValue: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  padding: 16,
+  borderRadius: 8,
+  borderWidth: 2,
+  gap: 12,
+},
+calculatedText: {
+  fontSize: 16,
+  fontWeight: '600',
+},
+calculatedSubtext: {
+  fontSize: 12,
+  fontStyle: 'italic',
+  marginLeft: 'auto',
+},
+warningContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  padding: 12,
+  borderRadius: 8,
+  borderWidth: 1,
+  gap: 8,
+  marginBottom: 16,
+},
+warningText: {
+  fontSize: 14,
+  fontWeight: '500',
+  flex: 1,
+},
+
+helperText: {
+  fontSize: 12,
+  fontStyle: 'italic',
+  marginBottom: 8,
+  lineHeight: 16,
+},
 });
 
 

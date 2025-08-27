@@ -21,7 +21,6 @@ class Anamnese extends Model
         'ana_contrainte_pro',
         'ana_contrainte_fam',
         'ana_exp_sportive',
-        'ana_objectif',
         'ana_commentaire',
         'ana_traitement',
         'ana_diagnostics'
@@ -51,7 +50,6 @@ class Anamnese extends Model
             $q->where('ana_blessures', 'like', "%{$keyword}%")
             ->orWhere('ana_etat_actuel', 'like', "%{$keyword}%")
             ->orWhere('ana_sexe', 'like', "%{$keyword}%")
-            ->orWhere('ana_objectif', 'like', "%{$keyword}%")
             ->orWhere('ana_commentaire', 'like', "%{$keyword}%")
             ->orWhere('ana_traitement', 'like', "%{$keyword}%")
             ->orWhere('ana_diagnostics', 'like', "%{$keyword}%");

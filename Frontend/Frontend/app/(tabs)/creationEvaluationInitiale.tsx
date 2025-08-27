@@ -1,99 +1,148 @@
-// app/(tabs)/creationEvaluationInitiale.tsx
+// app/(tabs)/creationEvaluationInitiale.tsx - VERSION COMPLÈTE CORRIGÉE
+
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
+  View,
+  Text,
   TextInput,
   Pressable,
+  ScrollView,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
   ActivityIndicator,
+  Keyboard,
+  Platform,
 } from "react-native";
-import { Text, View } from "@/components/Themed";
-import { router } from "expo-router";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { evaluationInitialeStyles } from '@/styles'; // ✅ Import correct
+import evaluationInitialeStyles from "@/styles/screens/EvaluationInitialeStyles";
+import { useTheme } from '@/styles/screens/ThemeStyle';
+import DateTimePicker from '@react-native-community/datetimepicker'; 
 
-interface User {
-  id: number;
-  email: string;
-  date_naissance: string;
-  consentement?: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
 
 const API_BASE_URL = "http://192.168.0.112:8000/api";
 
-// ✅ CORRECTION : FormData pour évaluation initiale
-type FormData = {
-  vo2max: string;
-  freq_repo: string;
-  freq_max: string;
-  ftp_cyclisme: string;
-  vma: string;
-  cooper: string;
-  seuil_natation: string;
-  seuil_cyclisme: string;
-  seuil_course: string;
-  echeance: string;
-  nb_heure_dispo: string;
-  commentaire: string;
-  objectifs: string;
-  niveau_experience: "Débutant" | "Intermédiaire" | "Avancé" | "Expert" | "";
-};
+const REQUIRED_KEYS = ["exp_triathlon", "objectifs", "echeance", "nb_heure_dispo"];
 
-// ✅ CORRECTION : Champs requis pour l'évaluation
-const REQUIRED_KEYS: (keyof FormData)[] = ["niveau_experience", "objectifs", "echeance", "nb_heure_dispo"];
+export default function CreationEvaluationInitialeScreen() {
+  const theme = useTheme();
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  
+  // États pour les pastilles d'information
+  const [showCooperInfo, setShowCooperInfo] = useState(false);
+  const [showVo2maxInfo, setShowVo2maxInfo] = useState(false);
+  const [showFcReposInfo, setShowFcReposInfo] = useState(false);
+  const [showFcMaxInfo, setShowFcMaxInfo] = useState(false);
+  const [showVMAInfo, setShowVMAInfo] = useState(false);
+  const [showFTPInfo, setShowFTPInfo] = useState(false);
+  const [showSeuilNatationInfo, setShowSeuilNatationInfo] = useState(false);
+  const [showSeuilCyclismeInfo, setShowSeuilCyclismeInfo] = useState(false);
+  const [showSeuilCourseInfo, setShowSeuilCourseInfo] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tempDate, setTempDate] = useState<Date | null>(null);
 
-export default function CreationEvaluationInitialeScreen() { // ✅ CORRECTION : Nom de fonction
-  const [formData, setFormData] = useState<FormData>({
+
+  const [formData, setFormData] = useState({
     vo2max: "",
     freq_repo: "",
     freq_max: "",
     ftp_cyclisme: "",
     vma: "",
     cooper: "",
+    nb_heure_dispo: "",
     seuil_natation: "",
     seuil_cyclisme: "",
     seuil_course: "",
-    echeance: "",
-    nb_heure_dispo: "",
     commentaire: "",
     objectifs: "",
-    niveau_experience: "",
+    echeance: "",
+    exp_triathlon: "",
   });
 
-  const [userInfo, setUserInfo] = useState<User | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-  const [isLoadingUser, setIsLoadingUser] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-
-  const scrollViewRef = useRef<KeyboardAwareScrollView>(null);
   const inputRefs = useRef<{ [key: string]: TextInput | null }>({});
 
-  // ✅ CORRECTION : Draft key pour évaluation
+  // Draft key pour évaluation initiale
   const draftKey = useMemo(() => 
     currentUserId ? `evaluation_draft_${currentUserId}` : null, 
     [currentUserId]
   );
 
-  // ✅ Calcul du nombre de champs remplis
+  // Calcul du nombre de champs remplis
   const filledCount = useMemo(() => {
     return Object.values(formData).filter(value => value.trim() !== "").length;
   }, [formData]);
 
-  // ✅ Validation des champs requis
+  // Validation des champs requis
   const isValid = useMemo(() => {
-    return REQUIRED_KEYS.every(key => formData[key].trim() !== "");
+    return REQUIRED_KEYS.every(key => formData[key as keyof typeof formData]?.trim() !== "");
   }, [formData]);
 
-  // ✅ Gestion du clavier
+   const formatDateForDisplay = (dateString: string) => {
+  if (!dateString) return '';
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  } catch (error) {
+    return dateString;
+  }
+};
+
+// ✅ MODIFIER la fonction handleDateChange
+const handleDateChange = (event: any, selectedDate?: Date) => {
+  if (Platform.OS === 'android') {
+    // ✅ Sur Android, garder le comportement natif
+    setShowDatePicker(false);
+    if (selectedDate && event.type !== 'dismissed') {
+      const formattedDate = selectedDate.toISOString().split('T')[0];
+      setFormData(prev => ({ ...prev, echeance: formattedDate }));
+    }
+  } else {
+    // ✅ Sur iOS, ne pas fermer automatiquement
+    if (selectedDate && event.type !== 'dismissed') {
+      setTempDate(selectedDate);
+    } else if (event.type === 'dismissed') {
+      setShowDatePicker(false);
+      setTempDate(null);
+    }
+  }
+};
+
+// ✅ FONCTION pour confirmer la date (iOS)
+const confirmDate = () => {
+  if (tempDate) {
+    const formattedDate = tempDate.toISOString().split('T')[0];
+    setFormData(prev => ({ ...prev, echeance: formattedDate }));
+  }
+  setShowDatePicker(false);
+  setTempDate(null);
+};
+
+// ✅ FONCTION pour annuler la sélection
+const cancelDateSelection = () => {
+  setShowDatePicker(false);
+  setTempDate(null);
+};
+
+// ✅ FONCTION pour fermer le calendrier si on clique sur un autre champ
+const handleInputFocus = (inputKey: string) => {
+  if (showDatePicker) {
+    confirmDate(); // ✅ Valider la date en cours si le calendrier est ouvert
+  }
+  const input = inputRefs.current[inputKey];
+  if (input) {
+    input.focus();
+  }
+};
+
+  // Gestion du clavier
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
       setKeyboardVisible(true);
@@ -108,15 +157,27 @@ export default function CreationEvaluationInitialeScreen() { // ✅ CORRECTION :
     };
   }, []);
 
+  // Récupérer l'ID utilisateur
+  useEffect(() => {
+    const getUserId = async () => {
+      try {
+        const userId = await AsyncStorage.getItem("userId");
+        setCurrentUserId(userId);
+      } catch (error) {
+        console.error("Erreur récupération userId:", error);
+      }
+    };
+    getUserId();
+  }, []);
 
-  // ✅ Charger le brouillon quand l'utilisateur est chargé
+  // Charger le brouillon quand l'utilisateur est chargé
   useEffect(() => {
     if (currentUserId) {
       loadDraft();
     }
   }, [currentUserId, draftKey]);
 
-  // ✅ Sauvegarder automatiquement le brouillon
+  // Sauvegarder automatiquement le brouillon
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       saveDraft();
@@ -125,9 +186,7 @@ export default function CreationEvaluationInitialeScreen() { // ✅ CORRECTION :
     return () => clearTimeout(timeoutId);
   }, [formData, draftKey]);
 
-
-
-  // ✅ Charger le brouillon sauvegardé
+  // Charger le brouillon sauvegardé
   const loadDraft = async () => {
     if (!draftKey) return;
     
@@ -143,7 +202,7 @@ export default function CreationEvaluationInitialeScreen() { // ✅ CORRECTION :
     }
   };
 
-  // ✅ Sauvegarder le brouillon
+  // Sauvegarder le brouillon
   const saveDraft = async () => {
     if (!draftKey) return;
     
@@ -154,13 +213,9 @@ export default function CreationEvaluationInitialeScreen() { // ✅ CORRECTION :
     }
   };
 
-  // ✅ Fonctions de navigation entre les champs
+  // Fonctions de navigation entre les champs
   const dismissKeyboard = () => {
     Keyboard.dismiss();
-  };
-
-  const handleInputFocus = () => {
-    // Optionnel: scroll vers le champ focalisé
   };
 
   const focusNextInput = (nextKey: string) => {
@@ -170,550 +225,858 @@ export default function CreationEvaluationInitialeScreen() { // ✅ CORRECTION :
     }
   };
 
-  // ✅ CORRECTION : Soumission du formulaire pour évaluation
-  const handleSubmit = async (): Promise<void> => {
-    Keyboard.dismiss();
+  // app/(tabs)/creationEvaluationInitiale.tsx - CORRIGER handleSubmit
 
-    if (!currentUserId) {
-      Alert.alert("Erreur", "Utilisateur non connecté");
-      return;
-    }
-    if (!isValid) {
-      Alert.alert("Champs requis", "Veuillez compléter les champs obligatoires.");
-      return;
-    }
+const handleSubmit = async () => {
+  if (!isValid) {
+    Alert.alert("Champs requis", "Veuillez compléter les champs obligatoires.");
+    return;
+  }
+  if (!currentUserId) {
+    Alert.alert("Erreur", "Utilisateur non identifié");
+    return;
+  }
 
-    setIsSubmitting(true);
-    try {
-      // ✅ Mapping correct des champs pour l'évaluation initiale
-      const evaluationData = {
-        // Champs de base
-        eva_user_id: parseInt(currentUserId, 10),
-        eva_vo2max: formData.vo2max || null,
-        eva_freq_repos: formData.freq_repo || null,
-        eva_freq_max: formData.freq_max || null,
-        eva_ftp_cyclisme: formData.ftp_cyclisme || null,
-        eva_vma: formData.vma || null,
-        eva_cooper: formData.cooper || null,
-        
-        // Seuils
-        eva_seuil_natation: formData.seuil_natation || null,
-        eva_seuil_cyclisme: formData.seuil_cyclisme || null,
-        eva_seuil_course: formData.seuil_course || null,
+  setIsSubmitting(true);
+  try {
+    // ✅ SIMPLIFIER - La date est déjà au bon format YYYY-MM-DD
+    const evaluationData = {
+      eva_user_id: parseInt(currentUserId, 10),
+      eva_vo2max: formData.vo2max ? parseFloat(formData.vo2max) : null,
+      eva_freq_repos: formData.freq_repo ? parseInt(formData.freq_repo, 10) : null,
+      eva_freq_max: formData.freq_max ? parseInt(formData.freq_max, 10) : null,
+      eva_ftp_cyclisme: formData.ftp_cyclisme ? parseInt(formData.ftp_cyclisme, 10) : null,
+      eva_vma: formData.vma ? parseFloat(formData.vma) : null,
+      eva_cooper: formData.cooper || null,
+      eva_nb_heure_dispo: formData.nb_heure_dispo ? parseInt(formData.nb_heure_dispo, 10) : null,
+      eva_seuil_natation: formData.seuil_natation || null,
+      eva_seuil_cyclisme: formData.seuil_cyclisme || null,
+      eva_seuil_course: formData.seuil_course || null,
+      eva_commentaire: formData.commentaire || null,
+      eva_objectif: formData.objectifs || null,
+      eva_echeance: formData.echeance || null, // ✅ Date déjà au format YYYY-MM-DD
+    };
 
-        // Objectifs et planning
-        eva_objectifs: formData.objectifs || null,
-        eva_echeance: formData.echeance || null,
-        eva_nb_heures_dispo: formData.nb_heure_dispo || null,
-        eva_niveau_experience: formData.niveau_experience || null,
-        
-        // Commentaire
-        eva_commentaire: formData.commentaire || null,
-      };
+    console.log('📤 Données à envoyer:', evaluationData);
 
-      console.log('🚀 Envoi évaluation avec mapping:', evaluationData);
+    const response = await fetch(`${API_BASE_URL}/evaluation-initiale`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(evaluationData),
+    });
 
-      const response = await fetch(`${API_BASE_URL}/evaluation-initiale`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify(evaluationData),
-      });
+    console.log('📡 Response status:', response.status);
 
-      console.log('📡 Response status:', response.status);
+    if (response.ok) {
       const result = await response.json();
-      console.log('📋 Response data:', result);
-
-      if (response.ok) {
-        if (result?.success !== false) {
-          // Clear draft on success
-          if (draftKey) await AsyncStorage.removeItem(draftKey);
-          Alert.alert("Succès", "Évaluation initiale créée avec succès !", [
-            { text: "OK", onPress: () => router.back() },
-          ]);
-        } else {
-          throw new Error(result?.message || "Erreur retournée par le serveur");
-        }
-      } else {
-        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-        
-        if (result?.message) {
-          errorMessage = result.message;
-        } else if (result?.errors) {
-          if (Array.isArray(result.errors)) {
-            errorMessage = result.errors.join("\n");
-          } else if (typeof result.errors === 'object') {
-            const errorMessages = Object.values(result.errors).flat();
-            errorMessage = errorMessages.join("\n");
-          }
-        }
-        
-        throw new Error(errorMessage);
-      }
-    } catch (error: any) {
-      console.error("❌ Erreur création évaluation:", error);
+      console.log('✅ Succès:', result);
       
-      let userMessage = "Impossible de créer l'évaluation initiale";
+      if (draftKey) await AsyncStorage.removeItem(draftKey);
       
-      if (error instanceof TypeError && error.message === 'Network request failed') {
-        userMessage = "Erreur de connexion. Vérifiez votre connexion internet.";
-      } else if (error.message && error.message !== 'Erreur de création') {
-        userMessage = error.message;
-      }
-      
-      Alert.alert("Erreur", userMessage);
-    } finally {
-      setIsSubmitting(false);
+      Alert.alert(
+        "Succès", 
+        "Évaluation initiale créée avec succès !",
+        [{ text: "OK", onPress: () => router.push('/(tabs)/profil') }]
+      );
+    } else {
+      const errorData = await response.json();
+      console.error('❌ Erreur response:', errorData);
+      throw new Error(errorData.message || "Erreur lors de la création");
     }
-  };
+  } catch (error) {
+    console.error("Erreur création évaluation:", error);
+    Alert.alert("Erreur", "Impossible de créer l'évaluation. Veuillez réessayer.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
-    <KeyboardAvoidingView
-      style={evaluationInitialeStyles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
-    >
-      <TouchableWithoutFeedback onPress={dismissKeyboard}>
-        <View style={{ flex: 1 }}>
-          {/* Header */}
-          <View style={evaluationInitialeStyles.header}>
-            <View style={evaluationInitialeStyles.headerTop}>
+  <ScrollView 
+    style={[evaluationInitialeStyles.container, { backgroundColor: theme.colors.background }]}
+    contentContainerStyle={evaluationInitialeStyles.scrollContent}
+    showsVerticalScrollIndicator={false}
+    keyboardShouldPersistTaps="handled"
+  >
+    {/* ✅ HEADER MODERNISÉ */}
+    <View style={[evaluationInitialeStyles.header, { backgroundColor: theme.colors.surface }, theme.shadows]}>
+      <View style={evaluationInitialeStyles.headerContent}>
+        <Pressable
+          onPress={() => router.replace('/(tabs)/profil')}
+          style={[evaluationInitialeStyles.backButton, { backgroundColor: theme.colors.accent }]}
+        >
+          <FontAwesome name="arrow-left" size={20} color="white" />
+        </Pressable>
+
+        <View style={evaluationInitialeStyles.titleContainer}>
+          <Text style={[evaluationInitialeStyles.mainTitle, { color: theme.colors.primary }]}>
+            Évaluation Initiale
+          </Text>
+          <Text style={[evaluationInitialeStyles.subtitle, { color: theme.colors.secondary }]}>
+            Définissez vos objectifs et capacités
+          </Text>
+        </View>
+
+        {isKeyboardVisible && (
+          <Pressable
+            onPress={dismissKeyboard}
+            style={[evaluationInitialeStyles.keyboardButton, { backgroundColor: theme.colors.surfaceVariant }]}
+          >
+            <FontAwesome name="keyboard-o" size={16} color={theme.colors.accent} />
+          </Pressable>
+        )}
+      </View>
+
+      {/* ✅ BARRE DE PROGRESSION MODERNE */}
+      <View style={evaluationInitialeStyles.progressSection}>
+        <View style={[evaluationInitialeStyles.progressBar, { backgroundColor: theme.colors.surfaceVariant }]}>
+          <View 
+            style={[
+              evaluationInitialeStyles.progressFill, 
+              { 
+                width: `${(filledCount / 14) * 100}%`,
+                backgroundColor: theme.colors.accent
+              }
+            ]} 
+          />
+        </View>
+        <Text style={[evaluationInitialeStyles.progressText, { color: theme.colors.secondary }]}>
+          {filledCount}/14 champs complétés
+        </Text>
+      </View>
+    </View>
+
+    {/* ✅ LOADING STATE */}
+    {isSubmitting && (
+      <View style={[evaluationInitialeStyles.loadingCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
+        <ActivityIndicator size="large" color={theme.colors.accent} />
+        <Text style={[evaluationInitialeStyles.loadingText, { color: theme.colors.secondary }]}>
+          Création de votre évaluation...
+        </Text>
+      </View>
+    )}
+
+    {/* ✅ FORMULAIRE MODERNISÉ */}
+    <View style={evaluationInitialeStyles.formSection}>
+      {/* Niveau d'expérience */}
+      <View style={[evaluationInitialeStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
+        <Text style={[evaluationInitialeStyles.fieldTitle, { color: theme.colors.primary }]}>
+          Niveau d'expérience <Text style={[evaluationInitialeStyles.required, { color: theme.colors.error }]}>*</Text>
+        </Text>
+        <Text style={[evaluationInitialeStyles.fieldDescription, { color: theme.colors.secondary }]}>
+          Sélectionnez votre niveau actuel
+        </Text>
+        
+        <View style={evaluationInitialeStyles.chipsContainer}>
+          {(["Débutant", "Intermédiaire", "Avancé", "Expert"] as const).map((opt) => {
+            const selected = formData.exp_triathlon === opt;
+            return (
               <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Retour"
-                onPress={() => router.back()}
-                style={evaluationInitialeStyles.backButton}
+                key={opt}
+                onPress={() =>
+                  setFormData((p) => ({ ...p, exp_triathlon: selected ? "" : opt }))
+                }
+                style={[
+                  evaluationInitialeStyles.chip, 
+                  { 
+                    backgroundColor: selected ? theme.colors.accent : theme.colors.surfaceVariant,
+                    borderColor: selected ? theme.colors.accent : theme.colors.border
+                  }
+                ]}
               >
-                <FontAwesome name="arrow-left" size={22} color="#fff" />
+                <Text style={[
+                  evaluationInitialeStyles.chipText, 
+                  { color: selected ? 'white' : theme.colors.primary }
+                ]}>
+                  {opt}
+                </Text>
               </Pressable>
+            );
+          })}
+        </View>
+      </View>
 
-              <View style={evaluationInitialeStyles.titleContainer}>
-                <Text style={evaluationInitialeStyles.title}>Nouvelle évaluation initiale</Text>
-                <View style={evaluationInitialeStyles.progressContainer}>
-                  <View style={evaluationInitialeStyles.progressBar}>
-                    <View 
-                      style={[
-                        evaluationInitialeStyles.progressFill, 
-                        { width: `${(filledCount / 14) * 100}%` }
-                      ]} 
-                    />
-                  </View>
-                  <Text style={evaluationInitialeStyles.progressText}>
-                    {filledCount}/14 complétés
-                  </Text>
-                </View>
-              </View>
+      {/* Objectifs */}
+      <View style={[evaluationInitialeStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
+        <Text style={[evaluationInitialeStyles.fieldTitle, { color: theme.colors.primary }]}>
+          Objectifs sportifs <Text style={[evaluationInitialeStyles.required, { color: theme.colors.error }]}>*</Text>
+        </Text>
+        <Text style={[evaluationInitialeStyles.fieldDescription, { color: theme.colors.secondary }]}>
+          Décrivez vos objectifs et motivations
+        </Text>
+        
+        <TextInput
+          ref={(ref) => {
+            inputRefs.current["objectifs"] = ref;
+          }}
+          style={[
+            evaluationInitialeStyles.textArea, 
+            { 
+              backgroundColor: theme.colors.background,
+              color: theme.colors.primary,
+              borderColor: theme.colors.border
+            }
+          ]}
+          value={formData.objectifs}
+          onChangeText={(text) => setFormData({ ...formData, objectifs: text })}
+          placeholder="Ex: Triathlon olympique, améliorer endurance, perte de poids..."
+          placeholderTextColor={theme.colors.secondary}
+          multiline
+          numberOfLines={3}
+          textAlignVertical="top"
+          onFocus={() => handleInputFocus("objectifs")}
+          onSubmitEditing={() => focusNextInput("echeance")}
+        />
+      </View>
 
-              {isLoadingUser ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                isKeyboardVisible && (
-                  <Pressable
-                    onPress={dismissKeyboard}
-                    style={evaluationInitialeStyles.keyboardCloseButton}
-                    accessibilityRole="button"
-                    accessibilityLabel="Fermer le clavier"
-                  >
-                    <FontAwesome name="keyboard-o" size={16} color="#fff" />
-                  </Pressable>
-                )
-              )}
+      {/* Planning */}
+      <View style={[evaluationInitialeStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
+        <Text style={[evaluationInitialeStyles.fieldTitle, { color: theme.colors.primary }]}>
+          Planning <Text style={[evaluationInitialeStyles.required, { color: theme.colors.error }]}>*</Text>
+        </Text>
+        <Text style={[evaluationInitialeStyles.fieldDescription, { color: theme.colors.secondary }]}>
+          Définissez votre échéance et disponibilité {'\n'}
+          (Dans le cadre de ce travail il sera généré que 2 semaines de plan mais mettez l'échéance à la quelle vous pensiez initialement)
+        </Text>
+        
+        {/* ✅ ROW avec les deux champs côte à côte */}
+        <View style={evaluationInitialeStyles.row}>
+          {/* ✅ ÉCHÉANCE - Pressable qui ouvre le calendrier */}
+          <View style={[evaluationInitialeStyles.inputContainer, { marginRight: 10 }]}>
+            <Text style={[evaluationInitialeStyles.inputLabel, { color: theme.colors.secondary }]}>Échéance</Text>
+            <Pressable
+              style={[
+                evaluationInitialeStyles.input,
+                { 
+                  backgroundColor: theme.colors.background,
+                  borderColor: theme.colors.border,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingHorizontal: 12,
+                  paddingVertical: 12,
+                }
+              ]}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Text style={[
+                evaluationInitialeStyles.inputText,
+                { 
+                  color: formData.echeance ? theme.colors.primary : theme.colors.secondary,
+                  fontSize: 16,
+                }
+              ]}>
+                {formData.echeance ? formatDateForDisplay(formData.echeance) : "Sélectionnez une date"}
+              </Text>
+              <FontAwesome name="calendar" size={16} color={theme.colors.secondary} />
+            </Pressable>
+          </View>
+          
+          {/* ✅ HEURES/SEMAINE - À côté de l'échéance */}
+          <View style={evaluationInitialeStyles.inputContainer}>
+            <Text style={[evaluationInitialeStyles.inputLabel, { color: theme.colors.secondary }]}>Heures/semaine</Text>
+            <TextInput
+              ref={(ref) => {
+                inputRefs.current["nb_heure_dispo"] = ref;
+              }}
+              style={[
+                evaluationInitialeStyles.input, 
+                { 
+                  backgroundColor: theme.colors.background,
+                  color: theme.colors.primary,
+                  borderColor: theme.colors.border
+                }
+              ]}
+              value={formData.nb_heure_dispo}
+              onChangeText={(text) => setFormData({ ...formData, nb_heure_dispo: text.replace(/[^\d]/g, "") })}
+              placeholder="Ex: 8"
+              placeholderTextColor={theme.colors.secondary}
+              keyboardType="numeric"
+              onFocus={() => handleInputFocus("nb_heure_dispo")}
+              onSubmitEditing={() => focusNextInput("vo2max")}
+            />
+          </View>
+        </View>
+      </View>
+
+      {/* Tests physiques (optionnel) */}
+      <View style={[evaluationInitialeStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
+        <Pressable
+          onPress={() => setShowAdvanced(!showAdvanced)}
+          style={evaluationInitialeStyles.expandableHeader}
+        >
+          <View style={evaluationInitialeStyles.expandableTitle}>
+            <FontAwesome name="heartbeat" size={20} color={theme.colors.accent} />
+            <Text style={[evaluationInitialeStyles.fieldTitle, { color: theme.colors.primary, marginLeft: 10 }]}>
+              Tests physiques
+            </Text>
+            <View style={[evaluationInitialeStyles.optionalBadge, { backgroundColor: theme.colors.warning }]}>
+              <Text style={evaluationInitialeStyles.optionalText}>Optionnel</Text>
             </View>
           </View>
+          <FontAwesome 
+            name={showAdvanced ? "chevron-up" : "chevron-down"} 
+            size={16} 
+            color={theme.colors.secondary} 
+          />
+        </Pressable>
+        
+        <Text style={[evaluationInitialeStyles.fieldDescription, { color: theme.colors.secondary }]}>
+          Si vous disposez des données de tests physiques suivantes via votre appareil connecté, vous pouvez les saisir afin de personnaliser votre plan.
+          (Ces données sont optionnelles et peuvent être modifiées ultérieurement.)
+        </Text>
 
-          {/* Content */}
-          <KeyboardAwareScrollView
-            ref={scrollViewRef}
-            style={evaluationInitialeStyles.scrollView}
-            contentContainerStyle={evaluationInitialeStyles.scrollContent}
-            enableOnAndroid={true}
-            enableAutomaticScroll={true}
-            extraHeight={150}
-            extraScrollHeight={150}
-            keyboardOpeningTime={250}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View style={evaluationInitialeStyles.form}>
-
-              {/* Niveau d'expérience chips */}
-              <View style={evaluationInitialeStyles.inputGroup}>
-                <Text style={evaluationInitialeStyles.label}>
-                  Niveau d'expérience <Text style={evaluationInitialeStyles.required}>*</Text>
-                </Text>
-                <View style={evaluationInitialeStyles.chipsRow}>
-                  {(["Débutant", "Intermédiaire", "Avancé", "Expert"] as const).map((opt) => {
-                    const selected = formData.niveau_experience === opt;
-                    return (
-                      <Pressable
-                        key={opt}
-                        onPress={() =>
-                          setFormData((p) => ({ ...p, niveau_experience: selected ? "" : opt }))
-                        }
-                        accessibilityRole="button"
-                        accessibilityLabel={`Niveau ${opt}`}
-                        style={[evaluationInitialeStyles.chip, selected && { backgroundColor: "#007AFF" }]}
-                      >
-                        <Text style={[evaluationInitialeStyles.chipText, selected && { color: "white" }]}>
-                          {opt}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
+        {showAdvanced && (
+          <View style={evaluationInitialeStyles.expandableContent}>
+            {/* Tests cardiorespiratoires */}
+            <View style={evaluationInitialeStyles.row}>
+              {/* ✅ VO2 MAX avec pastille d'info */}
+              <View style={[evaluationInitialeStyles.inputContainer, { marginRight: 10 }]}>
+                <View style={evaluationInitialeStyles.inputLabelContainer}>
+                  <Text style={[evaluationInitialeStyles.inputLabel, { color: theme.colors.secondary }]}>VO2 Max</Text>
+                  <Pressable 
+                    style={[evaluationInitialeStyles.infoBadge, { backgroundColor: theme.colors.accent }]}
+                    onPress={() => setShowVo2maxInfo(!showVo2maxInfo)}
+                  >
+                    <FontAwesome name="info" size={10} color="white" />
+                  </Pressable>
                 </View>
-              </View>
-
-              {/* Objectifs (required) */}
-              <View style={evaluationInitialeStyles.inputGroup}>
-                <Text style={evaluationInitialeStyles.label}>
-                  Objectifs sportifs <Text style={evaluationInitialeStyles.required}>*</Text>
-                </Text>
+                
                 <TextInput
                   ref={(ref) => {
-                    inputRefs.current["objectifs"] = ref;
+                    inputRefs.current["vo2max"] = ref;
                   }}
-                  style={[evaluationInitialeStyles.input, evaluationInitialeStyles.textArea]}
-                  value={formData.objectifs}
-                  onChangeText={(text) => setFormData({ ...formData, objectifs: text })}
-                  placeholder="Quels sont vos objectifs ? (ex: Triathlon olympique, améliorer endurance...)"
-                  placeholderTextColor="#999"
-                  multiline
-                  numberOfLines={3}
-                  returnKeyType="next"
-                  blurOnSubmit={false}
-                  textAlignVertical="top"
-                  onFocus={handleInputFocus}
-                  onSubmitEditing={() => focusNextInput("echeance")}
-                  accessibilityLabel="Objectifs sportifs"
-                  autoCapitalize="sentences"
+                  style={[
+                    evaluationInitialeStyles.input, 
+                    { 
+                      backgroundColor: theme.colors.background,
+                      color: theme.colors.primary,
+                      borderColor: theme.colors.border
+                    }
+                  ]}
+                  value={formData.vo2max}
+                  onChangeText={(text) => setFormData({ ...formData, vo2max: text.replace(/[^\d.,]/g, "") })}
+                  placeholder="Ex: 50"
+                  placeholderTextColor={theme.colors.secondary}
+                  keyboardType={Platform.OS === "ios" ? "decimal-pad" : "numeric"}
+                  onFocus={() => handleInputFocus("vo2max")}
+                  onSubmitEditing={() => focusNextInput("freq_repo")}
                 />
+                
+                {/* ✅ TOOLTIP VO2 MAX */}
+                {showVo2maxInfo && (
+                  <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
+                    <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
+                    <Text style={[evaluationInitialeStyles.infoText, { color: theme.colors.secondary }]}>
+                      Volume maximal d'oxygène consommé par unité de temps (ml/kg/min). Indicateur de capacité aérobie.
+                    </Text>
+                  </View>
+                )}
               </View>
-
-              {/* Échéance et heures dispo row */}
-              <View style={[evaluationInitialeStyles.inputGroup, { marginBottom: 8 }]}>
-                <Text style={evaluationInitialeStyles.label}>
-                  Planning <Text style={evaluationInitialeStyles.required}>*</Text>
-                </Text>
-                <View style={evaluationInitialeStyles.row}>
-                  <View style={[evaluationInitialeStyles.col, { marginRight: 10 }]}>
-                    <TextInput
-                      ref={(ref) => {
-                        inputRefs.current["echeance"] = ref;
-                      }}
-                      style={evaluationInitialeStyles.input}
-                      value={formData.echeance}
-                      onChangeText={(text) => setFormData({ ...formData, echeance: text })}
-                      placeholder="Échéance (ex: 6 mois)"
-                      placeholderTextColor="#999"
-                      returnKeyType="next"
-                      onFocus={handleInputFocus}
-                      onSubmitEditing={() => focusNextInput("nb_heure_dispo")}
-                      accessibilityLabel="Échéance"
-                      autoCapitalize="sentences"
-                    />
-                  </View>
-                  <View style={evaluationInitialeStyles.col}>
-                    <TextInput
-                      ref={(ref) => {
-                        inputRefs.current["nb_heure_dispo"] = ref;
-                      }}
-                      style={evaluationInitialeStyles.input}
-                      value={formData.nb_heure_dispo}
-                      onChangeText={(text) => setFormData({ ...formData, nb_heure_dispo: text })}
-                      placeholder="Heures/semaine"
-                      placeholderTextColor="#999"
-                      keyboardType="numeric"
-                      returnKeyType="next"
-                      onFocus={handleInputFocus}
-                      onSubmitEditing={() => focusNextInput("vo2max")}
-                      accessibilityLabel="Nombre d'heures disponibles par semaine"
-                      autoCapitalize="none"
-                    />
-                  </View>
+              
+              {/* ✅ TEST COOPER avec pastille d'info */}
+              <View style={evaluationInitialeStyles.inputContainer}>
+                <View style={evaluationInitialeStyles.inputLabelContainer}>
+                  <Text style={[evaluationInitialeStyles.inputLabel, { color: theme.colors.secondary }]}>Test Cooper</Text>
+                  <Pressable 
+                    style={[evaluationInitialeStyles.infoBadge, { backgroundColor: theme.colors.accent }]}
+                    onPress={() => setShowCooperInfo(!showCooperInfo)}
+                  >
+                    <FontAwesome name="info" size={10} color="white" />
+                  </Pressable>
                 </View>
+                
+                <TextInput
+                  ref={(ref) => {
+                    inputRefs.current["cooper"] = ref;
+                  }}
+                  style={[
+                    evaluationInitialeStyles.input, 
+                    { 
+                      backgroundColor: theme.colors.background,
+                      color: theme.colors.primary,
+                      borderColor: theme.colors.border
+                    }
+                  ]}
+                  value={formData.cooper}
+                  onChangeText={(text) => setFormData({ ...formData, cooper: text.replace(/[^\d.,]/g, "") })}
+                  placeholder="Distance (m)"
+                  placeholderTextColor={theme.colors.secondary}
+                  keyboardType="numeric"
+                  onFocus={() => handleInputFocus("cooper")}
+                  onSubmitEditing={() => focusNextInput("vma")}
+                />
+                
+                {/* ✅ TOOLTIP COOPER */}
+                {showCooperInfo && (
+                  <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
+                    <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
+                    <Text style={[evaluationInitialeStyles.infoText, { color: theme.colors.secondary }]}>
+                      Distance maximale que vous arrivez à parcourir en 12 minutes de course continue.
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* ✅ FC REPOS et FC MAX avec pastilles d'info */}
+            <View style={evaluationInitialeStyles.row}>
+              {/* FC REPOS */}
+              <View style={[evaluationInitialeStyles.inputContainer, { marginRight: 10 }]}>
+                <View style={evaluationInitialeStyles.inputLabelContainer}>
+                  <Text style={[evaluationInitialeStyles.inputLabel, { color: theme.colors.secondary }]}>FC repos</Text>
+                  <Pressable 
+                    style={[evaluationInitialeStyles.infoBadge, { backgroundColor: theme.colors.accent }]}
+                    onPress={() => setShowFcReposInfo(!showFcReposInfo)}
+                  >
+                    <FontAwesome name="info" size={10} color="white" />
+                  </Pressable>
+                </View>
+                
+                <TextInput
+                  ref={(ref) => {
+                    inputRefs.current["freq_repo"] = ref;
+                  }}
+                  style={[
+                    evaluationInitialeStyles.input, 
+                    { 
+                      backgroundColor: theme.colors.background,
+                      color: theme.colors.primary,
+                      borderColor: theme.colors.border
+                    }
+                  ]}
+                  value={formData.freq_repo}
+                  onChangeText={(text) => setFormData({ ...formData, freq_repo: text.replace(/[^\d]/g, "") })}
+                  placeholder="bpm"
+                  placeholderTextColor={theme.colors.secondary}
+                  keyboardType="numeric"
+                  onFocus={() => handleInputFocus("freq_repo")}
+                  onSubmitEditing={() => focusNextInput("freq_max")}
+                />
+                
+                {/* ✅ TOOLTIP FC REPOS */}
+                {showFcReposInfo && (
+                  <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
+                    <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
+                    <Text style={[evaluationInitialeStyles.infoText, { color: theme.colors.secondary }]}>
+                      Fréquence cardiaque au repos, mesurée le matin au réveil (battements par minute).
+                    </Text>
+                  </View>
+                )}
+              </View>
+              
+              {/* FC MAX */}
+              <View style={evaluationInitialeStyles.inputContainer}>
+                <View style={evaluationInitialeStyles.inputLabelContainer}>
+                  <Text style={[evaluationInitialeStyles.inputLabel, { color: theme.colors.secondary }]}>FC max</Text>
+                  <Pressable 
+                    style={[evaluationInitialeStyles.infoBadge, { backgroundColor: theme.colors.accent }]}
+                    onPress={() => setShowFcMaxInfo(!showFcMaxInfo)}
+                  >
+                    <FontAwesome name="info" size={10} color="white" />
+                  </Pressable>
+                </View>
+                
+                <TextInput
+                  ref={(ref) => {
+                    inputRefs.current["freq_max"] = ref;
+                  }}
+                  style={[
+                    evaluationInitialeStyles.input, 
+                    { 
+                      backgroundColor: theme.colors.background,
+                      color: theme.colors.primary,
+                      borderColor: theme.colors.border
+                    }
+                  ]}
+                  value={formData.freq_max}
+                  onChangeText={(text) => setFormData({ ...formData, freq_max: text.replace(/[^\d]/g, "") })}
+                  placeholder="bpm"
+                  placeholderTextColor={theme.colors.secondary}
+                  keyboardType="numeric"
+                  onFocus={() => handleInputFocus("freq_max")}
+                  onSubmitEditing={() => focusNextInput("vma")}
+                />
+                
+                {/* ✅ TOOLTIP FC MAX */}
+                {showFcMaxInfo && (
+                  <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
+                    <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
+                    <Text style={[evaluationInitialeStyles.infoText, { color: theme.colors.secondary }]}>
+                      Fréquence cardiaque maximale, mesurée lors d'un effort maximal ou calculée (220 - âge).
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* ✅ VMA avec pastille d'info */}
+            <View style={evaluationInitialeStyles.testSection}>
+              <Text style={[evaluationInitialeStyles.sectionTitle, { color: theme.colors.primary }]}>
+                Vitesse Maximale Aérobie
+              </Text>
+              
+              <View style={evaluationInitialeStyles.inputContainer}>
+                <View style={evaluationInitialeStyles.inputLabelContainer}>
+                  <Text style={[evaluationInitialeStyles.inputLabel, { color: theme.colors.secondary }]}>VMA</Text>
+                  <Pressable 
+                    style={[evaluationInitialeStyles.infoBadge, { backgroundColor: theme.colors.accent }]}
+                    onPress={() => setShowVMAInfo(!showVMAInfo)}
+                  >
+                    <FontAwesome name="info" size={10} color="white" />
+                  </Pressable>
+                </View>
+                
+                <TextInput
+                  ref={(ref) => {
+                    inputRefs.current["vma"] = ref;
+                  }}
+                  style={[
+                    evaluationInitialeStyles.input, 
+                    { 
+                      backgroundColor: theme.colors.background,
+                      color: theme.colors.primary,
+                      borderColor: theme.colors.border
+                    }
+                  ]}
+                  value={formData.vma}
+                  onChangeText={(text) => setFormData({ ...formData, vma: text.replace(/[^\d.,]/g, "") })}
+                  placeholder="km/h (ex: 15.5)"
+                  placeholderTextColor={theme.colors.secondary}
+                  keyboardType={Platform.OS === "ios" ? "decimal-pad" : "numeric"}
+                  onFocus={() => handleInputFocus("vma")}
+                  onSubmitEditing={() => focusNextInput("ftp_cyclisme")}
+                />
+                
+                {/* ✅ TOOLTIP VMA */}
+                {showVMAInfo && (
+                  <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
+                    <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
+                    <Text style={[evaluationInitialeStyles.infoText, { color: theme.colors.secondary }]}>
+                      Vitesse de course à laquelle le VO2 max est atteint. Déterminée par un test progressif (ex: test de Léger-Boucher).
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* ✅ FTP CYCLISME avec pastille d'info */}
+            <View style={evaluationInitialeStyles.testSection}>
+              <Text style={[evaluationInitialeStyles.sectionTitle, { color: theme.colors.primary }]}>
+                Tests par discipline
+              </Text>
+              
+              <View style={evaluationInitialeStyles.inputContainer}>
+                <View style={evaluationInitialeStyles.inputLabelContainer}>
+                  <Text style={[evaluationInitialeStyles.inputLabel, { color: theme.colors.secondary }]}>FTP Cyclisme</Text>
+                  <Pressable 
+                    style={[evaluationInitialeStyles.infoBadge, { backgroundColor: theme.colors.accent }]}
+                    onPress={() => setShowFTPInfo(!showFTPInfo)}
+                  >
+                    <FontAwesome name="info" size={10} color="white" />
+                  </Pressable>
+                </View>
+                
+                <TextInput
+                  ref={(ref) => {
+                    inputRefs.current["ftp_cyclisme"] = ref;
+                  }}
+                  style={[
+                    evaluationInitialeStyles.input, 
+                    { 
+                      backgroundColor: theme.colors.background,
+                      color: theme.colors.primary,
+                      borderColor: theme.colors.border
+                    }
+                  ]}
+                  value={formData.ftp_cyclisme}
+                  onChangeText={(text) => setFormData({ ...formData, ftp_cyclisme: text.replace(/[^\d]/g, "") })}
+                  placeholder="Watts (ex: 250)"
+                  placeholderTextColor={theme.colors.secondary}
+                  keyboardType="numeric"
+                  onFocus={() => handleInputFocus("ftp_cyclisme")}
+                  onSubmitEditing={() => focusNextInput("seuil_natation")}
+                />
+                
+                {/* ✅ TOOLTIP FTP */}
+                {showFTPInfo && (
+                  <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
+                    <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
+                    <Text style={[evaluationInitialeStyles.infoText, { color: theme.colors.secondary }]}>
+                      Functional Threshold Power : puissance maximale soutenable pendant 1 heure en cyclisme (en watts).
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* ✅ SEUILS avec pastilles d'info */}
+            <View style={evaluationInitialeStyles.testSection}>
+              <Text style={[evaluationInitialeStyles.sectionTitle, { color: theme.colors.primary }]}>
+                Allures seuil
+              </Text>
+              
+              {/* SEUIL NATATION */}
+              <View style={evaluationInitialeStyles.inputContainer}>
+                <View style={evaluationInitialeStyles.inputLabelContainer}>
+                  <Text style={[evaluationInitialeStyles.inputLabel, { color: theme.colors.secondary }]}>Seuil Natation</Text>
+                  <Pressable 
+                    style={[evaluationInitialeStyles.infoBadge, { backgroundColor: theme.colors.accent }]}
+                    onPress={() => setShowSeuilNatationInfo(!showSeuilNatationInfo)}
+                  >
+                    <FontAwesome name="info" size={10} color="white" />
+                  </Pressable>
+                </View>
+                
+                <TextInput
+                  ref={(ref) => {
+                    inputRefs.current["seuil_natation"] = ref;
+                  }}
+                  style={[
+                    evaluationInitialeStyles.input, 
+                    { 
+                      backgroundColor: theme.colors.background,
+                      color: theme.colors.primary,
+                      borderColor: theme.colors.border
+                    }
+                  ]}
+                  value={formData.seuil_natation}
+                  onChangeText={(text) => setFormData({ ...formData, seuil_natation: text })}
+                  placeholder="min/100m (ex: 1:30)"
+                  placeholderTextColor={theme.colors.secondary}
+                  onFocus={() => handleInputFocus("seuil_natation")}
+                  onSubmitEditing={() => focusNextInput("seuil_cyclisme")}
+                />
+                
+                {/* ✅ TOOLTIP SEUIL NATATION */}
+                {showSeuilNatationInfo && (
+                  <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
+                    <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
+                    <Text style={[evaluationInitialeStyles.infoText, { color: theme.colors.secondary }]}>
+                      Allure de nage au seuil anaérobie, exprimée en temps pour parcourir 100 mètres (ex: 1:30 = 1 min 30 sec).
+                    </Text>
+                  </View>
+                )}
               </View>
 
-              {/* Toggle advanced */}
-              <Pressable
-                onPress={() => setShowAdvanced((s) => !s)}
-                style={evaluationInitialeStyles.advancedToggle}
-                accessibilityRole="button"
-                accessibilityLabel="Afficher ou masquer les tests physiques"
-              >
-                <FontAwesome
-                  name={showAdvanced ? "chevron-up" : "chevron-down"}
-                  size={14}
-                  color="#1976D2"
-                  style={{ marginRight: 6 }}
+              {/* SEUIL CYCLISME */}
+              <View style={evaluationInitialeStyles.inputContainer}>
+                <View style={evaluationInitialeStyles.inputLabelContainer}>
+                  <Text style={[evaluationInitialeStyles.inputLabel, { color: theme.colors.secondary }]}>Seuil Cyclisme</Text>
+                  <Pressable 
+                    style={[evaluationInitialeStyles.infoBadge, { backgroundColor: theme.colors.accent }]}
+                    onPress={() => setShowSeuilCyclismeInfo(!showSeuilCyclismeInfo)}
+                  >
+                    <FontAwesome name="info" size={10} color="white" />
+                  </Pressable>
+                </View>
+                
+                <TextInput
+                  ref={(ref) => {
+                    inputRefs.current["seuil_cyclisme"] = ref;
+                  }}
+                  style={[
+                    evaluationInitialeStyles.input, 
+                    { 
+                      backgroundColor: theme.colors.background,
+                      color: theme.colors.primary,
+                      borderColor: theme.colors.border
+                    }
+                  ]}
+                  value={formData.seuil_cyclisme}
+                  onChangeText={(text) => setFormData({ ...formData, seuil_cyclisme: text })}
+                  placeholder="km/h (ex: 35)"
+                  placeholderTextColor={theme.colors.secondary}
+                  keyboardType={Platform.OS === "ios" ? "decimal-pad" : "numeric"}
+                  onFocus={() => handleInputFocus("seuil_cyclisme")}
+                  onSubmitEditing={() => focusNextInput("seuil_course")}
                 />
-                <Text style={evaluationInitialeStyles.advancedToggleText}>
-                  {showAdvanced ? "Masquer les tests physiques" : "Afficher les tests physiques (optionnel)"}
+                
+                {/* ✅ TOOLTIP SEUIL CYCLISME */}
+                {showSeuilCyclismeInfo && (
+                  <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
+                    <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
+                    <Text style={[evaluationInitialeStyles.infoText, { color: theme.colors.secondary }]}>
+                      Vitesse de cyclisme au seuil anaérobie, exprimée en kilomètres par heure (correspond souvent à 85-90% de la FTP).
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              {/* SEUIL COURSE */}
+              <View style={evaluationInitialeStyles.inputContainer}>
+                <View style={evaluationInitialeStyles.inputLabelContainer}>
+                  <Text style={[evaluationInitialeStyles.inputLabel, { color: theme.colors.secondary }]}>Seuil Course</Text>
+                  <Pressable 
+                    style={[evaluationInitialeStyles.infoBadge, { backgroundColor: theme.colors.accent }]}
+                    onPress={() => setShowSeuilCourseInfo(!showSeuilCourseInfo)}
+                  >
+                    <FontAwesome name="info" size={10} color="white" />
+                  </Pressable>
+                </View>
+                
+                <TextInput
+                  ref={(ref) => {
+                    inputRefs.current["seuil_course"] = ref;
+                  }}
+                  style={[
+                    evaluationInitialeStyles.input, 
+                    { 
+                      backgroundColor: theme.colors.background,
+                      color: theme.colors.primary,
+                      borderColor: theme.colors.border
+                    }
+                  ]}
+                  value={formData.seuil_course}
+                  onChangeText={(text) => setFormData({ ...formData, seuil_course: text })}
+                  placeholder="min/km (ex: 4:30)"
+                  placeholderTextColor={theme.colors.secondary}
+                  onFocus={() => handleInputFocus("seuil_course")}
+                  onSubmitEditing={() => focusNextInput("commentaire")}
+                />
+                
+                {/* ✅ TOOLTIP SEUIL COURSE */}
+                {showSeuilCourseInfo && (
+                  <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
+                    <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
+                    <Text style={[evaluationInitialeStyles.infoText, { color: theme.colors.secondary }]}>
+                      Allure de course au seuil anaérobie, exprimée en temps par kilomètre (ex: 4:30 = 4 min 30 sec/km).
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          </View>
+        )}
+      </View>
+
+      {/* Commentaire */}
+      <View style={[evaluationInitialeStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
+        <Text style={[evaluationInitialeStyles.fieldTitle, { color: theme.colors.primary }]}>
+          Commentaires
+        </Text>
+        <Text style={[evaluationInitialeStyles.fieldDescription, { color: theme.colors.secondary }]}>
+          Informations supplémentaires, préférences d'entraînement
+        </Text>
+        
+        <TextInput
+          ref={(ref) => {
+            inputRefs.current["commentaire"] = ref;
+          }}
+          style={[
+            evaluationInitialeStyles.textArea, 
+            { 
+              backgroundColor: theme.colors.background,
+              color: theme.colors.primary,
+              borderColor: theme.colors.border
+            }
+          ]}
+          value={formData.commentaire}
+          onChangeText={(text) => setFormData({ ...formData, commentaire: text })}
+          placeholder="Préférences, informations utiles..."
+          placeholderTextColor={theme.colors.secondary}
+          multiline
+          numberOfLines={3}
+          textAlignVertical="top"
+          onFocus={() => handleInputFocus("commentaire")}
+        />
+      </View>
+    </View>
+
+    {/* ✅ BOUTONS D'ACTION MODERNISÉS */}
+    <View style={evaluationInitialeStyles.actionsSection}>
+      <Pressable
+        style={[
+          evaluationInitialeStyles.submitButton,
+          { 
+            backgroundColor: isValid ? theme.colors.accent : theme.colors.disabled,
+            opacity: (!isValid || isSubmitting) ? 0.6 : 1
+          }
+        ]}
+        onPress={handleSubmit}
+        disabled={!isValid || isSubmitting}
+      >
+        {isSubmitting ? (
+          <ActivityIndicator color="white" />
+        ) : (
+          <>
+            <FontAwesome name="check" size={18} color="white" />
+            <Text style={evaluationInitialeStyles.submitButtonText}>
+              Créer l'évaluation
+            </Text>
+          </>
+        )}
+      </Pressable>
+
+      <Pressable
+        style={[evaluationInitialeStyles.cancelButton, { backgroundColor: 'transparent', borderColor: theme.colors.error }]}
+        onPress={() => router.replace('/(tabs)/profil')}
+      >
+        <FontAwesome name="times" size={18} color={theme.colors.error} />
+        <Text style={[evaluationInitialeStyles.cancelButtonText, { color: theme.colors.error }]}>
+          Annuler
+        </Text>
+      </Pressable>
+    </View>
+
+    {/* ✅ DateTimePicker avec contrôle iOS/Android */}
+    {showDatePicker && (
+      <>
+        {Platform.OS === 'ios' && (
+          <View style={[evaluationInitialeStyles.datePickerContainer, { backgroundColor: theme.colors.surface }]}>
+            {/* ✅ Header avec boutons */}
+            <View style={[evaluationInitialeStyles.datePickerHeader, { borderBottomColor: theme.colors.border }]}>
+              <Pressable
+                style={[evaluationInitialeStyles.datePickerButton, { backgroundColor: 'transparent' }]}
+                onPress={cancelDateSelection}
+              >
+                <Text style={[evaluationInitialeStyles.datePickerButtonText, { color: theme.colors.error }]}>
+                  Annuler
                 </Text>
               </Pressable>
-
-              {showAdvanced && (
-                <>
-                  {/* Tests cardiorespiratoires */}
-                  <View style={evaluationInitialeStyles.inputGroup}>
-                    <Text style={evaluationInitialeStyles.sectionTitle}>Tests cardiorespiratoires</Text>
-                    
-                    <View style={evaluationInitialeStyles.row}>
-                      <View style={[evaluationInitialeStyles.col, { marginRight: 10 }]}>
-                        <Text style={evaluationInitialeStyles.label}>VO2 Max</Text>
-                        <TextInput
-                          ref={(ref) => {
-                            inputRefs.current["vo2max"] = ref;
-                          }}
-                          style={evaluationInitialeStyles.input}
-                          value={formData.vo2max}
-                          onChangeText={(text) => setFormData({ ...formData, vo2max: text.replace(/[^\d.,]/g, "") })}
-                          placeholder="ml/kg/min"
-                          placeholderTextColor="#999"
-                          keyboardType={Platform.OS === "ios" ? "decimal-pad" : "numeric"}
-                          returnKeyType="next"
-                          onFocus={handleInputFocus}
-                          onSubmitEditing={() => focusNextInput("freq_repo")}
-                          accessibilityLabel="VO2 Max"
-                          autoCapitalize="none"
-                        />
-                      </View>
-                      <View style={evaluationInitialeStyles.col}>
-                        <Text style={evaluationInitialeStyles.label}>Test Cooper</Text>
-                        <TextInput
-                          ref={(ref) => {
-                            inputRefs.current["cooper"] = ref;
-                          }}
-                          style={evaluationInitialeStyles.input}
-                          value={formData.cooper}
-                          onChangeText={(text) => setFormData({ ...formData, cooper: text.replace(/[^\d.,]/g, "") })}
-                          placeholder="Distance (m)"
-                          placeholderTextColor="#999"
-                          keyboardType="numeric"
-                          returnKeyType="next"
-                          onFocus={handleInputFocus}
-                          onSubmitEditing={() => focusNextInput("vma")}
-                          accessibilityLabel="Test Cooper en mètres"
-                          autoCapitalize="none"
-                        />
-                      </View>
-                    </View>
-
-                    <View style={evaluationInitialeStyles.row}>
-                      <View style={[evaluationInitialeStyles.col, { marginRight: 10 }]}>
-                        <Text style={evaluationInitialeStyles.label}>Fréq. repos</Text>
-                        <TextInput
-                          ref={(ref) => {
-                            inputRefs.current["freq_repo"] = ref;
-                          }}
-                          style={evaluationInitialeStyles.input}
-                          value={formData.freq_repo}
-                          onChangeText={(text) => setFormData({ ...formData, freq_repo: text.replace(/[^\d]/g, "") })}
-                          placeholder="bpm"
-                          placeholderTextColor="#999"
-                          keyboardType="numeric"
-                          returnKeyType="next"
-                          onFocus={handleInputFocus}
-                          onSubmitEditing={() => focusNextInput("freq_max")}
-                          accessibilityLabel="Fréquence cardiaque de repos"
-                          autoCapitalize="none"
-                        />
-                      </View>
-                      <View style={evaluationInitialeStyles.col}>
-                        <Text style={evaluationInitialeStyles.label}>Fréq. max</Text>
-                        <TextInput
-                          ref={(ref) => {
-                            inputRefs.current["freq_max"] = ref;
-                          }}
-                          style={evaluationInitialeStyles.input}
-                          value={formData.freq_max}
-                          onChangeText={(text) => setFormData({ ...formData, freq_max: text.replace(/[^\d]/g, "") })}
-                          placeholder="bpm"
-                          placeholderTextColor="#999"
-                          keyboardType="numeric"
-                          returnKeyType="next"
-                          onFocus={handleInputFocus}
-                          onSubmitEditing={() => focusNextInput("vma")}
-                          accessibilityLabel="Fréquence cardiaque maximale"
-                          autoCapitalize="none"
-                        />
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* VMA */}
-                  <View style={evaluationInitialeStyles.inputGroup}>
-                    <Text style={evaluationInitialeStyles.label}>VMA (Vitesse Maximale Aérobie)</Text>
-                    <TextInput
-                      ref={(ref) => {
-                        inputRefs.current["vma"] = ref;
-                      }}
-                      style={evaluationInitialeStyles.input}
-                      value={formData.vma}
-                      onChangeText={(text) => setFormData({ ...formData, vma: text.replace(/[^\d.,]/g, "") })}
-                      placeholder="km/h (ex: 15.5)"
-                      placeholderTextColor="#999"
-                      keyboardType={Platform.OS === "ios" ? "decimal-pad" : "numeric"}
-                      returnKeyType="next"
-                      onFocus={handleInputFocus}
-                      onSubmitEditing={() => focusNextInput("ftp_cyclisme")}
-                      accessibilityLabel="VMA en kilomètres par heure"
-                      autoCapitalize="none"
-                    />
-                  </View>
-
-                  {/* Tests par discipline */}
-                  <View style={evaluationInitialeStyles.inputGroup}>
-                    <Text style={evaluationInitialeStyles.sectionTitle}>Tests par discipline</Text>
-                    
-                    <Text style={evaluationInitialeStyles.label}>FTP Cyclisme</Text>
-                    <TextInput
-                      ref={(ref) => {
-                        inputRefs.current["ftp_cyclisme"] = ref;
-                      }}
-                      style={evaluationInitialeStyles.input}
-                      value={formData.ftp_cyclisme}
-                      onChangeText={(text) => setFormData({ ...formData, ftp_cyclisme: text.replace(/[^\d]/g, "") })}
-                      placeholder="Watts (ex: 250)"
-                      placeholderTextColor="#999"
-                      keyboardType="numeric"
-                      returnKeyType="next"
-                      onFocus={handleInputFocus}
-                      onSubmitEditing={() => focusNextInput("seuil_natation")}
-                      accessibilityLabel="FTP Cyclisme en watts"
-                      autoCapitalize="none"
-                    />
-                  </View>
-
-                  {/* Seuils */}
-                  <View style={evaluationInitialeStyles.inputGroup}>
-                    <Text style={evaluationInitialeStyles.sectionTitle}>Allures seuil</Text>
-                    
-                    <Text style={evaluationInitialeStyles.label}>Seuil Natation</Text>
-                    <TextInput
-                      ref={(ref) => {
-                        inputRefs.current["seuil_natation"] = ref;
-                      }}
-                      style={evaluationInitialeStyles.input}
-                      value={formData.seuil_natation}
-                      onChangeText={(text) => setFormData({ ...formData, seuil_natation: text })}
-                      placeholder="min/100m (ex: 1:30)"
-                      placeholderTextColor="#999"
-                      returnKeyType="next"
-                      onFocus={handleInputFocus}
-                      onSubmitEditing={() => focusNextInput("seuil_cyclisme")}
-                      accessibilityLabel="Seuil natation"
-                      autoCapitalize="none"
-                    />
-
-                    <Text style={evaluationInitialeStyles.label}>Seuil Cyclisme</Text>
-                    <TextInput
-                      ref={(ref) => {
-                        inputRefs.current["seuil_cyclisme"] = ref;
-                      }}
-                      style={evaluationInitialeStyles.input}
-                      value={formData.seuil_cyclisme}
-                      onChangeText={(text) => setFormData({ ...formData, seuil_cyclisme: text })}
-                      placeholder="km/h (ex: 35)"
-                      placeholderTextColor="#999"
-                      keyboardType={Platform.OS === "ios" ? "decimal-pad" : "numeric"}
-                      returnKeyType="next"
-                      onFocus={handleInputFocus}
-                      onSubmitEditing={() => focusNextInput("seuil_course")}
-                      accessibilityLabel="Seuil cyclisme"
-                      autoCapitalize="none"
-                    />
-
-                    <Text style={evaluationInitialeStyles.label}>Seuil Course à pied</Text>
-                    <TextInput
-                      ref={(ref) => {
-                        inputRefs.current["seuil_course"] = ref;
-                      }}
-                      style={evaluationInitialeStyles.input}
-                      value={formData.seuil_course}
-                      onChangeText={(text) => setFormData({ ...formData, seuil_course: text })}
-                      placeholder="min/km (ex: 4:30)"
-                      placeholderTextColor="#999"
-                      returnKeyType="next"
-                      onFocus={handleInputFocus}
-                      onSubmitEditing={() => focusNextInput("commentaire")}
-                      accessibilityLabel="Seuil course à pied"
-                      autoCapitalize="none"
-                    />
-                  </View>
-                </>
-              )}
-
-              {/* Commentaire libre */}
-              <View style={evaluationInitialeStyles.inputGroup}>
-                <Text style={evaluationInitialeStyles.label}>Commentaire</Text>
-                <TextInput
-                  ref={(ref) => {
-                    inputRefs.current["commentaire"] = ref;
-                  }}
-                  style={[evaluationInitialeStyles.input, evaluationInitialeStyles.textArea]}
-                  value={formData.commentaire}
-                  onChangeText={(text) => setFormData({ ...formData, commentaire: text })}
-                  placeholder="Informations supplémentaires, préférences d'entraînement..."
-                  placeholderTextColor="#999"
-                  multiline
-                  numberOfLines={3}
-                  textAlignVertical="top"
-                  onFocus={handleInputFocus}
-                  accessibilityLabel="Commentaire libre"
-                  autoCapitalize="sentences"
-                />
-              </View>
-
-              {/* Buttons */}
-              <View style={evaluationInitialeStyles.buttonContainer}>
-                <Pressable
-                  style={[
-                    evaluationInitialeStyles.submitButton,
-                    (!isValid || isSubmitting) && { opacity: 0.6 },
-                  ]}
-                  onPress={handleSubmit}
-                  disabled={!isValid || isSubmitting}
-                  accessibilityRole="button"
-                  accessibilityLabel="Créer l'évaluation initiale"
-                >
-                  {isSubmitting ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <>
-                      <FontAwesome
-                        name="check"
-                        size={20}
-                        color="white"
-                        style={evaluationInitialeStyles.buttonIcon}
-                      />
-                      <Text style={evaluationInitialeStyles.submitButtonText}>Créer l'évaluation initiale</Text>
-                    </>
-                  )}
-                </Pressable>
-
-                <Pressable
-                  style={evaluationInitialeStyles.cancelButton}
-                  onPress={() => router.back()}
-                  accessibilityRole="button"
-                  accessibilityLabel="Annuler"
-                >
-                  <FontAwesome
-                    name="times"
-                    size={20}
-                    color="white"
-                    style={evaluationInitialeStyles.buttonIcon}
-                  />
-                  <Text style={evaluationInitialeStyles.cancelButtonText}>Annuler</Text>
-                </Pressable>
-              </View>
-
-              <View style={evaluationInitialeStyles.bottomSpacer} />
+              
+              <Text style={[evaluationInitialeStyles.datePickerTitle, { color: theme.colors.primary }]}>
+                Sélectionner une date
+              </Text>
+              
+              <Pressable
+                style={[evaluationInitialeStyles.datePickerButton, { backgroundColor: theme.colors.accent }]}
+                onPress={confirmDate}
+              >
+                <Text style={[evaluationInitialeStyles.datePickerButtonText, { color: 'white' }]}>
+                  OK
+                </Text>
+              </Pressable>
             </View>
-          </KeyboardAwareScrollView>
-        </View>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
-  );
+            
+            {/* ✅ DatePicker iOS */}
+            <DateTimePicker
+              value={tempDate || (formData.echeance ? new Date(formData.echeance) : new Date())}
+              mode="date"
+              display="spinner"
+              onChange={handleDateChange}
+              minimumDate={new Date()}
+              maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() + 2))}
+              style={evaluationInitialeStyles.datePickerIOS}
+            />
+          </View>
+        )}
+        
+        {Platform.OS === 'android' && (
+          <DateTimePicker
+            value={formData.echeance ? new Date(formData.echeance) : new Date()}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+            minimumDate={new Date()}
+            maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() + 2))}
+          />
+        )}
+      </>
+    )}
+  </ScrollView>
+);
 }

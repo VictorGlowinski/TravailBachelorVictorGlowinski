@@ -23,12 +23,15 @@ class EvaluationInitialeSeeder extends Seeder
             'eva_ftp_cyclisme'     => 210,                 // watts
             'eva_vma'              => 15.5,                // km/h
             'eva_cooper'           => '2900 mètres en 12 min', 
+            'eva_nb_heure_dispo'   => 6,                    // heures d’entraînement hebdo dispo
             'eva_seuil_natation'   => '1:45 /100m',         // rythme au seuil
             'eva_seuil_cyclisme'   => '220 W',              // puissance au seuil
             'eva_seuil_course'     => '4:15 /km',           // allure au seuil
             'eva_echeance'         => '2025-12-31',
-            'eva_nb_heure_dispo'   => 6,                    // heures d’entraînement hebdo dispo
-            'eva_commentaire'      => 'A améliorer en vélo, bonne récupération'
+            'eva_commentaire'      => 'A améliorer en vélo, bonne récupération',
+            'eva_objectif'         => 'Préparer un triathlon olympique',
+            'eva_echeance'         => '2025-12-31',
+            'eva_exp_triathlon'    => 'Débutant'
         ]);
 
         EvaluationInitiale::create([
@@ -39,12 +42,14 @@ class EvaluationInitialeSeeder extends Seeder
             'eva_ftp_cyclisme'     => 200,
             'eva_vma'              => 14.0,
             'eva_cooper'           => '2800 mètres en 12 min',
+            'eva_nb_heure_dispo'   => 5,
             'eva_seuil_natation'   => '1:50 /100m',
             'eva_seuil_cyclisme'   => '210 W',
             'eva_seuil_course'     => '4:10 /km',
-            'eva_echeance'         => '2025-12-31',
-            'eva_nb_heure_dispo'   => 5,
-            'eva_commentaire'      => 'Bon potentiel, à travailler en endurance'
+            'eva_commentaire'      => 'Bon potentiel, à travailler en endurance',
+            'eva_objectif'         => 'Préparer un Ironman',
+            'eva_echeance'         => '2026-06-22',
+            'eva_exp_triathlon'    => 'Intermédiaire'
         ]);
 
         EvaluationInitiale::create([
@@ -55,12 +60,14 @@ class EvaluationInitialeSeeder extends Seeder
             'eva_ftp_cyclisme'     => 190,
             'eva_vma'              => 13.5,
             'eva_cooper'           => '2700 mètres en 12 min',
+            'eva_nb_heure_dispo'   => 4,
             'eva_seuil_natation'   => '1:55 /100m',
             'eva_seuil_cyclisme'   => '200 W',
             'eva_seuil_course'     => '4:05 /km',
+            'eva_commentaire'      => 'Doit progresser en course à pied',
+            'eva_objectif'         => 'Améliorer le temps sur 10 km',
             'eva_echeance'         => '2025-12-31',
-            'eva_nb_heure_dispo'   => 4,
-            'eva_commentaire'      => 'Doit progresser en course à pied'
+            'eva_exp_triathlon'    => 'Intermédiaire'
         ]);
     }
 }

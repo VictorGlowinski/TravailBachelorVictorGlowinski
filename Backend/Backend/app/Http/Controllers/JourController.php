@@ -230,4 +230,105 @@ class JourController extends Controller
             ], 500);
         }
     }
+
+    
+    public function getUserJours(Request $request, $userId): JsonResponse
+    {
+        try {
+            Log::info("Récupération des jours pour user: {$userId}");
+            
+            $jours = Jour::whereHas('plan', function($query) use ($userId) {
+                        $query->where('pla_user_id', $userId);
+                    })
+                    ->with(['activites', 'plan'])
+                    ->orderBy('jou_date')
+                    ->get();
+
+            Log::info("Jours trouvés: " . $jours->count());
+
+            return response()->json([
+                'success' => true,
+                'jours' => $jours->map(function($jour) {
+                    return [
+                        'jou_id' => $jour->jou_id,
+                        'jou_date' => $jour->jou_date,
+                        'jou_description' => $jour->jou_description,
+                        'plan_nom' => $jour->plan->pla_nom ?? null,
+                        'activites' => $jour->activites->map(function($activite) {
+                            return [
+                                'gen_id' => $activite->gen_id,
+                                'gen_nom' => $activite->gen_nom,
+                                'gen_type' => $activite->gen_type,
+                                'gen_duree' => $activite->gen_duree,
+                                'gen_distance' => $activite->gen_distance,
+                                'gen_intensite' => $activite->gen_intensite,
+                                'gen_commentaire' => $activite->gen_commentaire
+                            ];
+                        })
+                    ];
+                }),
+                'count' => $jours->count()
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Erreur récupération jours utilisateur:', [
+                'user_id' => $userId,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des jours'
+            ], 500);
+        }
+    }
+
+    public function getTodayActivitiesForUser(Request $request, $userId): JsonResponse
+    {
+        try {
+            // ✅ Utiliser la nouvelle méthode statique
+            $jour = Jour::getTodayActivitiesForUser($userId);
+
+            if (!$jour) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Aucune activité prévue aujourd\'hui',
+                    'jour' => null,
+                    'activites' => []
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'jour' => [
+                    'jou_id' => $jour->jou_id,
+                    'jou_date' => $jour->jou_date,
+                    'jou_description' => $jour->jou_description,
+                    'plan_nom' => $jour->plan->pla_nom ?? null
+                ],
+                'activites' => $jour->activites->map(function($activite) {
+                    return [
+                        'gen_id' => $activite->gen_id,
+                        'gen_nom' => $activite->gen_nom,
+                        'gen_type' => $activite->gen_type,
+                        'gen_duree' => $activite->gen_duree,
+                        'gen_distance' => $activite->gen_distance,
+                        'gen_intensite' => $activite->gen_intensite,
+                        'gen_commentaire' => $activite->gen_commentaire
+                    ];
+                })
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('Erreur récupération activités du jour:', [
+                'user_id' => $userId,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des activités du jour'
+            ], 500);
+        }
+    }
 }

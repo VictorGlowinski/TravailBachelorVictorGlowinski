@@ -300,6 +300,133 @@ const planStyles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 5,
   },
+  // styles/screens/PlanStyles.ts - AJOUTER ces styles
+
+// ✅ Styles pour le bouton de génération
+generateButtonContainer: {
+  marginTop: 20,
+  gap: 12,
+},
+
+generateButtonSubtext: {
+  fontSize: 12,
+  color: 'rgba(255, 255, 255, 0.8)',
+  textAlign: 'center',
+},
+helpText: {
+  fontSize: 14,
+  textAlign: 'center',
+  lineHeight: 20,
+  fontStyle: 'italic',
+  paddingHorizontal: 20,
+  // color sera définie dynamiquement
+},
+// styles/screens/PlanStyles.ts - AJOUTER ces styles
+
+// Styles pour l'aperçu des activités
+activitiesPreview: {
+  padding: 12,
+  borderRadius: 8,
+  marginTop: 12,
+},
+activitiesCount: {
+  fontSize: 14,
+  fontWeight: '500',
+  marginBottom: 4,
+},
+tapToView: {
+  fontSize: 12,
+  fontStyle: 'italic',
+},
+restDay: {
+  fontSize: 14,
+  fontStyle: 'italic',
+  textAlign: 'center',
+},
+// styles/screens/PlanStyles.ts - AJOUTER ces styles
+
+dateSection: {
+  marginTop: 20,
+  paddingTop: 20,
+  borderTopWidth: 1,
+  borderTopColor: 'rgba(0, 0, 0, 0.1)',
+},
+dateLabel: {
+  fontSize: 16,
+  fontWeight: '600',
+  marginBottom: 4,
+},
+dateDescription: {
+  fontSize: 14,
+  marginBottom: 12,
+  lineHeight: 20,
+},
+dateInput: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: 12,
+  paddingVertical: 12,
+  borderRadius: 8,
+  borderWidth: 1,
+},
+dateInputText: {
+  fontSize: 16,
+  flex: 1,
+},
+
+required: {
+  fontSize: 16,
+  fontWeight: 'bold',
+},
+errorText: {
+  fontSize: 12,
+  fontStyle: 'italic',
+  marginTop: 4,
+},
+// styles/screens/PlanStyles.ts - AJOUTER ces styles
+
+// ✅ Styles pour le DatePicker customisé
+datePickerContainer: {
+  position: 'absolute',
+  top: '50%',
+  left: 20,
+  right: 20,
+  transform: [{ translateY: -150 }],
+  borderRadius: 12,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.3,
+  shadowRadius: 8,
+  elevation: 8,
+  zIndex: 1000,
+},
+datePickerHeader: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: 16,
+  paddingVertical: 12,
+  borderBottomWidth: 1,
+},
+datePickerTitle: {
+  fontSize: 16,
+  fontWeight: '600',
+},
+datePickerButton: {
+  paddingHorizontal: 16,
+  paddingVertical: 8,
+  borderRadius: 8,
+  minWidth: 70,
+  alignItems: 'center',
+},
+datePickerButtonText: {
+  fontSize: 14,
+  fontWeight: '500',
+},
+datePickerIOS: {
+  height: 200,
+},
 });
 
 export default planStyles;

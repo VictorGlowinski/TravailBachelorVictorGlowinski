@@ -12,10 +12,14 @@ use App\Http\Controllers\OpenAIController;
 use Illuminate\Http\Request;
 
 // Routes pour les ressources API
-Route::apiResource('activite-generee', ActiviteGenereeController::class);
 Route::apiResource('jour', JourController::class);
+Route::get('/jours/user/{userId}', [JourController::class, 'getUserJours']);
+Route::get('/jours/user/{userId}/today', [JourController::class, 'getTodayActivitiesForUser']);
 
 Route::get('/jours/{jourId}/activites', [ActiviteGenereeController::class, 'getByJour']);
+Route::apiResource('activite-generee', ActiviteGenereeController::class);
+
+
 Route::apiResource('activite-realisee', ActiviteRealiseeController::class);
 
 Route::get('/anamnese/user/{userId}', [AnamneseController::class, 'getAnamneseByUserId']);
@@ -32,7 +36,8 @@ Route::get('/plans/user/{userId}/complete', [PlanController::class, 'getUserPlan
 Route::apiResource('users', UserController::class);
 
 
-    
+Route::apiResource('retour', RetourController::class);
+
 // Route pour l'utilisateur authentifié
 Route::get('/user', function (Request $request) {
     return $request->user();

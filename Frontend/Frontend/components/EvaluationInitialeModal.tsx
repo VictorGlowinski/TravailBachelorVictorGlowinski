@@ -32,7 +32,8 @@ export default function EvaluationInitialeModal({ visible, onClose, userId }: Ev
   const [evaluationId, setEvaluationId] = useState<string | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const [formData, setFormData] = useState({
     vo2max: "",
     freq_repos: "",
@@ -40,12 +41,14 @@ export default function EvaluationInitialeModal({ visible, onClose, userId }: Ev
     ftp_cyclisme: "",
     vma: "",
     cooper: "",
+    nb_heure_dispo: "",
     seuil_natation: "",
     seuil_cyclisme: "",
     seuil_course: "",
-    echeance: "",
-    nb_heure_dispo: "",
     commentaire: "",
+    echeance: "",
+    objectif: "",
+    exp_triathlon: ""
   });
 
   const formatDate = (date: Date) => {
@@ -115,12 +118,15 @@ export default function EvaluationInitialeModal({ visible, onClose, userId }: Ev
             ftp_cyclisme: evaluation.eva_ftp_cyclisme?.toString() || "",
             vma: evaluation.eva_vma?.toString() || "",
             cooper: evaluation.eva_cooper?.toString() || "",
+            nb_heure_dispo: evaluation.eva_nb_heure_dispo?.toString() || "",
             seuil_natation: evaluation.eva_seuil_natation || "",
             seuil_cyclisme: evaluation.eva_seuil_cyclisme || "",
             seuil_course: evaluation.eva_seuil_course || "",
-            echeance: evaluation.eva_echeance ? formatDate(parseDate(evaluation.eva_echeance)) : "",
-            nb_heure_dispo: evaluation.eva_nb_heure_dispo?.toString() || "",
             commentaire: evaluation.eva_commentaire || "",
+            exp_triathlon: evaluation.eva_exp_triathlon || "",
+            objectif: evaluation.eva_objectif || "",
+            echeance: evaluation.eva_echeance ? formatDate(parseDate(evaluation.eva_echeance)) : "",
+
           });
         } else {
           Alert.alert("Erreur", "Aucune évaluation trouvée");
@@ -202,6 +208,79 @@ export default function EvaluationInitialeModal({ visible, onClose, userId }: Ev
     onClose();
   };
 
+  // ✅ FONCTION DE SUPPRESSION
+  const deleteEvaluation = async () => {
+    if (!userId || !evaluationId) return;
+    
+    // ✅ CONFIRMATION avant suppression
+    Alert.alert(
+      "Supprimer l'évaluation initiale",
+      "Êtes-vous sûr de vouloir supprimer définitivement cette évaluation ? Cette action est irréversible.",
+      [
+        {
+          text: "Annuler",
+          style: "cancel"
+        },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              const response = await fetch(`${API_BASE_URL}/evaluation-initiale/${evaluationId}`, {
+                method: "DELETE",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              });
+
+              if (response.ok) {
+                Alert.alert(
+                  "Succès", 
+                  "Évaluation supprimée avec succès !",
+                  [
+                    { 
+                      text: "OK", 
+                      onPress: () => {
+                        // ✅ FERMER le modal et réinitialiser
+                        setFormData({
+                          vo2max: "",
+                          freq_repos: "",
+                          freq_max: "",
+                          ftp_cyclisme: "",
+                          vma: "",
+                          cooper: "",
+                          nb_heure_dispo: "",
+                          seuil_natation: "",
+                          seuil_cyclisme: "",
+                          seuil_course: "",
+                          objectif: "",
+                          exp_triathlon: "",
+                          echeance: "",
+                          commentaire: "",
+                        });
+                        setEvaluationId(null);
+                        setSelectedDate(new Date());
+                        onClose();
+                      }
+                    }
+                  ]
+                );
+              } else {
+                throw new Error("Erreur lors de la suppression");
+              }
+            } catch (error) {
+              console.error('❌ Erreur suppression:', error);
+              Alert.alert("Erreur", "Impossible de supprimer l'évaluation. Veuillez réessayer.");
+            } finally {
+              setIsDeleting(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <Modal
       visible={visible}
@@ -211,7 +290,7 @@ export default function EvaluationInitialeModal({ visible, onClose, userId }: Ev
     >
       <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
         
-        {/* ✅ Header identique à AnamneseModal */}
+        {/* ✅ HEADER MODIFIÉ avec bouton supprimer */}
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
@@ -228,33 +307,59 @@ export default function EvaluationInitialeModal({ visible, onClose, userId }: Ev
             {mode === 'view' ? 'Consultation' : 'Modification'} évaluation
           </Text>
           
-          <Pressable 
-            onPress={() => {
-              if (mode === 'view') {
-                setMode('edit');
-              } else {
-                saveChanges();
-              }
-            }}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <ActivityIndicator size="small" color="#007AFF" />
-            ) : (
-              <FontAwesome 
-                name={mode === 'view' ? 'edit' : 'check'} 
-                size={20} 
-                color="#007AFF" 
-              />
+          {/* ✅ BOUTONS d'action */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
+            {/* Bouton Supprimer - visible uniquement en mode view */}
+            {mode === 'view' && (
+              <Pressable 
+                onPress={deleteEvaluation}
+                disabled={isDeleting}
+                style={{
+                  opacity: isDeleting ? 0.5 : 1
+                }}
+              >
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color="#e74c3c" />
+                ) : (
+                  <FontAwesome name="trash" size={20} color="#e74c3c" />
+                )}
+              </Pressable>
             )}
-          </Pressable>
+            
+            {/* Bouton Modifier/Sauvegarder */}
+            <Pressable 
+              onPress={() => {
+                if (mode === 'view') {
+                  setMode('edit');
+                } else {
+                  saveChanges();
+                }
+              }}
+              disabled={isSaving || isDeleting}
+              style={{
+                opacity: (isSaving || isDeleting) ? 0.5 : 1
+              }}
+            >
+              {isSaving ? (
+                <ActivityIndicator size="small" color="#007AFF" />
+              ) : (
+                <FontAwesome 
+                  name={mode === 'view' ? 'edit' : 'check'} 
+                  size={20} 
+                  color="#007AFF" 
+                />
+              )}
+            </Pressable>
+          </View>
         </View>
 
-        {/* ✅ Contenu identique à AnamneseModal */}
-        {isLoading ? (
+        {/* ✅ CONTENU avec état de chargement pour suppression */}
+        {(isLoading || isDeleting) ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <ActivityIndicator size="large" color="#007AFF" />
-            <Text style={{ marginTop: 10 }}>Chargement...</Text>
+            <Text style={{ marginTop: 10 }}>
+              {isLoading ? 'Chargement...' : 'Suppression en cours...'}
+            </Text>
           </View>
         ) : (
           <ScrollView style={{ flex: 1, padding: 20 }}>
@@ -333,6 +438,10 @@ export default function EvaluationInitialeModal({ visible, onClose, userId }: Ev
               { label: "Seuil Natation (min/100m)", key: "seuil_natation", keyboardType: "default" },
               { label: "Seuil Cyclisme (km/h)", key: "seuil_cyclisme", keyboardType: "default" },
               { label: "Seuil Course (min/km)", key: "seuil_course", keyboardType: "default" },
+              { label: "Objectif", key: "objectif", keyboardType: "default" },
+              { label: "Échéance", key: "echeance", keyboardType: "default" },
+              { label: "Expérience Triathlon", key: "exp_triathlon", keyboardType: "default" },
+
             ].map(({ label, key, keyboardType }) => (
               <View key={key} style={{ marginBottom: 20 }}>
                 <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 5 }}>{label}</Text>
@@ -377,7 +486,31 @@ export default function EvaluationInitialeModal({ visible, onClose, userId }: Ev
                 />
               </View>
             ))}
-
+            {/* ✅ SECTION DANGER en bas du formulaire */}
+            {mode === 'view' && (    
+                <Pressable
+                  onPress={deleteEvaluation}
+                  disabled={isDeleting}
+                  style={{
+                    backgroundColor: '#e74c3c',
+                    padding: 10,
+                    borderRadius: 6,
+                    alignItems: 'center',
+                    opacity: isDeleting ? 0.5 : 1
+                  }}
+                >
+                  {isDeleting ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <>
+                      <FontAwesome name="trash" size={16} color="white" />
+                      <Text style={{ color: 'white', fontWeight: 'bold', marginTop: 4 }}>
+                        Supprimer l'évaluation
+                      </Text>
+                    </>
+                  )}
+                </Pressable>
+            )}
             <View style={{ height: 50 }} />
           </ScrollView>
         )}

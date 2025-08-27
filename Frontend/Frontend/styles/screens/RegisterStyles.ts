@@ -110,6 +110,87 @@ const RegisterStyles = StyleSheet.create({
         fontSize: 14,
         fontStyle: 'italic',
     },
+    dateInput: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 15,
+        paddingVertical: 12,
+    },
+    dateInputText: {
+        fontSize: 16,
+        flex: 1,
+    },
+
+    
+    datePickerContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: 20,
+    right: 20,
+    backgroundColor: '#ffffff', // ✅ FOND BLANC PUR
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 1000,
+    transform: [{ translateY: -150 }],
+    borderWidth: 1, // ✅ AJOUTER une bordure
+    borderColor: '#e0e0e0',
+},
+datePickerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e1e8ed',
+    backgroundColor: '#f8f9fa', // ✅ HEADER LÉGÈREMENT GRIS
+},
+datePickerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2c3e50', // ✅ COULEUR FONCÉE
+},
+datePickerCancelButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    minWidth: 70,
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa', // ✅ FOND POUR MEILLEURE VISIBILITÉ
+},
+datePickerCancelText: {
+    fontSize: 14,
+    fontWeight: '600', // ✅ PLUS GRAS
+    color: '#e74c3c',
+},
+datePickerConfirmButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#007AFF',
+    minWidth: 70,
+    alignItems: 'center',
+    shadowColor: '#007AFF', // ✅ OMBRE COLORÉE
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+},
+datePickerConfirmText: {
+    fontSize: 14,
+    fontWeight: '600', // ✅ PLUS GRAS
+    color: 'white',
+},
+datePickerIOS: {
+    height: 200,
+    backgroundColor: '#ffffff', // ✅ FOND BLANC
+    paddingHorizontal: 20, // ✅ ESPACEMENT
+},
 });
 
 export default RegisterStyles;

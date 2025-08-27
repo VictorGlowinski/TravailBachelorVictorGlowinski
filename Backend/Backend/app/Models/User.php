@@ -70,4 +70,6 @@ class User extends Authenticatable
     {
         return $this->hasMany(ActiviteRealisee::class, 'use_id');
     }
+
+    
 }

@@ -16,12 +16,13 @@ class EvaluationInitiale extends Model
         'eva_ftp_cyclisme',
         'eva_vma',
         'eva_cooper',
+        'eva_nb_heure_dispo',
         'eva_seuil_natation',
         'eva_seuil_cyclisme',
         'eva_seuil_course',
-        'eva_echeance',
-        'eva_nb_heure_dispo',
-        'eva_commentaire'
+        'eva_commentaire',
+        'eva_objectif',
+        'eva_echeance'
     ];
 
     protected $casts = [
@@ -33,12 +34,13 @@ class EvaluationInitiale extends Model
         'eva_ftp_cyclisme' => 'integer',
         'eva_vma' => 'float',
         'eva_cooper' => 'string',
+        'eva_nb_heure_dispo' => 'integer',
         'eva_seuil_natation' => 'string',
         'eva_seuil_cyclisme' => 'string',
         'eva_seuil_course' => 'string',
-        'eva_echeance' => 'date',
-        'eva_nb_heure_dispo' => 'integer',
-        'eva_commentaire' => 'string'
+        'eva_commentaire' => 'string',
+        'eva_objectif' => 'string',
+        'eva_echeance' => 'date'
     ];
 
     public function user()

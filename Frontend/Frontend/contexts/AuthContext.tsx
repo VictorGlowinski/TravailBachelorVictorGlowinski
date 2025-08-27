@@ -14,7 +14,7 @@ const getApiBaseUrl = () => {
             return `http://${ip}:8000/api`;
         }
         // Fallback sur votre IP manuelle
-        return 'http://192.168.0.112:8000/api'; // ✅ VOTRE IP
+        return 'http://192.168.0.112:8000/api'; // VOTRE IP
     } else {
         // Production - remplacez par votre domaine futur
         return 'https://votre-domaine.com/api';

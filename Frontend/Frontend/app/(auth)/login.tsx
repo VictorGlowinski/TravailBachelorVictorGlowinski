@@ -41,7 +41,7 @@ export default function LoginScreen() {
             <View style={LoginStyles.header}>
                 <FontAwesome name="user-circle" size={80} color="#007AFF" />
                 <Text style={LoginStyles.title}>Connexion</Text>
-                <Text style={LoginStyles.subtitle}>Triathlon Training App</Text>
+                <Text style={LoginStyles.subtitle}>Kinesis - Triathlon Training App</Text>
             </View>
 
             <View style={LoginStyles.form}>
@@ -52,6 +52,7 @@ export default function LoginScreen() {
                         value={email}
                         onChangeText={setEmail}
                         placeholder="votre@email.com"
+                        placeholderTextColor="#b1b1b1ff"
                         keyboardType="email-address"
                         autoCapitalize="none"
                         autoComplete="email"
@@ -65,6 +66,7 @@ export default function LoginScreen() {
                         value={password}
                         onChangeText={setPassword}
                         placeholder="Votre mot de passe"
+                        placeholderTextColor="#b1b1b1ff"
                         secureTextEntry
                         autoComplete="password"
                     />
@@ -99,15 +101,7 @@ export default function LoginScreen() {
                     </Text>
                 </Pressable>
 
-                <Pressable 
-                    style={LoginStyles.testButton}
-                    onPress={() => {
-                        setEmail('test@example.com');
-                        setPassword('password123');
-                    }}
-                >
-                    <Text style={LoginStyles.testButtonText}>Remplir test (dev)</Text>
-                </Pressable>
+                
             </View>
         </View>
     );

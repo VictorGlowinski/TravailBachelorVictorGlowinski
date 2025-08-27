@@ -20,13 +20,14 @@ return new class extends Migration
             $table->integer('eva_ftp_cyclisme')->nullable();
             $table->float('eva_vma')->nullable();
             $table->string('eva_cooper')->nullable();
+            $table->integer('eva_nb_heure_dispo')->nullable();
             $table->string('eva_seuil_natation')->nullable();
             $table->string('eva_seuil_cyclisme')->nullable();
             $table->string('eva_seuil_course')->nullable();
-            $table->date('eva_echeance')->nullable();
-            $table->integer('eva_nb_heure_dispo')->nullable();
             $table->string('eva_commentaire')->nullable();
-
+            $table->string('eva_objectif')->nullable();
+            $table->date('eva_echeance')->nullable();
+            $table->string('eva_exp_triathlon')->nullable();
             $table->timestamps();
         });
     }
