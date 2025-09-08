@@ -231,7 +231,7 @@ class OpenAIService
                     ['role' => 'user', 'content' => $prompt],
                 ],
                 'max_tokens' => $maxTokens,
-                'temperature' => 0.7,
+                'temperature' => 0.2,
             ]);
 
             $rawResponse = $result->choices[0]->message->content;

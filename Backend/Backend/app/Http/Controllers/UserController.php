@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules;
+use Illuminate\Support\Facades\Log; 
+use Exception; 
 
 class UserController extends Controller
 {
@@ -73,64 +75,77 @@ class UserController extends Controller
         }
     }
 
-    // ✅ MÉTHODE CORRIGÉE : Connexion
     public function login(Request $request): JsonResponse
-    {
-        try {
-            $validator = Validator::make($request->all(), [
-                'email' => 'required|email',
-                'password' => 'required',
-            ]);
+{
+    try {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required|string|min:6',
+        ]);
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Données invalides',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-
-            // Vérifier les credentials
-            if (!Auth::attempt($request->only('email', 'password'))) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Email ou mot de passe incorrect'
-                ], 401);
-            }
-
-            $user = Auth::user();
-            
-            // Mettre à jour la dernière connexion
-            $user->update(['use_derniere_connexion' => now()]);
-
-            // Créer un token Sanctum
-            $token = $user->createToken('mobile-app')->plainTextToken;
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Connexion réussie',
-                'user' => [
-                    'id' => $user->id,
-                    'email' => $user->email,
-                    'use_date_naissance' => $user->use_date_naissance,
-                    'use_consentement' => $user->use_consentement,
-                    'created_at' => $user->created_at,
-                ],
-                'token' => $token
-            ]);
-
-        } catch (\Exception $e) {
-            \Log::error('Erreur login:', [
-                'message' => $e->getMessage(),
-                'request' => $request->only('email')
-            ]);
-
+        if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la connexion'
-            ], 500);
+                'message' => 'Données invalides',
+                'errors' => $validator->errors()
+            ], 422);
         }
+
+        // ✅ VÉRIFIER les identifiants
+        if (!Auth::attempt($request->only('email', 'password'))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Identifiants incorrects'
+            ], 401);
+        }
+
+        $user = Auth::user();
+        
+        // ✅ GÉNÉRER LE TOKEN SANCTUM
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Connexion réussie',
+            'user' => [
+                'id' => $user->id,
+                'email' => $user->email,
+                'use_date_naissance' => $user->use_date_naissance,
+                // Autres champs si nécessaire
+            ],
+            'token' => $token, // ✅ ENVOYER LE TOKEN
+            'token_type' => 'Bearer'
+        ], 200);
+
+    } catch (Exception $e) {
+        Log::error('Erreur login:', ['error' => $e->getMessage()]);
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de la connexion'
+        ], 500);
     }
+}
+
+// ✅ AJOUTER une méthode logout pour révoquer le token
+public function logout(Request $request): JsonResponse
+{
+    try {
+        // ✅ RÉVOQUER LE TOKEN ACTUEL
+        $request->user()->currentAccessToken()->delete();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Déconnexion réussie'
+        ], 200);
+        
+    } catch (Exception $e) {
+        Log::error('Erreur logout:', ['error' => $e->getMessage()]);
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de la déconnexion'
+        ], 500);
+    }
+}
 
     // ✅ MÉTHODE CORRIGÉE : Récupérer l'utilisateur connecté
     public function me(Request $request): JsonResponse
@@ -147,25 +162,7 @@ class UserController extends Controller
         ]);
     }
 
-    // ✅ NOUVELLE MÉTHODE : Déconnexion
-    public function logout(Request $request): JsonResponse
-    {
-        try {
-            // Supprimer le token actuel
-            $request->user()->currentAccessToken()->delete();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Déconnexion réussie'
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur lors de la déconnexion'
-            ], 500);
-        }
-    }
+    
 
     // ... reste des méthodes inchangées (store, index, show, destroy, update)
     public function store(Request $request): JsonResponse

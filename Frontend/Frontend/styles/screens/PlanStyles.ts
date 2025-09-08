@@ -427,6 +427,33 @@ datePickerButtonText: {
 datePickerIOS: {
   height: 200,
 },
+// styles/screens/PlanStyles.ts - AJOUTER les styles pour le bouton rafraîchir
+
+headerContent: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 8,
+},
+
+refreshButton: {
+  width: 40,
+  height: 40,
+  borderRadius: 20,
+  justifyContent: 'center',
+  alignItems: 'center',
+  elevation: 2,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 3,
+},
+
+lastUpdateText: {
+  fontSize: 12,
+  fontStyle: 'italic',
+  textAlign: 'center',
+},
 });
 
 export default planStyles;

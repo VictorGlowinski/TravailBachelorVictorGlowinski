@@ -7,6 +7,7 @@ import FeedbackModal from '@/components/FeedbackModal';
 import commentaireStyles from '@/styles/screens/CommentaireStyle';
 import { useTheme } from '@/styles/screens/ThemeStyle'; // ✅ IMPORTER le hook de thème
 
+
 export default function FeedbackScreen() {
   const theme = useTheme(); // ✅ UTILISER le thème
   const [modalVisible, setModalVisible] = useState(false);

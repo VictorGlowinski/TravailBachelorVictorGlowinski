@@ -1,6 +1,6 @@
 // components/FeedbackModal.tsx - CORRIGER l'import
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -15,6 +15,8 @@ import {
 import { FontAwesome } from '@expo/vector-icons';
 // ✅ CORRIGER ce chemin - le fichier est dans styles/screens/ pas components/
 import feedbackModalStyles from '@/styles/screens/FeedbackModalStyles';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiPost } from '@/utils/apiHelper'; 
 
 interface FeedbackModalProps {
   visible: boolean;
@@ -27,10 +29,33 @@ export default function FeedbackModal({
   onClose, 
   onFeedbackSubmitted 
 }: FeedbackModalProps) {
-  const API_BASE_URL = "http://192.168.0.112:8000/api";
 
+  const { user, isAuthenticated, logout } = useAuth(); // ✅ UTILISER le contexte d'auth
   const [feedback, setFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // ✅ VÉRIFICATION d'authentification
+  useEffect(() => {
+    if (visible && !isAuthenticated) {
+      Alert.alert(
+        "Non authentifié", 
+        "Vous devez être connecté pour envoyer un feedback",
+        [
+          { 
+            text: "Se connecter", 
+            onPress: () => onClose() 
+          },
+          { 
+            text: "Continuer sans compte", 
+            onPress: () => {
+              // ✅ PERMETTRE l'envoi anonyme mais avec limitation
+              console.log('📧 Feedback anonyme autorisé');
+            }
+          }
+        ]
+      );
+    }
+  }, [visible, isAuthenticated]);
 
   const handleSubmit = async () => {
     if (!feedback.trim()) {
@@ -40,44 +65,73 @@ export default function FeedbackModal({
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/feedback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          fee_commentaire: feedback,
-          fee_note: 5,
-          fee_type: 'general',
-          fee_sujet: 'Feedback utilisateur'
-        }),
-      });
+      // ✅ PRÉPARER les données avec authentification si disponible
+      const feedbackData = {
+        fee_commentaire: feedback,
+        fee_note: 5,
+        fee_type: 'general',
+        fee_sujet: 'Feedback utilisateur',
+        // ✅ AJOUTER l'utilisateur si authentifié
+        ...(isAuthenticated && user && {
+          fee_user_id: user.id,
+          fee_user_email: user.email
+        })
+      };
 
-      if (response.ok) {
+      // ✅ UTILISER apiPost qui gère l'authentification automatiquement
+      const response = await apiPost('/feedback', feedbackData);
+
+      Alert.alert(
+        'Merci !',
+        isAuthenticated 
+          ? 'Votre feedback a été envoyé avec succès. Nous l\'examinerons attentivement.'
+          : 'Votre feedback anonyme a été envoyé avec succès.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setFeedback('');
+              onClose();
+              if (onFeedbackSubmitted) {
+                onFeedbackSubmitted();
+              }
+            }
+          }
+        ]
+      );
+
+    } catch (error) {
+      console.error('Erreur envoi feedback:', error);
+      
+      // ✅ GESTION D'ERREURS SPÉCIFIQUE
+      let errorMessage = 'Impossible d\'envoyer votre feedback. Veuillez réessayer.';
+
+      // Type guard to safely access error.message
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'message' in error &&
+        typeof (error as { message?: string }).message === 'string' &&
+        (error as { message: string }).message.includes('Session expirée')
+      ) {
+        errorMessage = 'Votre session a expiré. Veuillez vous reconnecter.';
         Alert.alert(
-          'Merci !', 
-          'Votre feedback a été envoyé avec succès. Nous l\'examinerons attentivement.',
+          'Session expirée', 
+          errorMessage,
           [
-            {
-              text: 'OK',
+            { 
+              text: "Se reconnecter", 
               onPress: () => {
-                setFeedback('');
+                logout();
                 onClose();
-                if (onFeedbackSubmitted) {
-                  onFeedbackSubmitted();
-                }
               }
             }
           ]
         );
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erreur lors de l\'envoi');
+        return;
       }
-    } catch (error) {
-      console.error('Erreur envoi feedback:', error);
-      Alert.alert('Erreur', 'Impossible d\'envoyer votre feedback. Veuillez réessayer.');
+
+      Alert.alert('Erreur', errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -129,6 +183,16 @@ export default function FeedbackModal({
               <Text style={feedbackModalStyles.subtitle}>
                 Aidez-nous à améliorer Kinesis
               </Text>
+              {/* ✅ AFFICHER l'état d'authentification */}
+              {isAuthenticated && user && (
+                <Text style={[feedbackModalStyles.subtitle, { 
+                  fontSize: 12, 
+                  color: '#27ae60',
+                  marginTop: 4 
+                }]}>
+                  Connecté en tant que {user.email}
+                </Text>
+              )}
             </View>
             <Pressable
               onPress={handleClose}
@@ -184,7 +248,8 @@ export default function FeedbackModal({
                 <>
                   <FontAwesome name="send" size={16} color="white" />
                   <Text style={feedbackModalStyles.submitButtonText}>
-                    Envoyer
+                    {/* ✅ TEXTE adapté selon l'authentification */}
+                    {isAuthenticated ? 'Envoyer' : 'Envoyer (anonyme)'}
                   </Text>
                 </>
               )}
