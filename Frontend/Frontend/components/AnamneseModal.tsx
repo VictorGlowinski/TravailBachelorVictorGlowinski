@@ -130,74 +130,97 @@ export default function AnamneseModal({ visible, onClose, userId }: AnamneseModa
 
   // ✅ Sauvegarder avec authentification
   const saveChanges = async () => {
-    if (!userId || !anamneseId || !isAuthenticated) {
-      Alert.alert("Erreur", "Impossible de sauvegarder sans authentification");
+  if (!userId || !anamneseId || !isAuthenticated) {
+    Alert.alert("Erreur", "Impossible de sauvegarder sans authentification");
+    return;
+  }
+  
+  // ✅ VALIDATION basique améliorée
+  if (!formData.sexe || !formData.poids_kg || !formData.taille_cm) {
+    Alert.alert("Champs requis", "Veuillez remplir au minimum le sexe, le poids et la taille");
+    return;
+  }
+  
+  setIsSaving(true);
+  try {
+    // ✅ PARSING SÉCURISÉ des nombres
+    const poids = parseFloat(formData.poids_kg.replace(',', '.'));
+    const taille = parseFloat(formData.taille_cm.replace(',', '.'));
+    const age = formData.age ? parseInt(formData.age) : null;
+    
+    // ✅ VALIDATION des valeurs numériques
+    if (isNaN(poids) || poids <= 0) {
+      Alert.alert("Erreur", "Le poids doit être un nombre valide supérieur à 0");
       return;
     }
     
-    // ✅ VALIDATION basique
-    if (!formData.sexe || !formData.poids_kg || !formData.taille_cm) {
-      Alert.alert("Champs requis", "Veuillez remplir au minimum le sexe, le poids et la taille");
+    if (isNaN(taille) || taille <= 0) {
+      Alert.alert("Erreur", "La taille doit être un nombre valide supérieur à 0");
       return;
     }
     
-    setIsSaving(true);
-    try {
-      const anamneseData = {
-        ana_user_id: parseInt(userId, 10),
-        ana_imc: calculateBMI(),
-        ana_blessures: formData.blessures,
-        ana_etat_actuel: formData.etat_actuel,
-        ana_sexe: formData.sexe,
-        ana_poids_kg: parseFloat(formData.poids_kg.replace(',', '.')) || 0,
-        ana_taille_cm: parseFloat(formData.taille_cm.replace(',', '.')) || 0,
-        ana_age: parseInt(formData.age) || 0,
-        ana_contrainte_pro: formData.contrainte_pro,
-        ana_contrainte_fam: formData.contrainte_fam,
-        ana_exp_sportive: formData.exp_sportive,
-        ana_commentaire: formData.commentaire,
-        ana_traitement: formData.traitement,
-        ana_diagnostics: formData.diagnostics
-      };
-
-      console.log('📤 Mise à jour anamnèse:', anamneseId);
-
-      // ✅ UTILISER apiPut qui gère l'authentification
-      const result = await apiPut(`/anamnese/${anamneseId}`, anamneseData);
-      console.log('✅ Anamnèse mise à jour:', result);
-
-      // ✅ VÉRIFIER le succès selon votre structure API
-      if (result.success || result.anamnese || result.id) {
-        Alert.alert("Succès", "Anamnèse mise à jour avec succès !", [
-          { text: "OK", onPress: () => setMode('view') }
-        ]);
-      } else {
-        throw new Error(result.message || "Erreur lors de la mise à jour");
-      }
-    } catch (error) {
-      console.error('❌ Erreur sauvegarde anamnèse:', error);
-      
-      let errorMessage = "Impossible de sauvegarder les modifications";
-      
-      if (typeof error === 'object' && error !== null && 'message' in error && typeof (error as any).message === 'string') {
-        if ((error as any).message.includes('Session expirée')) {
-          errorMessage = "Votre session a expiré. Veuillez vous reconnecter.";
-        } else if ((error as any).message.includes('validation')) {
-          errorMessage = "Données invalides. Vérifiez vos informations.";
-        }
-      }
-      
-      Alert.alert("Erreur", errorMessage);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // ✅ Supprimer avec authentification
-  const deleteAnamnese = async () => {
-    if (!userId || !anamneseId || !isAuthenticated) {
-      Alert.alert("Erreur", "Impossible de supprimer sans authentification");
+    if (age !== null && (isNaN(age) || age <= 0 || age > 150)) {
+      Alert.alert("Erreur", "L'âge doit être un nombre valide entre 1 et 150");
       return;
+    }
+
+    const anamneseData = {
+      ana_user_id: parseInt(userId, 10),
+      ana_imc: calculateBMI(), // ✅ CALCULER l'IMC avec les nouvelles valeurs
+      ana_blessures: formData.blessures || null, // ✅ GÉRER les valeurs vides
+      ana_etat_actuel: formData.etat_actuel || null,
+      ana_sexe: formData.sexe,
+      ana_poids_kg: poids,
+      ana_taille_cm: taille,
+      ana_age: age,
+      ana_contrainte_pro: formData.contrainte_pro || null,
+      ana_contrainte_fam: formData.contrainte_fam || null,
+      ana_exp_sportive: formData.exp_sportive || null,
+      ana_commentaire: formData.commentaire || null,
+      ana_traitement: formData.traitement || null,
+      ana_diagnostics: formData.diagnostics || null
+    };
+
+    console.log('📤 Mise à jour anamnèse - Données envoyées:', anamneseData);
+
+    // ✅ UTILISER apiPut qui gère l'authentification
+    const result = await apiPut(`/anamnese/${anamneseId}`, anamneseData);
+    console.log('✅ Anamnèse mise à jour - Réponse:', result);
+
+    Alert.alert("Succès", "Anamnèse mise à jour avec succès !", [
+      { text: "OK", onPress: () => setMode('view') }
+    ]);
+    
+  } catch (error) {
+    console.error('❌ Erreur sauvegarde anamnèse:', error);
+    
+    // ✅ GESTION D'ERREURS AMÉLIORÉE
+    let errorMessage = "Impossible de sauvegarder les modifications";
+    
+    if (error && typeof error === 'object' && 'message' in error) {
+      const errorStr = String(error.message);
+      if (errorStr.includes('Session expirée')) {
+        errorMessage = "Votre session a expiré. Veuillez vous reconnecter.";
+      } else if (errorStr.includes('validation')) {
+        errorMessage = "Données invalides. Vérifiez vos informations.";
+      } else if (errorStr.includes('422')) {
+        errorMessage = "Format de données incorrect. Vérifiez les champs numériques.";
+      } else if (errorStr.includes('404')) {
+        errorMessage = "Anamnèse introuvable. Actualisez et réessayez.";
+      }
+    }
+    
+    Alert.alert("Erreur", errorMessage);
+  } finally {
+    setIsSaving(false);
+  }
+};
+
+// ✅ Supprimer avec authentification
+const deleteAnamnese = async () => {
+  if (!userId || !anamneseId || !isAuthenticated) {
+    Alert.alert("Erreur", "Impossible de supprimer sans authentification");
+    return;
     }
     
     // ✅ CONFIRMATION avant suppression
@@ -577,11 +600,7 @@ export default function AnamneseModal({ visible, onClose, userId }: AnamneseModa
                 <Text style={{ fontWeight: 'bold', fontSize: 16 }}>
                   IMC: {formData.imc}
                 </Text>
-                <Text style={{ fontSize: 12, color: '#666', marginTop: 5 }}>
-                  {parseFloat(formData.imc) < 18.5 ? 'Insuffisance pondérale' :
-                   parseFloat(formData.imc) < 25 ? 'Poids normal' :
-                   parseFloat(formData.imc) < 30 ? 'Surpoids' : 'Obésité'}
-                </Text>
+                
               </View>
             )}
 
