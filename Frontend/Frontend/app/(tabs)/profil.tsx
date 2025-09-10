@@ -270,40 +270,6 @@ export default function ProfilScreen() {
         );
     };
 
-    // ✅ VÉRIFICATION d'authentification au niveau du composant
-    if (!isAuthenticated) {
-        return (
-            <View style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: theme.colors.background,
-                padding: 20
-            }}>
-                <FontAwesome name="lock" size={50} color="#ccc" style={{ marginBottom: 20 }} />
-                <Text style={{ 
-                    fontSize: 18, 
-                    textAlign: 'center', 
-                    marginBottom: 20,
-                    color: theme.colors.primary 
-                }}>
-                    Vous devez être connecté pour accéder à votre profil
-                </Text>
-                <Pressable
-                    onPress={() => router.replace('/(auth)/login')}
-                    style={{
-                        backgroundColor: theme.colors.accent,
-                        paddingHorizontal: 20,
-                        paddingVertical: 10,
-                        borderRadius: 8
-                    }}
-                >
-                    <Text style={{ color: 'white', fontWeight: 'bold' }}>Se connecter</Text>
-                </Pressable>
-            </View>
-        );
-    }
-
     return (
         <ScrollView 
             style={[profilStyles.container, { backgroundColor: theme.colors.background }]}
