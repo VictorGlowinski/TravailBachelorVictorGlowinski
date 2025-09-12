@@ -237,99 +237,170 @@ export default function CreationEvaluationInitialeScreen() {
 
   // ✅ HANDLE SUBMIT avec authentification
   const handleSubmit = async () => {
-    // ✅ VÉRIFICATIONS préliminaires
-    if (!isAuthenticated) {
-      Alert.alert("Non authentifié", "Vous devez être connecté pour créer une évaluation initiale");
-      return;
-    }
+  // ✅ VÉRIFICATIONS préliminaires (garder le code existant)
+  if (!isAuthenticated) {
+    Alert.alert("Non authentifié", "Vous devez être connecté pour créer une évaluation initiale");
+    return;
+  }
 
-    if (!isValid) {
-      Alert.alert("Champs requis", "Veuillez compléter les champs obligatoires.");
-      return;
-    }
+  if (!isValid) {
+    Alert.alert("Champs requis", "Veuillez compléter les champs obligatoires.");
+    return;
+  }
 
-    if (!currentUserId) {
-      Alert.alert("Erreur", "Utilisateur non identifié");
-      return;
-    }
+  if (!currentUserId) {
+    Alert.alert("Erreur", "Utilisateur non identifié");
+    return;
+  }
 
-    setIsSubmitting(true);
-    try {
-      // ✅ SIMPLIFIER - La date est déjà au bon format YYYY-MM-DD
-      const evaluationData = {
-        eva_user_id: parseInt(currentUserId, 10),
-        eva_vo2max: formData.vo2max ? parseFloat(formData.vo2max) : null,
-        eva_freq_repos: formData.freq_repo ? parseInt(formData.freq_repo, 10) : null,
-        eva_freq_max: formData.freq_max ? parseInt(formData.freq_max, 10) : null,
-        eva_ftp_cyclisme: formData.ftp_cyclisme ? parseInt(formData.ftp_cyclisme, 10) : null,
-        eva_vma: formData.vma ? parseFloat(formData.vma) : null,
-        eva_cooper: formData.cooper || null,
-        eva_nb_heure_dispo: formData.nb_heure_dispo ? parseInt(formData.nb_heure_dispo, 10) : null,
-        eva_seuil_natation: formData.seuil_natation || null,
-        eva_seuil_cyclisme: formData.seuil_cyclisme || null,
-        eva_seuil_course: formData.seuil_course || null,
-        eva_commentaire: formData.commentaire || null,
-        eva_objectif: formData.objectifs || null,
-        eva_echeance: formData.echeance || null, // ✅ Date déjà au format YYYY-MM-DD
-        eva_exp_triathlon: formData.exp_triathlon || null, // ✅ AJOUTER le champ manquant
-      };
+  setIsSubmitting(true);
+  try {
+    // ✅ SIMPLIFIER - La date est déjà au bon format YYYY-MM-DD
+    const evaluationData = {
+      eva_user_id: parseInt(currentUserId, 10),
+      eva_vo2max: formData.vo2max ? parseFloat(formData.vo2max) : null,
+      eva_freq_repos: formData.freq_repo ? parseInt(formData.freq_repo, 10) : null,
+      eva_freq_max: formData.freq_max ? parseInt(formData.freq_max, 10) : null,
+      eva_ftp_cyclisme: formData.ftp_cyclisme ? parseInt(formData.ftp_cyclisme, 10) : null,
+      eva_vma: formData.vma ? parseFloat(formData.vma) : null,
+      eva_cooper: formData.cooper || null,
+      eva_nb_heure_dispo: formData.nb_heure_dispo ? parseInt(formData.nb_heure_dispo, 10) : null,
+      eva_seuil_natation: formData.seuil_natation || null,
+      eva_seuil_cyclisme: formData.seuil_cyclisme || null,
+      eva_seuil_course: formData.seuil_course || null,
+      eva_commentaire: formData.commentaire || null,
+      eva_objectif: formData.objectifs || null,
+      eva_echeance: formData.echeance || null,
+      eva_exp_triathlon: formData.exp_triathlon || null,
+    };
 
-      console.log('📤 Données à envoyer:', evaluationData);
+    console.log('📤 Envoi évaluation initiale:', evaluationData);
 
-      // ✅ UTILISER apiPost qui gère l'authentification automatiquement
-      const result = await apiPost('/evaluation-initiale', evaluationData);
-      console.log('✅ Évaluation créée:', result);
+    // ✅ UTILISER apiPost qui gère l'authentification automatiquement
+    const result = await apiPost('/evaluation-initiale', evaluationData);
+    console.log('✅ Réponse complète de l\'API:', result);
 
-      // ✅ VÉRIFIER le succès selon votre structure API
-      if (result.success || result.evaluation || result.id) {
-        // ✅ SUPPRIMER le brouillon en cas de succès
-        if (draftKey) {
-          await AsyncStorage.removeItem(draftKey);
-        }
-        
-        Alert.alert(
-          "Succès", 
-          "Évaluation initiale créée avec succès !",
-          [{ text: "OK", onPress: () => router.back() }]
-        );
-      } else {
-        throw new Error(result.message || "Erreur lors de la création");
+    // ✅ GESTION AMÉLIORÉE de la réponse selon différents formats possibles
+    let isSuccessful = false;
+    let evaluationId = null;
+
+    // ✅ VÉRIFIER différents formats de réponse
+    if (result) {
+      // Format 1: {success: true, evaluation: {...}}
+      if (result.success === true) {
+        isSuccessful = true;
+        evaluationId = result.evaluation?.eva_id || result.evaluation?.id;
       }
-    } catch (error) {
-      console.error("❌ Erreur création évaluation:", error);
+      // Format 2: {evaluation: {...}} sans success
+      else if (result.evaluation && (result.evaluation.eva_id || result.evaluation.id)) {
+        isSuccessful = true;
+        evaluationId = result.evaluation.eva_id || result.evaluation.id;
+      }
+      // Format 3: Objet évaluation direct
+      else if (result.eva_id || result.id) {
+        isSuccessful = true;
+        evaluationId = result.eva_id || result.id;
+      }
+      // Format 4: Réponse avec status HTTP 201/200
+      else if (!result.error && !result.message?.includes('erreur')) {
+        isSuccessful = true;
+        evaluationId = result.id || result.eva_id || 'créée';
+      }
+    }
+
+    console.log('🔍 Analyse réponse:', { isSuccessful, evaluationId, result });
+
+    if (isSuccessful) {
+      console.log('✅ Évaluation initiale créée avec succès, ID:', evaluationId);
       
-      // ✅ GESTION D'ERREURS PLUS PRÉCISE
-      let errorMessage = "Impossible de créer l'évaluation. Veuillez réessayer.";
-
-      // Type guard to safely access error.message
-      const errorMsg = typeof error === "object" && error !== null && "message" in error && typeof (error as any).message === "string"
-        ? (error as any).message
-        : "";
-
-      if (errorMsg.includes('Session expirée')) {
-        errorMessage = "Votre session a expiré. Veuillez vous reconnecter.";
-        Alert.alert(
-          "Session expirée", 
-          errorMessage,
-          [
-            { 
-              text: "Se reconnecter", 
-              onPress: () => router.replace('/(auth)/login') 
+      // ✅ SUPPRIMER le brouillon en cas de succès
+      if (draftKey) {
+        try {
+          await AsyncStorage.removeItem(draftKey);
+          console.log('🗑️ Brouillon supprimé');
+        } catch (error) {
+          console.warn('⚠️ Erreur suppression brouillon:', error);
+        }
+      }
+      
+      Alert.alert(
+        "Succès", 
+        "Votre évaluation initiale a été créée avec succès !",
+        [{ 
+          text: "OK", 
+          onPress: () => {
+            // ✅ NAVIGATION plus robuste
+            try {
+              router.replace('/(tabs)/profil');
+            } catch (navError) {
+              console.warn('Navigation error, trying replace:', navError);
+              router.replace('/(tabs)/profil');
             }
-          ]
-        );
-        return;
-      } else if (errorMsg.includes('validation')) {
+          }
+        }]
+      );
+    } else {
+      // ✅ ÉCHEC mais peut-être que les données sont quand même sauvées
+      console.warn('⚠️ Réponse inattendue mais pas forcément une erreur');
+      console.warn('📊 Structure de la réponse:', JSON.stringify(result, null, 2));
+      
+      throw new Error(
+        result?.message || 
+        result?.error || 
+        "Format de réponse inattendu de l'API"
+      );
+    }
+  } catch (error) {
+    console.error("❌ Erreur création évaluation initiale:", error);
+    
+    // ✅ GESTION D'ERREURS PLUS FINE
+    let errorMessage = "Impossible de créer l'évaluation initiale. Veuillez réessayer.";
+    let shouldNavigateToLogin = false;
+    
+    if (error instanceof Error) {
+      const errorMsg = error.message;
+      
+      if (errorMsg.includes('Session expirée') || errorMsg.includes('401')) {
+        errorMessage = "Votre session a expiré. Veuillez vous reconnecter.";
+        shouldNavigateToLogin = true;
+      } else if (errorMsg.includes('validation') || errorMsg.includes('422')) {
         errorMessage = "Données invalides. Vérifiez vos informations.";
       } else if (errorMsg.includes('403')) {
-        errorMessage = "Vous n'avez pas l'autorisation de créer une évaluation.";
+        errorMessage = "Vous n'avez pas l'autorisation de créer une évaluation initiale.";
+      } else if (errorMsg.includes('Network') || errorMsg.includes('Failed to fetch')) {
+        errorMessage = "Problème de connexion. Vérifiez votre réseau et réessayez.";
+      } else if (errorMsg.includes('Format de réponse inattendu')) {
+        // ✅ CAS SPÉCIAL : L'évaluation est peut-être créée malgré l'erreur
+        errorMessage = "L'évaluation initiale a peut-être été créée. Vérifiez dans votre profil.";
       }
-      
-      Alert.alert("Erreur", errorMessage);
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+    
+    if (shouldNavigateToLogin) {
+      Alert.alert(
+        "Session expirée", 
+        errorMessage,
+        [
+          { 
+            text: "Se reconnecter", 
+            onPress: () => router.replace('/(auth)/login') 
+          }
+        ]
+      );
+    } else {
+      Alert.alert("Erreur", errorMessage, [
+        { text: "OK" },
+        // ✅ OPTION pour vérifier le profil en cas de doute
+        { 
+          text: "Voir profil", 
+          onPress: () => router.replace('/(tabs)/profil'),
+          style: 'default'
+        }
+      ]);
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   // ✅ VÉRIFICATION d'authentification au niveau du composant
   if (!isAuthenticated) {

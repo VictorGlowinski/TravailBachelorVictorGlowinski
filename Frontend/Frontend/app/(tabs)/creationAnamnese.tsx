@@ -18,20 +18,20 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import anamneseStyles from "@/styles/screens/AnamneseStyles";
 import { useTheme } from '@/styles/screens/ThemeStyle';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiGet, apiPost } from '@/utils/apiHelper'; // ✅ UTILISER les helpers authentifiés
+import { apiGet, apiPost } from '@/utils/apiHelper'; // UTILISER les helpers authentifiés
 
-// ✅ CHAMPS REQUIS (sans age car calculé automatiquement)
+// CHAMPS REQUIS (sans age car calculé automatiquement)
 const REQUIRED_KEYS = ["sexe", "poids_kg", "taille_cm", "etat_actuel"];
 
 export default function CreationAnamneseScreen() {
   const theme = useTheme();
-  const { user, isAuthenticated, token } = useAuth(); // ✅ UTILISER le contexte d'auth
+  const { user, isAuthenticated, token } = useAuth(); // UTILISER le contexte d'auth
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userBirthDate, setUserBirthDate] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
-  // ✅ FORM DATA sans age (calculé automatiquement)
+  // FORM DATA sans age (calculé automatiquement)
   const [formData, setFormData] = useState({
     blessures: "",
     etat_actuel: "",
@@ -259,104 +259,177 @@ export default function CreationAnamneseScreen() {
 
   // ✅ HANDLE SUBMIT avec authentification
   const handleSubmit = async () => {
-    // ✅ VÉRIFICATIONS préliminaires
-    if (!isAuthenticated) {
-      Alert.alert("Non authentifié", "Vous devez être connecté pour créer une anamnèse");
-      return;
+  // ✅ VÉRIFICATIONS préliminaires (garder le code existant)
+  if (!isAuthenticated) {
+    Alert.alert("Non authentifié", "Vous devez être connecté pour créer une anamnèse");
+    return;
+  }
+
+  if (!isValid) {
+    Alert.alert("Champs requis", "Veuillez compléter les champs obligatoires.");
+    return;
+  }
+
+  if (!currentUserId) {
+    Alert.alert("Erreur", "Utilisateur non identifié");
+    return;
+  }
+
+  if (!calculatedAge) {
+    Alert.alert(
+      "Erreur", 
+      "Impossible de calculer votre âge. Veuillez vérifier votre date de naissance dans votre profil."
+    );
+    return;
+  }
+
+  setIsLoading(true);
+  try {
+    const anamneseData = {
+      ana_user_id: parseInt(currentUserId, 10),
+      ana_age: calculatedAge,
+      ana_imc: calculateBMI(),
+      ana_blessures: formData.blessures,
+      ana_etat_actuel: formData.etat_actuel,
+      ana_sexe: formData.sexe,
+      ana_poids_kg: parseFloat(formData.poids_kg.replace(',', '.')) || 0,
+      ana_taille_cm: parseFloat(formData.taille_cm.replace(',', '.')) || 0,
+      ana_contrainte_pro: formData.contrainte_pro,
+      ana_contrainte_fam: formData.contrainte_fam,
+      ana_exp_sportive: formData.exp_sportive,
+      ana_commentaire: formData.commentaire,
+      ana_traitement: formData.traitement,
+      ana_diagnostics: formData.diagnostics
+    };
+
+    console.log('📤 Envoi anamnèse avec âge calculé:', calculatedAge);
+    console.log('📤 Données complètes envoyées:', anamneseData);
+
+    // ✅ UTILISER apiPost qui gère l'authentification automatiquement
+    const result = await apiPost('/anamnese', anamneseData);
+    console.log('✅ Réponse complète de l\'API:', result);
+
+    // ✅ GESTION AMÉLIORÉE de la réponse selon différents formats possibles
+    let isSuccessful = false;
+    let anamneseId = null;
+
+    // ✅ VÉRIFIER différents formats de réponse
+    if (result) {
+      // Format 1: {success: true, anamnese: {...}}
+      if (result.success === true) {
+        isSuccessful = true;
+        anamneseId = result.anamnese?.ana_id || result.anamnese?.id;
+      }
+      // Format 2: {anamnese: {...}} sans success
+      else if (result.anamnese && (result.anamnese.ana_id || result.anamnese.id)) {
+        isSuccessful = true;
+        anamneseId = result.anamnese.ana_id || result.anamnese.id;
+      }
+      // Format 3: Objet anamnèse direct
+      else if (result.ana_id || result.id) {
+        isSuccessful = true;
+        anamneseId = result.ana_id || result.id;
+      }
+      // Format 4: Réponse avec status HTTP 201/200
+      else if (!result.error && !result.message?.includes('erreur')) {
+        isSuccessful = true;
+        anamneseId = result.id || result.ana_id || 'créé';
+      }
     }
 
-    if (!isValid) {
-      Alert.alert("Champs requis", "Veuillez compléter les champs obligatoires.");
-      return;
-    }
+    console.log('🔍 Analyse réponse:', { isSuccessful, anamneseId, result });
 
-    if (!currentUserId) {
-      Alert.alert("Erreur", "Utilisateur non identifié");
-      return;
-    }
-
-    if (!calculatedAge) {
-      Alert.alert(
-        "Erreur", 
-        "Impossible de calculer votre âge. Veuillez vérifier votre date de naissance dans votre profil."
-      );
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const anamneseData = {
-        ana_user_id: parseInt(currentUserId, 10),
-        ana_age: calculatedAge, // ✅ ÂGE CALCULÉ AUTOMATIQUEMENT
-        ana_imc: calculateBMI(),
-        ana_blessures: formData.blessures,
-        ana_etat_actuel: formData.etat_actuel,
-        ana_sexe: formData.sexe,
-        ana_poids_kg: parseFloat(formData.poids_kg.replace(',', '.')) || 0,
-        ana_taille_cm: parseFloat(formData.taille_cm.replace(',', '.')) || 0,
-        ana_contrainte_pro: formData.contrainte_pro,
-        ana_contrainte_fam: formData.contrainte_fam,
-        ana_exp_sportive: formData.exp_sportive,
-        ana_commentaire: formData.commentaire,
-        ana_traitement: formData.traitement,
-        ana_diagnostics: formData.diagnostics
-      };
-
-      console.log('📤 Envoi anamnèse avec âge calculé:', calculatedAge);
-
-      // ✅ UTILISER apiPost qui gère l'authentification automatiquement
-      const result = await apiPost('/anamnese', anamneseData);
-      console.log('✅ Anamnèse créée:', result);
-
-      // ✅ VÉRIFIER le succès selon votre structure API
-      if (result.success || result.anamnese || result.id) {
-        // ✅ SUPPRIMER le brouillon en cas de succès
-        if (draftKey) {
+    if (isSuccessful) {
+      console.log('✅ Anamnèse créée avec succès, ID:', anamneseId);
+      
+      // ✅ SUPPRIMER le brouillon en cas de succès
+      if (draftKey) {
+        try {
           await AsyncStorage.removeItem(draftKey);
+          console.log('🗑️ Brouillon supprimé');
+        } catch (error) {
+          console.warn('⚠️ Erreur suppression brouillon:', error);
         }
-        
-        Alert.alert(
-          "Succès", 
-          "Anamnèse créée avec succès !",
-          [{ text: "OK", onPress: () => router.back() }]
-        );
-      } else {
-        throw new Error(result.message || "Erreur lors de la création");
       }
-    } catch (error) {
-      console.error("❌ Erreur création anamnèse:", error);
       
-      // ✅ GESTION D'ERREURS PLUS PRÉCISE
-      let errorMessage = "Impossible de créer l'anamnèse. Veuillez réessayer.";
-      let errorMsg: string | undefined = undefined;
-      if (error instanceof Error) {
-        errorMsg = error.message;
-      }
-
-      if (errorMsg?.includes('Session expirée')) {
-        errorMessage = "Votre session a expiré. Veuillez vous reconnecter.";
-        Alert.alert(
-          "Session expirée", 
-          errorMessage,
-          [
-            { 
-              text: "Se reconnecter", 
-              onPress: () => router.replace('/(auth)/login') 
+      Alert.alert(
+        "Succès", 
+        "Votre anamnèse a été créée avec succès !",
+        [{ 
+          text: "OK", 
+          onPress: () => {
+            // ✅ NAVIGATION plus robuste
+            try {
+              router.replace('/(tabs)/profil');
+            } catch (navError) {
+              console.warn('Navigation error, trying replace:', navError);
+              router.replace('/(tabs)/profil');
             }
-          ]
-        );
-        return;
-      } else if (errorMsg?.includes('validation')) {
-        errorMessage = "Données invalides. Vérifiez vos informations.";
-      } else if (errorMsg?.includes('403')) {
-        errorMessage = "Vous n'avez pas l'autorisation de créer une anamnèse.";
-      }
+          }
+        }]
+      );
+    } else {
+      // ✅ ÉCHEC mais peut-être que les données sont quand même sauvées
+      console.warn('⚠️ Réponse inattendue mais pas forcément une erreur');
+      console.warn('📊 Structure de la réponse:', JSON.stringify(result, null, 2));
       
-      Alert.alert("Erreur", errorMessage);
-    } finally {
-      setIsLoading(false);
+      throw new Error(
+        result?.message || 
+        result?.error || 
+        "Format de réponse inattendu de l'API"
+      );
     }
-  };
+  } catch (error) {
+    console.error("❌ Erreur création anamnèse:", error);
+    
+    // ✅ GESTION D'ERREURS PLUS FINE
+    let errorMessage = "Impossible de créer l'anamnèse. Veuillez réessayer.";
+    let shouldNavigateToLogin = false;
+    
+    if (error instanceof Error) {
+      const errorMsg = error.message;
+      
+      if (errorMsg.includes('Session expirée') || errorMsg.includes('401')) {
+        errorMessage = "Votre session a expiré. Veuillez vous reconnecter.";
+        shouldNavigateToLogin = true;
+      } else if (errorMsg.includes('validation') || errorMsg.includes('422')) {
+        errorMessage = "Données invalides. Vérifiez vos informations.";
+      } else if (errorMsg.includes('403')) {
+        errorMessage = "Vous n'avez pas l'autorisation de créer une anamnèse.";
+      } else if (errorMsg.includes('Network') || errorMsg.includes('Failed to fetch')) {
+        errorMessage = "Problème de connexion. Vérifiez votre réseau et réessayez.";
+      } else if (errorMsg.includes('Format de réponse inattendu')) {
+        // ✅ CAS SPÉCIAL : L'anamnèse est peut-être créée malgré l'erreur
+        errorMessage = "L'anamnèse a peut-être été créée. Vérifiez dans votre profil.";
+      }
+    }
+    
+    if (shouldNavigateToLogin) {
+      Alert.alert(
+        "Session expirée", 
+        errorMessage,
+        [
+          { 
+            text: "Se reconnecter", 
+            onPress: () => router.replace('/(auth)/login') 
+          }
+        ]
+      );
+    } else {
+      Alert.alert("Erreur", errorMessage, [
+        { text: "OK" },
+        // ✅ OPTION pour vérifier le profil en cas de doute
+        { 
+          text: "Voir profil", 
+          onPress: () => router.replace('/(tabs)/profil'),
+          style: 'default'
+        }
+      ]);
+    }
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // ✅ VÉRIFICATION d'authentification au niveau du composant
   if (!isAuthenticated) {
@@ -582,26 +655,7 @@ export default function CreationAnamneseScreen() {
             </View>
           </View>
 
-          {/* IMC */}
-          {formData.imc && (
-            <View style={[
-              anamneseStyles.imcContainer, 
-              { 
-                backgroundColor: parseFloat(formData.imc) < 18.5 ? '#e3f2fd' :
-                               parseFloat(formData.imc) < 25 ? '#e8f5e8' :
-                               parseFloat(formData.imc) < 30 ? '#fff3e0' : '#ffebee'
-              }
-            ]}>
-              <Text style={[anamneseStyles.imcText, { color: theme.colors.primary }]}>
-                IMC calculé: {formData.imc}
-              </Text>
-              <Text style={{ fontSize: 12, color: '#666', marginTop: 2 }}>
-                {parseFloat(formData.imc) < 18.5 ? 'Insuffisance pondérale' :
-                 parseFloat(formData.imc) < 25 ? 'Poids normal' :
-                 parseFloat(formData.imc) < 30 ? 'Surpoids' : 'Obésité'}
-              </Text>
-            </View>
-          )}
+          
         </View>
 
         {/* ✅ INFORMATIONS MÉDICALES */}

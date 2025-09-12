@@ -13,7 +13,7 @@ import { router, useFocusEffect } from 'expo-router';
 import AnamneseModal from '@/components/AnamneseModal'; 
 import EvaluationInitialeModal from '@/components/EvaluationInitialeModal';
 import UserSettingsModal from '@/components/UserSettingsModal';
-import { apiGet } from '@/utils/apiHelper'; // ✅ UTILISER les helpers authentifiés
+import { apiGet } from '@/utils/apiHelper'; // UTILISER les helpers authentifiés
 
 // Interface pour les données
 interface UserData {
@@ -25,7 +25,7 @@ interface UserData {
 
 export default function ProfilScreen() {
     const theme = useTheme();
-    const { user, isAuthenticated, logout, token } = useAuth(); // ✅ UTILISER le contexte d'auth
+    const { user, isAuthenticated, logout, token } = useAuth(); // UTILISER le contexte d'auth
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [userData, setUserData] = useState<UserData>({
         hasAnamnese: false,
@@ -37,16 +37,16 @@ export default function ProfilScreen() {
     const [evaluationModalVisible, setEvaluationModalVisible] = useState(false);
     const [settingsModalVisible, setSettingsModalVisible] = useState(false);
 
-    // ✅ VÉRIFICATION d'authentification au chargement
+    // VÉRIFICATION d'authentification au chargement
     useEffect(() => {
-        // ✅ UTILISER l'utilisateur du contexte d'auth
+        // UTILISER l'utilisateur du contexte d'auth
         if (user) {
             setCurrentUserId(user.id.toString());
             console.log('👤 Utilisateur authentifié:', user.email);
         }
     }, [isAuthenticated, user]);
 
-    // ✅ FONCTIONS du modal
+    // FONCTIONS du modal
     const openAnamneseModal = () => {
         if (!isAuthenticated) {
             Alert.alert("Non authentifié", "Vous devez être connecté pour consulter votre anamnèse");
@@ -85,7 +85,7 @@ export default function ProfilScreen() {
         try {
             const userId = user.id.toString();
 
-            // ✅ Vérifier anamnèse avec apiGet
+            // Vérifier anamnèse avec apiGet
             const checkAnamnese = async () => {
                 try {
                     console.log('📡 Appel API anamnèse...');
@@ -101,7 +101,7 @@ export default function ProfilScreen() {
                 }
             };
 
-            // ✅ Vérifier évaluation avec apiGet
+            // Vérifier évaluation avec apiGet
             const checkEvaluation = async () => {
                 try {
                     console.log('📡 Appel API évaluation...');
@@ -161,8 +161,8 @@ export default function ProfilScreen() {
                 );
                 return;
             }
-            
-            // ✅ RÉINITIALISER en cas d'erreur
+
+            // RÉINITIALISER en cas d'erreur
             setUserData({ 
                 hasAnamnese: false, 
                 hasEvaluation: false, 
@@ -174,14 +174,14 @@ export default function ProfilScreen() {
         }
     };
 
-    // ✅ Vérifier au chargement du composant
+    // Vérifier au chargement du composant
     useEffect(() => {
         if (isAuthenticated && user) {
             checkUserData();
         }
     }, [isAuthenticated, user]);
 
-    // ✅ REFRESH à chaque focus sur la page
+    // REFRESH à chaque focus sur la page
     useFocusEffect(
         useCallback(() => {
             if (isAuthenticated && user) {
@@ -191,7 +191,7 @@ export default function ProfilScreen() {
         }, [isAuthenticated, user])
     );
 
-    // ✅ GESTION de la déconnexion
+    // GESTION de la déconnexion
     const handleLogout = async () => {
         Alert.alert(
             'Déconnexion',
@@ -215,7 +215,7 @@ export default function ProfilScreen() {
         );
     };
 
-    // ✅ FONCTION pour voir les données existantes
+    // FONCTION pour voir les données existantes
     const viewExistingData = (type: 'anamnese' | 'evaluation') => {
         if (!isAuthenticated) {
             Alert.alert("Non authentifié", "Vous devez être connecté pour consulter vos données");
@@ -256,7 +256,7 @@ export default function ProfilScreen() {
         );
     };
 
-    // ✅ VÉRIFICATION d'authentification au niveau du composant
+    // VÉRIFICATION d'authentification au niveau du composant
     if (!isAuthenticated) {
         return (
             <View style={{
@@ -296,9 +296,9 @@ export default function ProfilScreen() {
             contentContainerStyle={profilStyles.scrollContent}
             showsVerticalScrollIndicator={false}
         >
-            {/* ✅ HEADER MODERNISÉ avec engrenage */}
+            {/* HEADER MODERNISÉ avec engrenage */}
             <View style={[profilStyles.header, { backgroundColor: theme.colors.surface }, theme.shadows]}>
-                {/* ✅ ENGRENAGE EN HAUT À DROITE */}
+                {/* ENGRENAGE EN HAUT À DROITE */}
                 <Pressable 
                     style={[profilStyles.settingsButton, { backgroundColor: theme.colors.surfaceVariant }]}
                     onPress={openSettingsModal}
@@ -321,7 +321,7 @@ export default function ProfilScreen() {
                             {user.email}
                         </Text>
                         
-                        {/* ✅ BADGES DE PROGRESSION */}
+                        {/* BADGES DE PROGRESSION */}
                         {!isLoading && (
                             <View style={profilStyles.progressBadges}>
                                 <View style={[
@@ -357,7 +357,7 @@ export default function ProfilScreen() {
                 )}
             </View>
 
-            {/* ✅ LOADING STATE AMÉLIORÉ */}
+            {/* LOADING STATE AMÉLIORÉ */}
             {isLoading && (
                 <View style={[profilStyles.loadingCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
                     <ActivityIndicator size="large" color={theme.colors.accent} />
@@ -367,7 +367,7 @@ export default function ProfilScreen() {
                 </View>
             )}
 
-            {/* ✅ SECTION ACTIONS MODERNISÉE */}
+            {/* SECTION ACTIONS MODERNISÉE */}
             {!isLoading && (
                 <View style={profilStyles.actionsSection}>
                     <Text style={[profilStyles.sectionTitle, { color: theme.colors.primary }]}>
@@ -375,7 +375,7 @@ export default function ProfilScreen() {
                     </Text>
                     
                     <View style={profilStyles.cardsContainer}>
-                        {/* ✅ CARTE ANAMNÈSE MODERNISÉE */}
+                        {/* CARTE ANAMNÈSE MODERNISÉE */}
                         {!userData.hasAnamnese ? (
                             <Pressable 
                                 style={[
@@ -437,7 +437,7 @@ export default function ProfilScreen() {
                             </Pressable>
                         )}
 
-                        {/* ✅ CARTE ÉVALUATION MODERNISÉE */}
+                        {/* CARTE ÉVALUATION MODERNISÉE */}
                         {!userData.hasEvaluation ? (
                             <Pressable 
                                 style={[
@@ -500,7 +500,7 @@ export default function ProfilScreen() {
                         )}
                     </View>
 
-                    {/* ✅ BOUTON REFRESH MODERNISÉ */}
+                    {/* BOUTON REFRESH MODERNISÉ */}
                     <Pressable 
                         style={[
                             profilStyles.refreshButton, 
@@ -528,7 +528,7 @@ export default function ProfilScreen() {
                 </View>
             )}
 
-            {/* ✅ SECTION AIDE MODERNISÉE */}
+            {/* SECTION AIDE MODERNISÉE */}
             <View style={[profilStyles.helpSection, { backgroundColor: theme.colors.surface }, theme.shadows]}>
                 <Pressable 
                     style={profilStyles.helpHeader}
@@ -570,7 +570,7 @@ export default function ProfilScreen() {
                 )}
             </View>
 
-            {/* ✅ BOUTON DÉCONNEXION MODERNISÉ */}
+            {/* BOUTON DÉCONNEXION MODERNISÉ */}
             <View style={profilStyles.logoutSection}>
                 <Pressable 
                     style={[profilStyles.logoutButton, { backgroundColor: theme.colors.error }]} 
@@ -581,7 +581,7 @@ export default function ProfilScreen() {
                 </Pressable>
             </View>
 
-            {/* ✅ MODALS */}
+            {/* MODALS */}
             <AnamneseModal
                 visible={anamneseModalVisible}
                 onClose={() => setAnamneseModalVisible(false)}
@@ -594,14 +594,14 @@ export default function ProfilScreen() {
                 userId={currentUserId}
             />
 
-            {/* ✅ NOUVEAU MODAL PARAMÈTRES */}
+            {/* NOUVEAU MODAL PARAMÈTRES */}
             <UserSettingsModal
                 visible={settingsModalVisible}
                 onClose={() => setSettingsModalVisible(false)}
                 userId={currentUserId}
             />
 
-            {/* ✅ ESPACE EN BAS */}
+            {/* ESPACE EN BAS */}
             <View style={{ height: 100 }} />
         </ScrollView>
     );
