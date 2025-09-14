@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Keyboard,
   Platform,
+  Modal
 } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { router } from "expo-router";
@@ -1173,60 +1174,66 @@ export default function CreationEvaluationInitialeScreen() {
       </View>
 
       {/* ✅ DateTimePicker avec contrôle iOS/Android */}
-      {showDatePicker && (
-        <>
-          {Platform.OS === 'ios' && (
-            <View style={[evaluationInitialeStyles.datePickerContainer, { backgroundColor: theme.colors.surface }]}>
-              {/* ✅ Header avec boutons */}
-              <View style={[evaluationInitialeStyles.datePickerHeader, { borderBottomColor: theme.colors.border }]}>
-                <Pressable
-                  style={[evaluationInitialeStyles.datePickerButton, { backgroundColor: 'transparent' }]}
-                  onPress={cancelDateSelection}
-                >
-                  <Text style={[evaluationInitialeStyles.datePickerButtonText, { color: theme.colors.error }]}>
-                    Annuler
-                  </Text>
-                </Pressable>
-                
-                <Text style={[evaluationInitialeStyles.datePickerTitle, { color: theme.colors.primary }]}>
-                  Sélectionner une date
-                </Text>
-                
-                <Pressable
-                  style={[evaluationInitialeStyles.datePickerButton, { backgroundColor: theme.colors.accent }]}
-                  onPress={confirmDate}
-                >
-                  <Text style={[evaluationInitialeStyles.datePickerButtonText, { color: 'white' }]}>
-                    OK
-                  </Text>
-                </Pressable>
-              </View>
-              
-              {/* ✅ DatePicker iOS */}
-              <DateTimePicker
-                value={tempDate || (formData.echeance ? new Date(formData.echeance) : new Date())}
-                mode="date"
-                display="spinner"
-                onChange={handleDateChange}
-                minimumDate={new Date()}
-                maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() + 2))}
-                style={evaluationInitialeStyles.datePickerIOS}
-              />
-            </View>
-          )}
+      {showDatePicker && Platform.OS === 'ios' && (
+  <Modal
+    visible={showDatePicker}
+    transparent={true}
+    animationType="fade"
+    onRequestClose={cancelDateSelection}
+  >
+    <View style={evaluationInitialeStyles.modalOverlay}>
+      <View style={[evaluationInitialeStyles.datePickerModal, { backgroundColor: theme.colors.surface }]}>
+        {/* Header */}
+        <View style={[evaluationInitialeStyles.datePickerHeader, { borderBottomColor: theme.colors.border }]}>
+          <Pressable
+            style={[evaluationInitialeStyles.datePickerButton, { backgroundColor: 'transparent' }]}
+            onPress={cancelDateSelection}
+          >
+            <Text style={[evaluationInitialeStyles.datePickerButtonText, { color: theme.colors.error }]}>
+              Annuler
+            </Text>
+          </Pressable>
           
-          {Platform.OS === 'android' && (
-            <DateTimePicker
-              value={formData.echeance ? new Date(formData.echeance) : new Date()}
-              mode="date"
-              display="default"
-              onChange={handleDateChange}
-              minimumDate={new Date()}
-              maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() + 2))}
-            />
-          )}
-        </>
-      )}
+          <Text style={[evaluationInitialeStyles.datePickerTitle, { color: theme.colors.primary }]}>
+            Sélectionner une date
+          </Text>
+          
+          <Pressable
+            style={[evaluationInitialeStyles.datePickerButton, { backgroundColor: theme.colors.accent }]}
+            onPress={confirmDate}
+          >
+            <Text style={[evaluationInitialeStyles.datePickerButtonText, { color: 'white' }]}>
+              OK
+            </Text>
+          </Pressable>
+        </View>
+        
+        {/* DatePicker */}
+        <DateTimePicker
+          value={tempDate || (formData.echeance ? new Date(formData.echeance) : new Date())}
+          mode="date"
+          display="spinner"
+          onChange={handleDateChange}
+          minimumDate={new Date()}
+          maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() + 2))}
+          style={{ height: 200 }}
+        />
+      </View>
+    </View>
+  </Modal>
+)}
+
+{/* Android - Picker natif */}
+{showDatePicker && Platform.OS === 'android' && (
+  <DateTimePicker
+    value={formData.echeance ? new Date(formData.echeance) : new Date()}
+    mode="date"
+    display="default"
+    onChange={handleDateChange}
+    minimumDate={new Date()}
+    maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() + 2))}
+  />
+)}
 
       {/* ✅ ESPACE EN BAS pour éviter que le contenu soit coupé */}
       <View style={{ height: 100 }} />

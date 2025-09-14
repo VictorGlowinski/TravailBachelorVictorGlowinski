@@ -409,7 +409,28 @@ datePickerButtonText: {
 datePickerIOS: {
   height: 200,
 },
+modalOverlay: {
+  flex: 1,
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
 
+datePickerModal: {
+  backgroundColor: 'white',
+  borderRadius: 12,
+  marginHorizontal: 20,
+  maxWidth: 350,
+  width: '90%',
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.84,
+  elevation: 5,
+},
 
 });
 
