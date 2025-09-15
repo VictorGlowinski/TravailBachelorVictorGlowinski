@@ -327,7 +327,7 @@ export default function HomeScreen() {
         <View style={[accueilStyles.card, { backgroundColor: theme.colors.surface }, theme.shadows]}>
           <ActivityIndicator size="large" color={theme.colors.accent} />
           <Text style={[accueilStyles.loadingText, { color: theme.colors.secondary }]}>
-            Chargement de vos données...
+            {'Chargement de vos données...'}
           </Text>
         </View>
       );
@@ -341,7 +341,7 @@ export default function HomeScreen() {
           <View style={accueilStyles.cardHeader}>
             <FontAwesome name="calendar-check-o" size={24} color={theme.colors.accent} />
             <Text style={[accueilStyles.cardTitle, { color: theme.colors.primary }]}>
-              Votre programme d'aujourd'hui
+              {'Votre programme d\'aujourd\'hui'}
             </Text>
           </View>
           
@@ -412,13 +412,13 @@ export default function HomeScreen() {
 
     // ✅ CONDITION 2 : Utilisateur avec plan mais pas d'activité aujourd'hui
     if (userData.hasPlan === true && todayActivities.length === 0) {
-      console.log('✅ RENDU: Plan avec jour de repos');
+      console.log(' RENDU: Plan avec jour de repos');
       return (
         <View style={[accueilStyles.card, { backgroundColor: theme.colors.surface }, theme.shadows]}>
           <View style={accueilStyles.cardHeader}>
             <FontAwesome name="bed" size={24} color={theme.colors.secondary} />
             <Text style={[accueilStyles.cardTitle, { color: theme.colors.primary }]}>
-              Aujourd'hui : Repos
+              {'Aujourd\'hui : Repos'}
             </Text>
           </View>
           
@@ -429,10 +429,10 @@ export default function HomeScreen() {
           <View style={accueilStyles.emptyState}>
             <FontAwesome name="heart" size={32} color={theme.colors.accent} />
             <Text style={[accueilStyles.emptyTitle, { color: theme.colors.primary }]}>
-              Jour de récupération
+              {'Jour de récupération'}
             </Text>
             <Text style={[accueilStyles.emptySubtitle, { color: theme.colors.secondary }]}>
-              Aucune activité prévue aujourd'hui. Profitez-en pour récupérer et vous reposer !
+              {'Aucune activité prévue aujourd\'hui. Profitez-en pour récupérer et vous reposer !'}
             </Text>
           </View>
         </View>
@@ -446,17 +446,17 @@ export default function HomeScreen() {
         <View style={accueilStyles.cardHeader}>
           <FontAwesome name="plus-circle" size={24} color={theme.colors.accent} />
           <Text style={[accueilStyles.cardTitle, { color: theme.colors.primary }]}>
-            Créez votre plan d'entraînement
+            {'Créez votre plan d\'entraînement'}
           </Text>
         </View>
         
         <View style={accueilStyles.emptyState}>
           <FontAwesome name="rocket" size={32} color={theme.colors.accent} />
           <Text style={[accueilStyles.emptyTitle, { color: theme.colors.primary }]}>
-            Commencez votre parcours
+            {'Commencez votre parcours'}
           </Text>
           <Text style={[accueilStyles.emptySubtitle, { color: theme.colors.secondary }]}>
-            Créez votre plan d'entraînement personnalisé en quelques étapes.
+            {'Créez votre plan d\'entraînement personnalisé en quelques étapes.'}
           </Text>
           
           <View style={accueilStyles.actionButtons}>
@@ -469,7 +469,7 @@ export default function HomeScreen() {
             >
               <FontAwesome name="calendar-plus-o" size={16} color="white" />
               <Text style={accueilStyles.actionButtonText}>
-                Créer mon plan
+                {'Créer mon plan'}
               </Text>
             </Pressable>
           </View>
@@ -495,7 +495,7 @@ export default function HomeScreen() {
           marginBottom: 20,
           color: theme.colors.primary 
         }}>
-          Vous devez être connecté pour accéder au tableau de bord
+          {'Vous devez être connecté pour accéder au tableau de bord'}
         </Text>
         <Pressable
           onPress={() => router.replace('/(auth)/login')}
@@ -518,15 +518,15 @@ export default function HomeScreen() {
       <View style={[accueilStyles.header, { backgroundColor: theme.colors.surface }, theme.shadows]}>
         <View style={{ flex: 1 }}>
           <Text style={[accueilStyles.title, { color: theme.colors.primary }]}>
-            Tableau de bord
+            {'Tableau de bord'}
           </Text>
           <Text style={[accueilStyles.subtitle, { color: theme.colors.secondary }]}>
-            Votre entraînement triathlon
+            {'Votre entraînement triathlon'}
           </Text>
           {/* ✅ AFFICHER l'utilisateur connecté */}
           {user && (
             <Text style={[accueilStyles.subtitle, { color: theme.colors.accent, fontSize: 12, marginTop: 4 }]}>
-              Connecté en tant que {user.email}
+              {'Connecté en tant que ' + user.email}
             </Text>
           )}
         </View>
@@ -553,7 +553,7 @@ export default function HomeScreen() {
           <View style={accueilStyles.cardHeader}>
             <FontAwesome name="dashboard" size={24} color={theme.colors.accent} />
             <Text style={[accueilStyles.cardTitle, { color: theme.colors.primary }]}>
-              Accès rapide
+              {'Accès rapide'}
             </Text>
           </View>
           
@@ -565,7 +565,7 @@ export default function HomeScreen() {
               >
                 <FontAwesome name="user-md" size={16} color={theme.colors.accent} />
                 <Text style={[accueilStyles.actionButtonText, { color: theme.colors.accent }]}>
-                  Mon profil
+                  {'Mon profil'}
                 </Text>
               </Pressable>
             )}
@@ -577,7 +577,7 @@ export default function HomeScreen() {
               >
                 <FontAwesome name="calendar" size={16} color={theme.colors.accent} />
                 <Text style={[accueilStyles.actionButtonText, { color: theme.colors.accent }]}>
-                  Mon plan
+                  {'Mon plan'}
                 </Text>
               </Pressable>
             )}

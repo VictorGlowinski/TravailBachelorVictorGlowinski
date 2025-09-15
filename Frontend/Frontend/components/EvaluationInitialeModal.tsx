@@ -907,46 +907,7 @@ const theme = useTheme();
               />
             </View>
 
-            {/* ✅ SECTION DANGER en bas du formulaire */}
-            {mode === 'view' && (
-              <View style={{ 
-                backgroundColor: '#fff3f3', 
-                padding: 15, 
-                borderRadius: 8, 
-                marginBottom: 20,
-                borderLeftWidth: 4,
-                borderLeftColor: '#e74c3c'
-              }}>
-                <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#e74c3c', marginBottom: 10 }}>
-                  Zone de danger
-                </Text>
-                <Pressable
-                  onPress={deleteEvaluation}
-                  disabled={isDeleting}
-                  style={{
-                    backgroundColor: '#e74c3c',
-                    padding: 12,
-                    borderRadius: 6,
-                    alignItems: 'center',
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    opacity: isDeleting ? 0.5 : 1
-                  }}
-                >
-                  {isDeleting ? (
-                    <ActivityIndicator size="small" color="white" />
-                  ) : (
-                    <>
-                      <FontAwesome name="trash" size={16} color="white" />
-                      <Text style={{ color: 'white', fontWeight: 'bold', marginLeft: 8 }}>
-                        Supprimer l'évaluation
-                      </Text>
-                    </>
-                  )}
-                </Pressable>
-              </View>
-            )}
-
+            
             <View style={{ height: 50 }} />
           </ScrollView>
         )}

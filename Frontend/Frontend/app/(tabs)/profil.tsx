@@ -49,7 +49,6 @@ export default function ProfilScreen() {
     // FONCTIONS du modal
     const openAnamneseModal = () => {
         if (!isAuthenticated) {
-            Alert.alert("Non authentifié", "Vous devez être connecté pour consulter votre anamnèse");
             return;
         }
         setAnamneseModalVisible(true);
@@ -57,7 +56,6 @@ export default function ProfilScreen() {
 
     const openEvaluationModal = () => {
         if (!isAuthenticated) {
-            Alert.alert("Non authentifié", "Vous devez être connecté pour consulter votre évaluation");
             return;
         }
         setEvaluationModalVisible(true);
@@ -65,7 +63,6 @@ export default function ProfilScreen() {
 
     const openSettingsModal = () => {
         if (!isAuthenticated) {
-            Alert.alert("Non authentifié", "Vous devez être connecté pour accéder aux paramètres");
             return;
         }
         setSettingsModalVisible(true);
@@ -215,46 +212,7 @@ export default function ProfilScreen() {
         );
     };
 
-    // FONCTION pour voir les données existantes
-    const viewExistingData = (type: 'anamnese' | 'evaluation') => {
-        if (!isAuthenticated) {
-            Alert.alert("Non authentifié", "Vous devez être connecté pour consulter vos données");
-            return;
-        }
-
-        const data = type === 'anamnese' ? userData.anamneseData : userData.evaluationData;
-        const title = type === 'anamnese' ? 'Anamnèse existante' : 'Évaluation existante';
-        
-        Alert.alert(
-            title,
-            `Vous avez déjà une ${type} enregistrée.\n\nVoulez-vous la consulter ou la modifier ?`,
-            [
-                { text: 'Annuler', style: 'cancel' },
-                { 
-                    text: 'Consulter', 
-                    onPress: () => {
-                        console.log(`📖 Consulter ${type}:`, data);
-                        if (type === 'anamnese') {
-                            openAnamneseModal();
-                        } else {
-                            openEvaluationModal();
-                        }
-                    }
-                },
-                { 
-                    text: 'Modifier', 
-                    onPress: () => {
-                        console.log(`✏️ Modifier ${type}`);
-                        if (type === 'anamnese') {
-                            router.push('/(tabs)/creationAnamnese?mode=edit');
-                        } else {
-                            router.push('/(tabs)/creationEvaluationInitiale?mode=edit');
-                        }
-                    }
-                }
-            ]
-        );
-    };
+    
 
     // VÉRIFICATION d'authentification au niveau du composant
     if (!isAuthenticated) {
@@ -386,9 +344,7 @@ export default function ProfilScreen() {
                                 onPress={() => {
                                     if (isAuthenticated) {
                                         router.push('/(tabs)/creationAnamnese');
-                                    } else {
-                                        Alert.alert("Non authentifié", "Vous devez être connecté pour créer une anamnèse");
-                                    }
+                                    } 
                                 }}
                             >
                                 <View style={profilStyles.cardContent}>
@@ -448,9 +404,7 @@ export default function ProfilScreen() {
                                 onPress={() => {
                                     if (isAuthenticated) {
                                         router.push('/(tabs)/creationEvaluationInitiale');
-                                    } else {
-                                        Alert.alert("Non authentifié", "Vous devez être connecté pour créer une évaluation");
-                                    }
+                                    } 
                                 }}
                             >
                                 <View style={profilStyles.cardContent}>

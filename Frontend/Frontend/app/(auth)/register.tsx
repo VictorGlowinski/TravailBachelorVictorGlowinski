@@ -98,7 +98,7 @@ export default function RegisterScreen() {
             return;
         }
 
-        // ✅ VÉRIFIER que la date n'est pas dans le futur
+        //  VÉRIFIER que la date n'est pas dans le futur
         const selectedDate = new Date(formData.use_date_naissance);
         const today = new Date();
         if (selectedDate > today) {
@@ -106,12 +106,6 @@ export default function RegisterScreen() {
             return;
         }
 
-        // ✅ VÉRIFIER un âge minimum (ex: 13 ans)
-        const age = today.getFullYear() - selectedDate.getFullYear();
-        if (age < 13) {
-            Alert.alert('Erreur', 'Vous devez avoir au moins 13 ans pour vous inscrire');
-            return;
-        }
 
         setIsLoading(true);
         try {
@@ -121,7 +115,7 @@ export default function RegisterScreen() {
                 Alert.alert(
                     'Succès', 
                     'Compte créé avec succès ! Vous pouvez maintenant vous connecter.',
-                    [{ text: 'OK', onPress: () => router.back()}]
+                    [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }] // Rediriger vers login
                 );
             } else {
                 Alert.alert('Erreur', 'Impossible de créer le compte');
@@ -137,7 +131,7 @@ export default function RegisterScreen() {
     return (
         <ScrollView style={RegisterStyles.container} contentContainerStyle={RegisterStyles.contentContainer}>
             <View style={RegisterStyles.header}>
-                <Pressable onPress={() => router.back()} style={RegisterStyles.backButton}>
+                <Pressable onPress={() => router.replace('/(auth)/login')} style={RegisterStyles.backButton}>
                     <FontAwesome name="arrow-left" size={24} color="#007AFF" />
                 </Pressable>
                 <FontAwesome name="user-plus" size={60} color="#007AFF" />
@@ -234,7 +228,7 @@ export default function RegisterScreen() {
 
                 <Pressable 
                     style={RegisterStyles.loginLink}
-                    onPress={() => router.back()}
+                    onPress={() => router.replace('/(auth)/login')}
                 >
                     <Text style={RegisterStyles.loginLinkText}>
                         Déjà un compte ? Se connecter
