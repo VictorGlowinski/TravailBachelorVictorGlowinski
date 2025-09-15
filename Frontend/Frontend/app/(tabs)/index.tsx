@@ -356,57 +356,70 @@ export default function HomeScreen() {
           )}
           
           <View style={accueilStyles.activitiesContainer}>
-            {todayActivities.map((activite, index) => (
-              <View key={activite.gen_id || index} style={[accueilStyles.activityCard, { backgroundColor: theme.colors.background }]}>
-                <View style={accueilStyles.activityHeader}>
-                  <Text style={[accueilStyles.activityName, { color: theme.colors.primary }]}>
-                    {activite.gen_nom}
-                  </Text>
-                  <View style={[accueilStyles.activityTypeBadge, { backgroundColor: theme.colors.accent }]}>
-                    <Text style={accueilStyles.activityTypeText}>
-                      {activite.gen_type}
-                    </Text>
-                  </View>
-                </View>
-                
-                <View style={accueilStyles.activityDetails}>
-                  {activite.gen_duree && (
-                    <View style={accueilStyles.activityDetail}>
-                      <FontAwesome name="clock-o" size={14} color={theme.colors.secondary} />
-                      <Text style={[accueilStyles.activityDetailText, { color: theme.colors.secondary }]}>
-                        {activite.gen_duree} minutes
-                      </Text>
-                    </View>
-                  )}
-                  
-                  {activite.gen_distance && (
-                    <View style={accueilStyles.activityDetail}>
-                      <FontAwesome name="road" size={14} color={theme.colors.secondary} />
-                      <Text style={[accueilStyles.activityDetailText, { color: theme.colors.secondary }]}>
-                        {activite.gen_distance} km
-                      </Text>
-                    </View>
-                  )}
-                  
-                  {activite.gen_intensite && (
-                    <View style={accueilStyles.activityDetail}>
-                      <FontAwesome name="tachometer" size={14} color={theme.colors.secondary} />
-                      <Text style={[accueilStyles.activityDetailText, { color: theme.colors.secondary }]}>
-                        {activite.gen_intensite}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                
-                {activite.gen_commentaire && (
-                  <Text style={[accueilStyles.activityComment, { color: theme.colors.secondary }]}>
-                    💡 {activite.gen_commentaire}
-                  </Text>
-                )}
-              </View>
-            ))}
+            {todayActivities.map((activite, index) => {
+    // ✅ VALIDATION des données avant rendu
+    const safeActivite = {
+      id: activite.gen_id || index,
+      nom: String(activite.gen_nom || 'Activité sans nom'),
+      type: String(activite.gen_type || 'Type inconnu'),
+      duree: activite.gen_duree ? String(activite.gen_duree) : null,
+      distance: activite.gen_distance ? String(activite.gen_distance) : null,
+      intensite: activite.gen_intensite ? String(activite.gen_intensite) : null,
+      commentaire: activite.gen_commentaire ? String(activite.gen_commentaire) : null
+    };
+
+    return (
+      <View key={safeActivite.id} style={[accueilStyles.activityCard, { backgroundColor: theme.colors.background }]}>
+        <View style={accueilStyles.activityHeader}>
+          <Text style={[accueilStyles.activityName, { color: theme.colors.primary }]}>
+            {safeActivite.nom}
+          </Text>
+          <View style={[accueilStyles.activityTypeBadge, { backgroundColor: theme.colors.accent }]}>
+            <Text style={accueilStyles.activityTypeText}>
+              {safeActivite.type}
+            </Text>
           </View>
         </View>
+        
+        <View style={accueilStyles.activityDetails}>
+          {safeActivite.duree && (
+            <View style={accueilStyles.activityDetail}>
+              <FontAwesome name="clock-o" size={14} color={theme.colors.secondary} />
+              <Text style={[accueilStyles.activityDetailText, { color: theme.colors.secondary }]}>
+                {safeActivite.duree} minutes
+              </Text>
+            </View>
+          )}
+          
+          {safeActivite.distance && (
+            <View style={accueilStyles.activityDetail}>
+              <FontAwesome name="road" size={14} color={theme.colors.secondary} />
+              <Text style={[accueilStyles.activityDetailText, { color: theme.colors.secondary }]}>
+                {safeActivite.distance} km
+              </Text>
+            </View>
+          )}
+          
+          {safeActivite.intensite && (
+            <View style={accueilStyles.activityDetail}>
+              <FontAwesome name="tachometer" size={14} color={theme.colors.secondary} />
+              <Text style={[accueilStyles.activityDetailText, { color: theme.colors.secondary }]}>
+                {safeActivite.intensite}
+              </Text>
+            </View>
+          )}
+        </View>
+        
+        {safeActivite.commentaire && (
+          <Text style={[accueilStyles.activityComment, { color: theme.colors.secondary }]}>
+            💡 {safeActivite.commentaire}
+          </Text>
+        )}
+      </View>
+    );
+  })}
+        </View>
+  </View>
       );
     }
 

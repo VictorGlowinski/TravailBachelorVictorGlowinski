@@ -153,7 +153,8 @@ export default function PlanScreen() {
       return date.toLocaleDateString('fr-FR', {
         weekday: 'long',
         day: 'numeric',
-        month: 'long'
+        month: 'long',
+        year: 'numeric'
       });
     } catch (error) {
       console.error('Erreur formatage date:', error);
