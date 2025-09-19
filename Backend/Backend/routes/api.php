@@ -13,11 +13,11 @@ use App\Http\Controllers\OpenAIController;
 use App\Http\Controllers\RetourController;
 use Illuminate\Http\Request;
 
-// ✅ ROUTES PUBLIQUES (NON AUTHENTIFIÉES)
+// ROUTES PUBLIQUES (NON AUTHENTIFIÉES)
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [UserController::class, 'login']);
 
-// ✅ ROUTES PROTÉGÉES (AUTHENTIFICATION REQUISE)
+// ROUTES PROTÉGÉES (AUTHENTIFICATION REQUISE)
 Route::middleware('auth:sanctum')->group(function () {
     
     // 🔐 UTILISATEUR AUTHENTIFIÉ

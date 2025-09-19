@@ -34,109 +34,82 @@ export default function FeedbackModal({
   const [feedback, setFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ✅ VÉRIFICATION d'authentification
-  useEffect(() => {
-    if (visible && !isAuthenticated) {
+
+  // ✅ CORRIGER les champs dans FeedbackModal.tsx - ligne 45 environ
+
+const handleSubmit = async () => {
+  if (!feedback.trim()) {
+    Alert.alert('Attention', 'Veuillez saisir votre feedback.');
+    return;
+  }
+
+  setIsSubmitting(true);
+  try {
+    // ✅ UTILISER les bons noms de champs selon votre BDD
+    const feedbackData = {
+      ret_commentaire: feedback.trim(), // ✅ ret_commentaire au lieu de fee_commentaire
+      ret_date: new Date().toISOString().split('T')[0], // ✅ Format YYYY-MM-DD pour la date
+      // ✅ AJOUTER l'utilisateur si authentifié
+      ...(isAuthenticated && user && {
+        ret_user_id: user.id // ✅ ret_user_id au lieu de fee_user_id
+      })
+    };
+
+    console.log('📤 Envoi feedback:', feedbackData); // ✅ DEBUG
+
+    const response = await apiPost('/retour', feedbackData);
+
+    Alert.alert(
+      'Merci !',
+      isAuthenticated 
+        ? 'Votre feedback a été envoyé avec succès. Nous l\'examinerons attentivement.'
+        : 'Votre feedback anonyme a été envoyé avec succès.',
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            setFeedback('');
+            onClose();
+            onFeedbackSubmitted?.();
+          }
+        }
+      ]
+    );
+
+  } catch (error) {
+    console.error('❌ Erreur envoi feedback:', error);
+    
+    let errorMessage = 'Impossible d\'envoyer votre feedback. Veuillez réessayer.';
+
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'message' in error &&
+      typeof (error as { message?: string }).message === 'string' &&
+      (error as { message: string }).message.includes('Session expirée')
+    ) {
+      errorMessage = 'Votre session a expiré. Veuillez vous reconnecter.';
       Alert.alert(
-        "Non authentifié", 
-        "Vous devez être connecté pour envoyer un feedback",
+        'Session expirée', 
+        errorMessage,
         [
           { 
-            text: "Se connecter", 
-            onPress: () => onClose() 
-          },
-          { 
-            text: "Continuer sans compte", 
+            text: "Se reconnecter", 
             onPress: () => {
-              // ✅ PERMETTRE l'envoi anonyme mais avec limitation
-              console.log('📧 Feedback anonyme autorisé');
+              logout();
+              onClose();
             }
           }
         ]
       );
-    }
-  }, [visible, isAuthenticated]);
-
-  const handleSubmit = async () => {
-    if (!feedback.trim()) {
-      Alert.alert('Attention', 'Veuillez saisir votre feedback.');
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      // ✅ PRÉPARER les données avec authentification si disponible
-      const feedbackData = {
-        fee_commentaire: feedback,
-        fee_note: 5,
-        fee_type: 'general',
-        fee_sujet: 'Feedback utilisateur',
-        // ✅ AJOUTER l'utilisateur si authentifié
-        ...(isAuthenticated && user && {
-          fee_user_id: user.id,
-          fee_user_email: user.email
-        })
-      };
-
-      // ✅ UTILISER apiPost qui gère l'authentification automatiquement
-      const response = await apiPost('/feedback', feedbackData);
-
-      Alert.alert(
-        'Merci !',
-        isAuthenticated 
-          ? 'Votre feedback a été envoyé avec succès. Nous l\'examinerons attentivement.'
-          : 'Votre feedback anonyme a été envoyé avec succès.',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              setFeedback('');
-              onClose();
-              if (onFeedbackSubmitted) {
-                onFeedbackSubmitted();
-              }
-            }
-          }
-        ]
-      );
-
-    } catch (error) {
-      console.error('Erreur envoi feedback:', error);
-      
-      // ✅ GESTION D'ERREURS SPÉCIFIQUE
-      let errorMessage = 'Impossible d\'envoyer votre feedback. Veuillez réessayer.';
-
-      // Type guard to safely access error.message
-      if (
-        typeof error === 'object' &&
-        error !== null &&
-        'message' in error &&
-        typeof (error as { message?: string }).message === 'string' &&
-        (error as { message: string }).message.includes('Session expirée')
-      ) {
-        errorMessage = 'Votre session a expiré. Veuillez vous reconnecter.';
-        Alert.alert(
-          'Session expirée', 
-          errorMessage,
-          [
-            { 
-              text: "Se reconnecter", 
-              onPress: () => {
-                logout();
-                onClose();
-              }
-            }
-          ]
-        );
-        return;
-      }
-
-      Alert.alert('Erreur', errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
+    Alert.alert('Erreur', errorMessage);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   const handleClose = () => {
     if (feedback.trim()) {
       Alert.alert(
