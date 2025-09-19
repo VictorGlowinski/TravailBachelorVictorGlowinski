@@ -45,16 +45,7 @@ export default function PlanScreen() {
   // ✅ VÉRIFICATION d'authentification au chargement
   useEffect(() => {
     if (!isAuthenticated) {
-      Alert.alert(
-        "Non authentifié", 
-        "Vous devez être connecté pour accéder à votre plan d'entraînement",
-        [
-          { 
-            text: "Se connecter", 
-            onPress: () => router.replace('/(auth)/login') 
-          }
-        ]
-      );
+      console.log('🚫 Utilisateur non authentifié - Redirection vers login');
       return;
     }
 
@@ -166,12 +157,12 @@ export default function PlanScreen() {
   const generatePlan = async () => {
     // ✅ VÉRIFICATIONS préliminaires
     if (!isAuthenticated) {
-      Alert.alert("Non authentifié", "Vous devez être connecté pour générer un plan");
+      console.log("🚫 Utilisateur non authentifié - Redirection vers login");
       return;
     }
 
     if (!currentUserId) {
-      Alert.alert("Erreur", "Utilisateur non identifié");
+      console.log("🚫 Utilisateur non identifié");
       return;
     }
 
@@ -641,7 +632,8 @@ export default function PlanScreen() {
               {/* ✅ Messages d'aide conditionnels */}
               {(!userData.hasAnamnese || !userData.hasEvaluation) && (
                 <Text style={[planStyles.helpText, { color: theme.colors.warning }]}>
-                  Complétez votre anamnèse et évaluation pour générer votre plan personnalisé
+                  Complétez votre anamnèse et évaluation pour générer votre plan personnalisé {'\n'} Allez sous l'onglet profil pour compléter ces sections.
+
                 </Text>
               )}
             </View>
