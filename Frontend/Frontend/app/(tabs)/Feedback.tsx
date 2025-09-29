@@ -5,10 +5,11 @@ import { Pressable, View, Text } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import FeedbackModal from '@/components/FeedbackModal';
 import commentaireStyles from '@/styles/screens/CommentaireStyle';
-import { useTheme } from '@/styles/screens/ThemeStyle'; // ✅ IMPORTER le hook de thème
+import { useTheme } from '@/styles/screens/ThemeStyle'; // IMPORTER le hook de thème
+
 
 export default function FeedbackScreen() {
-  const theme = useTheme(); // ✅ UTILISER le thème
+  const theme = useTheme(); // UTILISER le thème
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleFeedbackSubmitted = () => {
@@ -23,7 +24,7 @@ export default function FeedbackScreen() {
 
   return (
     <View style={[commentaireStyles.container, { backgroundColor: theme.colors.background }]}>
-      {/* ✅ HEADER avec thème */}
+      {/* HEADER avec thème */}
       <View style={[commentaireStyles.header, { backgroundColor: theme.colors.surface }]}>
         <Text style={[commentaireStyles.title, { color: theme.colors.primary }]}>
           Feedback
@@ -33,12 +34,12 @@ export default function FeedbackScreen() {
         </Text>
       </View>
 
-      {/* ✅ CONTENU avec thème */}
+      {/* CONTENU avec thème */}
       <View style={commentaireStyles.content}>
         <View style={[
           commentaireStyles.infoCard, 
           { backgroundColor: theme.colors.surface },
-          theme.shadows // ✅ OMBRES adaptées au thème
+          theme.shadows // OMBRES adaptées au thème
         ]}>
           <FontAwesome name="comment" size={48} color={theme.colors.accent} />
           <Text style={[commentaireStyles.infoTitle, { color: theme.colors.primary }]}>
@@ -53,7 +54,7 @@ export default function FeedbackScreen() {
           style={[
             commentaireStyles.feedbackButton, 
             { backgroundColor: theme.colors.accent },
-            theme.shadows // ✅ OMBRES adaptées au thème
+            theme.shadows // OMBRES adaptées au thème
           ]}
           onPress={handleOpenModal}
         >
@@ -64,7 +65,7 @@ export default function FeedbackScreen() {
         </Pressable>
       </View>
 
-      {/* ✅ MODAL avec thème */}
+      {/* MODAL avec thème */}
       <FeedbackModal
         visible={modalVisible}
         onClose={() => {

@@ -5,7 +5,7 @@ import { StyleSheet, Dimensions } from 'react-native';
 const { width } = Dimensions.get('window');
 
 const profilStyles = StyleSheet.create({
-  // ✅ CONTAINER PRINCIPAL
+  // CONTAINER PRINCIPAL
   container: {
     flex: 1,
     // backgroundColor sera définie dynamiquement
@@ -14,7 +14,7 @@ const profilStyles = StyleSheet.create({
     paddingBottom: 30,
   },
 
-  // ✅ HEADER MODERNISÉ
+  // HEADER MODERNISÉ
   header: {
     paddingHorizontal: 20,
     paddingTop: 50,
@@ -51,7 +51,7 @@ const profilStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ BADGES DE PROGRESSION
+  // BADGES DE PROGRESSION
   progressBadges: {
     flexDirection: 'row',
     gap: 10,
@@ -74,7 +74,7 @@ const profilStyles = StyleSheet.create({
     color: 'white',
   },
 
-  // ✅ LOADING STATE
+  // LOADING STATE
   loadingCard: {
     margin: 20,
     padding: 30,
@@ -89,7 +89,7 @@ const profilStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ SECTION ACTIONS
+  // SECTION ACTIONS
   actionsSection: {
     padding: 20,
     gap: 20,
@@ -104,7 +104,7 @@ const profilStyles = StyleSheet.create({
     gap: 15,
   },
 
-  // ✅ CARTES D'ACTION MODERNISÉES
+  // CARTES D'ACTION MODERNISÉES
   actionCard: {
     borderRadius: 16,
     padding: 20,
@@ -143,7 +143,7 @@ const profilStyles = StyleSheet.create({
     padding: 5,
   },
 
-  // ✅ BOUTON REFRESH
+  // BOUTON REFRESH
   refreshButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -160,7 +160,7 @@ const profilStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ SECTION AIDE MODERNISÉE
+  // SECTION AIDE MODERNISÉE
   helpSection: {
     margin: 20,
     borderRadius: 16,
@@ -240,7 +240,7 @@ const profilStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ SECTION DÉCONNEXION
+  // SECTION DÉCONNEXION
   logoutSection: {
     padding: 20,
     paddingTop: 10,
@@ -261,7 +261,7 @@ const profilStyles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // ✅ STYLES LEGACY (gardés pour compatibilité)
+  // STYLES LEGACY (gardés pour compatibilité)
   scrollView: {
     flex: 1,
     backgroundColor: 'transparent',

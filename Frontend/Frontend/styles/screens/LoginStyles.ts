@@ -65,7 +65,7 @@ const LoginStyles = StyleSheet.create({
         color: '#007AFF',
         fontSize: 16,
     },
-    // ✅ AJOUT : Style pour le bouton de test
+    
     testButton: {
         alignItems: 'center',
         marginTop: 15,

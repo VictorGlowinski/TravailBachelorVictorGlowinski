@@ -28,7 +28,7 @@ export default function ActiviteGenereeModal({
 }: ActiviteGenereeModalProps) {
   const theme = useTheme();
 
-  // ✅ Formater la date
+  // Formater la date
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     try {
@@ -44,7 +44,7 @@ export default function ActiviteGenereeModal({
     }
   };
 
-  // ✅ Obtenir l'icône selon le type d'activité
+  // Obtenir l'icône selon le type d'activité
   const getActivityIcon = (type: string) => {
     const typeStr = String(type).toLowerCase();
     if (typeStr.includes('natation') || typeStr.includes('nage')) return 'tint';
@@ -55,7 +55,7 @@ export default function ActiviteGenereeModal({
     return 'flash';
   };
 
-  // ✅ Obtenir la couleur selon l'intensité
+  // Obtenir la couleur selon l'intensité
   const getIntensityColor = (intensite: string) => {
     const intensiteStr = String(intensite).toLowerCase();
     if (intensiteStr.includes('faible') || intensiteStr.includes('facile')) return theme.colors.success;
@@ -74,7 +74,7 @@ export default function ActiviteGenereeModal({
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.accent} />
       
       <View style={[activiteGenereeStyles.container, { backgroundColor: theme.colors.background }]}>
-        {/* ✅ HEADER du modal */}
+        {/* HEADER du modal */}
         <View style={[activiteGenereeStyles.header, { backgroundColor: theme.colors.accent }]}>
           <View style={activiteGenereeStyles.headerContent}>
             <View style={activiteGenereeStyles.headerLeft}>
@@ -102,12 +102,12 @@ export default function ActiviteGenereeModal({
           </View>
         </View>
 
-        {/* ✅ CONTENU scrollable */}
+        {/* CONTENU scrollable */}
         <ScrollView 
           style={activiteGenereeStyles.content}
           showsVerticalScrollIndicator={false}
         >
-          {/* ✅ Description du jour */}
+          {/* Description du jour */}
           {jour?.jou_description && (
             <View style={[activiteGenereeStyles.card, { backgroundColor: theme.colors.surface }]}>
               <View style={activiteGenereeStyles.cardHeader}>
@@ -122,7 +122,7 @@ export default function ActiviteGenereeModal({
             </View>
           )}
 
-          {/* ✅ ACTIVITÉS */}
+          {/* ACTIVITÉS */}
           {jour?.activites && jour.activites.length > 0 ? (
             <View style={[activiteGenereeStyles.card, { backgroundColor: theme.colors.surface }]}>
               <View style={activiteGenereeStyles.cardHeader}>
@@ -141,7 +141,7 @@ export default function ActiviteGenereeModal({
                       { backgroundColor: theme.colors.background }
                     ]}
                   >
-                    {/* ✅ Header de l'activité */}
+                    {/* Header de l'activité */}
                     <View style={activiteGenereeStyles.activityHeader}>
                       <View style={activiteGenereeStyles.activityTitleRow}>
                         <FontAwesome 
@@ -163,7 +163,7 @@ export default function ActiviteGenereeModal({
                       )}
                     </View>
 
-                    {/* ✅ Détails de l'activité */}
+                    {/* Détails de l'activité */}
                     <View style={activiteGenereeStyles.activityDetails}>
                       {activite.gen_duree_minutes && (
                         <View style={activiteGenereeStyles.detailRow}>
@@ -196,7 +196,7 @@ export default function ActiviteGenereeModal({
                       )}
                     </View>
 
-                    {/* ✅ Description de l'activité */}
+                    {/* Description de l'activité */}
                     {activite.gen_description && (
                       <View style={[activiteGenereeStyles.activityDescriptionContainer, { backgroundColor: theme.colors.surface }]}>
                         <Text style={[activiteGenereeStyles.activityDescription, { color: theme.colors.secondary }]}>
@@ -231,7 +231,7 @@ export default function ActiviteGenereeModal({
             </View>
           )}
 
-          {/* ✅ Espacement en bas */}
+          {/* Espacement en bas */}
           <View style={{ height: 40 }} />
         </ScrollView>
       </View>

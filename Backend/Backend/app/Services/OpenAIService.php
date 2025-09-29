@@ -18,7 +18,11 @@ class OpenAIService
     }
 
     /**
-     * ✅ NOUVELLE MÉTHODE - Initialiser les données utilisateur
+     * NOUVELLE MÉTHODE - Initialiser les données utilisateur
+     * Permet de configurer les données avant de générer des prompts
+     * @param array $anamnese
+     * @param array $evaluationInitiale
+     * @return $this
      */
     public function setUserData($anamnese, $evaluationInitiale)
     {
@@ -28,7 +32,9 @@ class OpenAIService
     }
 
     /**
-     * ✅ MÉTHODE PRIVÉE - Formater les données utilisateur pour les prompts
+     *  MÉTHODE PRIVÉE - Formater les données utilisateur pour les prompts
+     *  Permet de réutiliser le même formatage dans plusieurs prompts
+     * @return string
      */
     private function formatUserDataForPrompt()
     {
@@ -66,17 +72,24 @@ class OpenAIService
         ";
     }
 
-    /**
-     * ✅ MÉTHODES SIMPLIFIÉES - Plus de paramètres dupliqués
-     */
-   
 
+    /**
+     * Générer les jours d'entraînement
+     * @param array $plan
+     * @return string JSON des jours d'entraînement
+     */
     public function generateTrainingDays($plan)
     {
         $prompt = $this->buildJoursPrompt($plan);
         return $this->generateText($prompt, 3000);
     }
 
+    /**
+     * Méthode générique pour générer les activités d'entraînement qui sont liées aux jours
+     * @param string $plan
+     * @param array $jours
+     * @return string JSON des activités d'entraînement
+     */
     public function generateTrainingActivities($plan, $jours)
     {
         $prompt = $this->buildActivitiesPrompt($plan, $jours);
@@ -84,13 +97,16 @@ class OpenAIService
     }
 
     /**
-     * ✅ PROMPTS SIMPLIFIÉS - Utilisent formatUserDataForPrompt()
+     * PROMPTS SIMPLIFIÉS - Utilisent formatUserDataForPrompt()
+     * Méthode  qui permet de construire le prompt pour générer un plan d'entraînement
+     * Accepte une date de début optionnelle, sinon utilise le prochain lundi
+     * @return string
      */
     private function buildTrainingPlanPrompt($startDate = null)
 {
     $userData = $this->formatUserDataForPrompt();
     
-    // ✅ UTILISER la date fournie ou calculer le prochain lundi
+    // UTILISER la date fournie ou calculer le prochain lundi
     $planStartDate = $startDate ?: date('Y-m-d', strtotime('next Monday'));
     
     return "
@@ -107,11 +123,16 @@ class OpenAIService
     ";
 }
 
+    /**
+     * Construire le prompt pour générer les jours d'entraînement
+     * @param array $plan
+     * @return string
+     */
     private function buildJoursPrompt($plan)
 {
     $userData = $this->formatUserDataForPrompt();
     
-    // ✅ UTILISER la date de début du plan au lieu de calculer
+    // UTILISER la date de début du plan au lieu de calculer
     $startDate = $plan['pla_debut']; // Date déjà fournie dans le plan
     $jours = [];
     for ($i = 0; $i < 14; $i++) {
@@ -150,7 +171,12 @@ class OpenAIService
     ";
 }
 
-    // ✅ MODIFIER les méthodes publiques pour accepter la date de début
+    // MODIFIER les méthodes publiques pour accepter la date de début
+    /**
+     * Générer un plan d'entraînement
+     * @param string|null $startDate Date de début optionnelle (format 'Y-m-d')
+     * @return string JSON du plan d'entraînement
+     */
     public function generateTrainingPlan($startDate = null)
     {
         $prompt = $this->buildTrainingPlanPrompt($startDate);
@@ -172,16 +198,18 @@ class OpenAIService
         $joursText = json_encode($joursArray, JSON_UNESCAPED_UNICODE);
         
         return "
-        Crée des activités détaillées pour CHAQUE jour d'entraînement des 2 semaines :
+        Crée des activités détaillées pour CHAQUE jour d'entraînement des 2 semaines.
+        Petite note : mon MLD est conçu de la manière suivante : un PLAN contient plusieurs JOURS, et chaque JOUR contient plusieurs ACTIVITÉS.
+        Il est crucial de respecter cette hiérarchie et que chaque activité soit clairement associée à son jour d'entraînement.
 
-        {$userData}
+        Voici les données de l'utilisateur : {$userData}
 
-        PLAN : {$plan['pla_nom']}
-        JOURS D'ENTRAÎNEMENT (14 jours) : {$joursText}
+        Voici le PLAN sportif qui a été créé : {$plan['pla_nom']}
+        Voici tous les JOURS D'ENTRAÎNEMENT (14 jours) qui ont été générés : {$joursText}
 
         INSTRUCTIONS :
-        - Crée 1 à 3 activités par jour d'entraînement
-        - Adapte les intensités aux capacités (VO2 Max, VMA, FTP)
+        - Crée 1 à 3 activités par jour d'entraînement, suivant le niveau, les capacités, disponibilités et blessures de l'utilisateur
+        - Adapte les intensités aux capacités (VO2 Max, VMA, FTP et toutes données physiques sur l'utilisateur)
         - Évite d'aggraver les blessures mentionnées
         - Assure une progression entre semaine 1 et 2
         - Inclus des activités de récupération les jours de repos
@@ -205,7 +233,10 @@ class OpenAIService
     }
 
     /**
-     * ✅ MÉTHODES UTILITAIRES INCHANGÉES
+     * Méthode qui nettoie la réponse de l'API OpenAI pour extraire le JSON
+     * Supprime les backticks markdown et espaces superflus
+     * @param string $response
+     * @return string JSON propre
      */
     private function cleanOpenAIResponse($response)
     {
@@ -217,7 +248,15 @@ class OpenAIService
         return trim($cleaned);
     }
 
-    public function generateText($prompt, $maxTokens = 1000)
+    /**
+     * Méthode générique pour appeler l'API OpenAI avec un prompt donné
+     * Gère les erreurs et nettoie la réponse JSON
+     * @param string $prompt
+     * @param int $maxTokens
+     * @return string JSON propre
+     * @throws Exception en cas d'erreur API
+     */
+     public function generateText($prompt, $maxTokens = 1000)
     {
         try {
             $model = 'gpt-4o-mini';
@@ -231,7 +270,8 @@ class OpenAIService
                     ['role' => 'user', 'content' => $prompt],
                 ],
                 'max_tokens' => $maxTokens,
-                'temperature' => 0.7,
+                'temperature' => 0.2,
+                
             ]);
 
             $rawResponse = $result->choices[0]->message->content;
@@ -242,5 +282,9 @@ class OpenAIService
             Log::error('Erreur OpenAI:', ['error' => $e->getMessage()]);
             throw new Exception('Erreur lors de la génération avec OpenAI: ' . $e->getMessage());
         }
-    }
+    } 
+
+        
+
+
 }

@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { View, Text, TextInput, Pressable, Alert, StyleSheet } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext'; // CORRECTION : Import corrigé
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, router } from 'expo-router'; // ✅ Ajoutez Link
-import LoginStyles from '@/styles/screens/LoginStyles'; // ✅ Import des styles
+import { Link, router } from 'expo-router'; // Ajoutez Link
+import LoginStyles from '@/styles/screens/LoginStyles'; // Import des styles
 
 
 export default function LoginScreen() {

@@ -21,7 +21,7 @@ export default function RegisterScreen() {
     const [tempDate, setTempDate] = useState<Date | null>(null);
     const { register } = useAuth();
 
-    // ✅ FONCTION pour formater la date d'affichage
+    // FONCTION pour formater la date d'affichage
     const formatDateForDisplay = (dateString: string) => {
         if (!dateString) return '';
         try {
@@ -36,7 +36,7 @@ export default function RegisterScreen() {
         }
     };
 
-    // ✅ GESTION du DatePicker
+    // GESTION du DatePicker
     const handleDateChange = (event: any, selectedDate?: Date) => {
         if (Platform.OS === 'android') {
             setShowDatePicker(false);
@@ -55,7 +55,7 @@ export default function RegisterScreen() {
         }
     };
 
-    // ✅ CONFIRMER la date sur iOS
+    // CONFIRMER la date sur iOS
     const confirmDate = () => {
         if (tempDate) {
             const formattedDate = tempDate.toISOString().split('T')[0];
@@ -65,7 +65,7 @@ export default function RegisterScreen() {
         setTempDate(null);
     };
 
-    // ✅ ANNULER la sélection de date
+    // ANNULER la sélection de date
     const cancelDateSelection = () => {
         setShowDatePicker(false);
         setTempDate(null);
@@ -98,7 +98,7 @@ export default function RegisterScreen() {
             return;
         }
 
-        // ✅ VÉRIFIER que la date n'est pas dans le futur
+        //  VÉRIFIER que la date n'est pas dans le futur
         const selectedDate = new Date(formData.use_date_naissance);
         const today = new Date();
         if (selectedDate > today) {
@@ -106,12 +106,6 @@ export default function RegisterScreen() {
             return;
         }
 
-        // ✅ VÉRIFIER un âge minimum (ex: 13 ans)
-        const age = today.getFullYear() - selectedDate.getFullYear();
-        if (age < 13) {
-            Alert.alert('Erreur', 'Vous devez avoir au moins 13 ans pour vous inscrire');
-            return;
-        }
 
         setIsLoading(true);
         try {
@@ -121,7 +115,7 @@ export default function RegisterScreen() {
                 Alert.alert(
                     'Succès', 
                     'Compte créé avec succès ! Vous pouvez maintenant vous connecter.',
-                    [{ text: 'OK', onPress: () => router.back()}]
+                    [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }] // Rediriger vers login
                 );
             } else {
                 Alert.alert('Erreur', 'Impossible de créer le compte');
@@ -137,7 +131,7 @@ export default function RegisterScreen() {
     return (
         <ScrollView style={RegisterStyles.container} contentContainerStyle={RegisterStyles.contentContainer}>
             <View style={RegisterStyles.header}>
-                <Pressable onPress={() => router.back()} style={RegisterStyles.backButton}>
+                <Pressable onPress={() => router.replace('/(auth)/login')} style={RegisterStyles.backButton}>
                     <FontAwesome name="arrow-left" size={24} color="#007AFF" />
                 </Pressable>
                 <FontAwesome name="user-plus" size={60} color="#007AFF" />
@@ -153,14 +147,14 @@ export default function RegisterScreen() {
                         value={formData.email}
                         onChangeText={(text) => setFormData({...formData, email: text})}
                         placeholder="votre@email.com"
-                        placeholderTextColor="#666666" // ✅ PLACEHOLDER PLUS FONCÉ
+                        placeholderTextColor="#666666" 
                         keyboardType="email-address"
                         autoCapitalize="none"
                         autoComplete="email"
                     />
                 </View>
 
-                {/* ✅ CHAMP DATE avec DatePicker */}
+                {/* CHAMP DATE avec DatePicker */}
                 <View style={RegisterStyles.inputGroup}>
                     <Text style={RegisterStyles.label}>Date de naissance</Text>
                     <Pressable
@@ -186,7 +180,7 @@ export default function RegisterScreen() {
                         value={formData.password}
                         onChangeText={(text) => setFormData({...formData, password: text})}
                         placeholder="Au moins 6 caractères"
-                        placeholderTextColor="#666666" // ✅ PLACEHOLDER PLUS FONCÉ
+                        placeholderTextColor="#666666" 
                         secureTextEntry
                         autoComplete="new-password"
                     />
@@ -199,7 +193,7 @@ export default function RegisterScreen() {
                         value={formData.password_confirmation}
                         onChangeText={(text) => setFormData({...formData, password_confirmation: text})}
                         placeholder="Répétez votre mot de passe"
-                        placeholderTextColor="#666666" // ✅ PLACEHOLDER PLUS FONCÉ
+                        placeholderTextColor="#666666" 
                         secureTextEntry
                         autoComplete="new-password"
                     />
@@ -234,7 +228,7 @@ export default function RegisterScreen() {
 
                 <Pressable 
                     style={RegisterStyles.loginLink}
-                    onPress={() => router.back()}
+                    onPress={() => router.replace('/(auth)/login')}
                 >
                     <Text style={RegisterStyles.loginLinkText}>
                         Déjà un compte ? Se connecter
@@ -242,7 +236,7 @@ export default function RegisterScreen() {
                 </Pressable>
             </View>
 
-            {/* ✅ DateTimePicker avec contrôle iOS/Android */}
+            {/* DateTimePicker avec contrôle iOS/Android */}
             {showDatePicker && (
                 <>
                     {Platform.OS === 'ios' && (
@@ -266,16 +260,16 @@ export default function RegisterScreen() {
                                 </Pressable>
                             </View>
                             
-                            {/* ✅ DatePicker iOS avec mode compact pour plus de contraste */}
+                            {/* DatePicker iOS avec mode compact pour plus de contraste */}
                             <DateTimePicker
                                 value={tempDate || (formData.use_date_naissance ? new Date(formData.use_date_naissance) : new Date(2000, 0, 1))}
                                 mode="date"
-                                display="spinner" // ✅ MODE SPINNER pour iOS
+                                display="spinner" // MODE SPINNER pour iOS
                                 onChange={handleDateChange}
                                 maximumDate={new Date()}
                                 minimumDate={new Date(1900, 0, 1)}
                                 style={RegisterStyles.datePickerIOS}
-                                themeVariant="light" // ✅ FORCER le thème clair
+                                themeVariant="light" // FORCER le thème clair
                             />
                         </View>
                     )}

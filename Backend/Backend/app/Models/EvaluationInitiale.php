@@ -22,7 +22,8 @@ class EvaluationInitiale extends Model
         'eva_seuil_course',
         'eva_commentaire',
         'eva_objectif',
-        'eva_echeance'
+        'eva_echeance',
+        'eva_exp_triathlon'
     ];
 
     protected $casts = [
@@ -40,7 +41,8 @@ class EvaluationInitiale extends Model
         'eva_seuil_course' => 'string',
         'eva_commentaire' => 'string',
         'eva_objectif' => 'string',
-        'eva_echeance' => 'date'
+        'eva_echeance' => 'date',
+        'eva_exp_triathlon' => 'string'
     ];
 
     public function user()

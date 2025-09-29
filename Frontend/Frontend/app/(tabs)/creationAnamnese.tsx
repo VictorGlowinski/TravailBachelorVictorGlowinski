@@ -1,4 +1,4 @@
-// app/(tabs)/creationAnamnese.tsx - VERSION COMPLÈTE AVEC ÂGE CALCULÉ
+// app/(tabs)/creationAnamnese.tsx - VERSION COMPLÈTE AVEC AUTHENTIFICATION
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
@@ -17,20 +17,21 @@ import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import anamneseStyles from "@/styles/screens/AnamneseStyles";
 import { useTheme } from '@/styles/screens/ThemeStyle';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiGet, apiPost } from '@/utils/apiHelper'; // UTILISER les helpers authentifiés
 
-const API_BASE_URL = "http://192.168.0.112:8000/api";
-
-// ✅ RETIRER "age" des champs requis car il sera calculé automatiquement
+// CHAMPS REQUIS (sans age car calculé automatiquement)
 const REQUIRED_KEYS = ["sexe", "poids_kg", "taille_cm", "etat_actuel"];
 
 export default function CreationAnamneseScreen() {
   const theme = useTheme();
+  const { user, isAuthenticated, token } = useAuth(); // UTILISER le contexte d'auth
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [userBirthDate, setUserBirthDate] = useState<string | null>(null); // ✅ NOUVEAU
+  const [userBirthDate, setUserBirthDate] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
-  // ✅ RETIRER "age" du formData car il sera calculé
+  // FORM DATA sans age (calculé automatiquement)
   const [formData, setFormData] = useState({
     blessures: "",
     etat_actuel: "",
@@ -53,7 +54,7 @@ export default function CreationAnamneseScreen() {
     [currentUserId]
   );
 
-  // ✅ CALCUL AUTOMATIQUE DE L'ÂGE
+  // CALCUL AUTOMATIQUE DE L'ÂGE
   const calculatedAge = useMemo(() => {
     if (!userBirthDate) return null;
     
@@ -63,7 +64,6 @@ export default function CreationAnamneseScreen() {
       let age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
       
-      // Ajuster si l'anniversaire n'est pas encore passé cette année
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
         age--;
       }
@@ -75,19 +75,41 @@ export default function CreationAnamneseScreen() {
     }
   }, [userBirthDate]);
 
-  // ✅ Calcul du nombre de champs remplis (incluant l'âge calculé)
+  // CALCUL des champs remplis (incluant l'âge calculé)
   const filledCount = useMemo(() => {
     const baseCount = Object.values(formData).filter(value => value.trim() !== "").length;
-    // Ajouter 1 si l'âge est calculé
     return calculatedAge ? baseCount + 1 : baseCount;
   }, [formData, calculatedAge]);
 
-  // ✅ Validation des champs requis
+  // VALIDATION des champs requis + âge calculé
   const isValid = useMemo(() => {
     return REQUIRED_KEYS.every(key => formData[key as keyof typeof formData]?.trim() !== "") && calculatedAge;
   }, [formData, calculatedAge]);
 
-  // Gestion du clavier
+  // VÉRIFICATION d'authentification au chargement
+  useEffect(() => {
+    if (!isAuthenticated) {
+      Alert.alert(
+        "Non authentifié", 
+        "Vous devez être connecté pour créer une anamnèse",
+        [
+          { 
+            text: "Se connecter", 
+            onPress: () => router.replace('/(auth)/login') 
+          }
+        ]
+      );
+      return;
+    }
+
+    // UTILISER l'utilisateur du contexte d'auth
+    if (user) {
+      setCurrentUserId(user.id.toString());
+      console.log('👤 Utilisateur authentifié:', user.email);
+    }
+  }, [isAuthenticated, user]);
+
+  // GESTION du clavier
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
       setKeyboardVisible(true);
@@ -102,42 +124,72 @@ export default function CreationAnamneseScreen() {
     };
   }, []);
 
-  // ✅ RÉCUPÉRER l'ID utilisateur ET sa date de naissance
+  // RÉCUPÉRER la date de naissance avec authentification
   useEffect(() => {
     const getUserData = async () => {
+      if (!currentUserId || !isAuthenticated) return;
+      
       try {
-        const userId = await AsyncStorage.getItem("userId");
-        setCurrentUserId(userId);
+        console.log('📡 Récupération données utilisateur...');
         
-        if (userId) {
-          // Récupérer la date de naissance depuis l'API
-          const response = await fetch(`${API_BASE_URL}/users/${userId}`);
-          if (response.ok) {
-            const userData = await response.json();
-            if (userData.user?.use_date_naissance) {
-              setUserBirthDate(userData.user.use_date_naissance);
-              console.log('📅 Date de naissance récupérée:', userData.user.use_date_naissance);
-            } else {
-              console.warn('⚠️ Aucune date de naissance trouvée pour cet utilisateur');
-            }
-          }
-          loadDraft();
+        // UTILISER apiGet qui gère l'authentification automatiquement
+        const userData = await apiGet(`/users/${currentUserId}`);
+        console.log('👤 Données utilisateur reçues:', userData);
+        
+        // ADAPTER selon la structure de votre réponse API
+        const birthDate = userData.user?.use_date_naissance || 
+                         userData.use_date_naissance || 
+                         userData.date_naissance;
+                         
+        if (birthDate) {
+          setUserBirthDate(birthDate);
+          console.log('📅 Date de naissance récupérée:', birthDate);
+        } else {
+          console.warn('⚠️ Aucune date de naissance trouvée');
+          Alert.alert(
+            "Date de naissance manquante",
+            "Votre date de naissance n'est pas renseignée dans votre profil. Cela est nécessaire pour calculer votre âge.",
+            [{ text: "OK" }]
+          );
         }
+        
+        // CHARGER le brouillon après avoir récupéré les données utilisateur
+        loadDraft();
+        
       } catch (error) {
-        console.error("Erreur récupération données utilisateur:", error);
+        console.error("❌ Erreur récupération données utilisateur:", error);
+        
+        // GESTION D'ERREURS SPÉCIFIQUE
+        if (typeof error === 'object' && error !== null && 'message' in error && typeof (error as any).message === 'string' && (error as any).message.includes('Session expirée')) {
+          Alert.alert(
+            'Session expirée', 
+            'Veuillez vous reconnecter',
+            [
+              { 
+                text: "Se reconnecter", 
+                onPress: () => router.replace('/(auth)/login') 
+              }
+            ]
+          );
+        } else {
+          Alert.alert("Erreur", "Impossible de récupérer vos données utilisateur");
+        }
       }
     };
-    getUserData();
-  }, []);
 
-  // Charger le brouillon quand l'utilisateur est chargé
+    if (currentUserId && isAuthenticated) {
+      getUserData();
+    }
+  }, [currentUserId, isAuthenticated]);
+
+  // CHARGER le brouillon quand l'utilisateur est défini
   useEffect(() => {
-    if (currentUserId) {
+    if (currentUserId && draftKey) {
       loadDraft();
     }
   }, [currentUserId, draftKey]);
 
-  // Sauvegarder automatiquement le brouillon
+  // SAUVEGARDER automatiquement le brouillon
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       saveDraft();
@@ -146,7 +198,7 @@ export default function CreationAnamneseScreen() {
     return () => clearTimeout(timeoutId);
   }, [formData, draftKey]);
 
-  // Calculer l'IMC
+  // CALCULER l'IMC
   const calculateBMI = () => {
     const poids = parseFloat(formData.poids_kg.replace(',', '.'));
     const taille = parseFloat(formData.taille_cm.replace(',', '.')) / 100;
@@ -158,7 +210,7 @@ export default function CreationAnamneseScreen() {
     return "";
   };
 
-  // Mise à jour automatique de l'IMC
+  // MISE À JOUR automatique de l'IMC
   useEffect(() => {
     const newIMC = calculateBMI();
     if (newIMC !== formData.imc) {
@@ -166,7 +218,7 @@ export default function CreationAnamneseScreen() {
     }
   }, [formData.poids_kg, formData.taille_cm]);
 
-  // Charger le brouillon sauvegardé
+  // CHARGER le brouillon sauvegardé
   const loadDraft = async () => {
     if (!draftKey) return;
     
@@ -182,7 +234,7 @@ export default function CreationAnamneseScreen() {
     }
   };
 
-  // Sauvegarder le brouillon
+  // SAUVEGARDER le brouillon
   const saveDraft = async () => {
     if (!draftKey) return;
     
@@ -193,7 +245,7 @@ export default function CreationAnamneseScreen() {
     }
   };
 
-  // Fonctions de navigation entre les champs
+  // FONCTIONS de navigation entre les champs
   const dismissKeyboard = () => {
     Keyboard.dismiss();
   };
@@ -205,71 +257,213 @@ export default function CreationAnamneseScreen() {
     }
   };
 
-  // ✅ MODIFIER le handleSubmit pour inclure l'âge calculé
+  // HANDLE SUBMIT avec authentification
   const handleSubmit = async () => {
-    if (!isValid) {
-      Alert.alert("Champs requis", "Veuillez compléter les champs obligatoires.");
-      return;
-    }
-    if (!currentUserId) {
-      Alert.alert("Erreur", "Utilisateur non identifié");
-      return;
-    }
-    if (!calculatedAge) {
-      Alert.alert("Erreur", "Impossible de calculer votre âge. Veuillez vérifier votre date de naissance dans votre profil.");
-      return;
-    }
+  // VÉRIFICATIONS préliminaires (garder le code existant)
+  if (!isAuthenticated) {
+    Alert.alert("Non authentifié", "Vous devez être connecté pour créer une anamnèse");
+    return;
+  }
 
-    setIsLoading(true);
-    try {
-      const anamneseData = {
-        ana_user_id: parseInt(currentUserId, 10),
-        ana_age: calculatedAge, // ✅ ÂGE CALCULÉ AUTOMATIQUEMENT
-        ana_imc: calculateBMI(),
-        ana_blessures: formData.blessures,
-        ana_etat_actuel: formData.etat_actuel,
-        ana_sexe: formData.sexe,
-        ana_poids_kg: formData.poids_kg,
-        ana_taille_cm: formData.taille_cm,
-        ana_contrainte_pro: formData.contrainte_pro,
-        ana_contrainte_fam: formData.contrainte_fam,
-        ana_exp_sportive: formData.exp_sportive,
-        ana_commentaire: formData.commentaire,
-        ana_traitement: formData.traitement,
-        ana_diagnostics: formData.diagnostics
-      };
+  if (!isValid) {
+    Alert.alert("Champs requis", "Veuillez compléter les champs obligatoires.");
+    return;
+  }
 
-      console.log('📤 Envoi anamnèse avec âge calculé:', calculatedAge);
+  if (!currentUserId) {
+    Alert.alert("Erreur", "Utilisateur non identifié");
+    return;
+  }
 
-      const response = await fetch(`${API_BASE_URL}/anamnese`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify(anamneseData),
-      });
+  if (!calculatedAge) {
+    Alert.alert(
+      "Erreur", 
+      "Impossible de calculer votre âge. Veuillez vérifier votre date de naissance dans votre profil."
+    );
+    return;
+  }
 
-      if (response.ok) {
-        // Supprimer le brouillon
-        if (draftKey) await AsyncStorage.removeItem(draftKey);
-        
-        Alert.alert(
-          "Succès", 
-          "Anamnèse créée avec succès !",
-          [{ text: "OK", onPress: () => router.back() }]
-        );
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Erreur lors de la création");
+  setIsLoading(true);
+  try {
+    const anamneseData = {
+      ana_user_id: parseInt(currentUserId, 10),
+      ana_age: calculatedAge,
+      ana_imc: calculateBMI(),
+      ana_blessures: formData.blessures,
+      ana_etat_actuel: formData.etat_actuel,
+      ana_sexe: formData.sexe,
+      ana_poids_kg: parseFloat(formData.poids_kg.replace(',', '.')) || 0,
+      ana_taille_cm: parseFloat(formData.taille_cm.replace(',', '.')) || 0,
+      ana_contrainte_pro: formData.contrainte_pro,
+      ana_contrainte_fam: formData.contrainte_fam,
+      ana_exp_sportive: formData.exp_sportive,
+      ana_commentaire: formData.commentaire,
+      ana_traitement: formData.traitement,
+      ana_diagnostics: formData.diagnostics
+    };
+
+    console.log('📤 Envoi anamnèse avec âge calculé:', calculatedAge);
+    console.log('📤 Données complètes envoyées:', anamneseData);
+
+    // UTILISER apiPost qui gère l'authentification automatiquement
+    const result = await apiPost('/anamnese', anamneseData);
+    console.log('✅ Réponse complète de l\'API:', result);
+
+    // GESTION AMÉLIORÉE de la réponse selon différents formats possibles
+    let isSuccessful = false;
+    let anamneseId = null;
+
+    // VÉRIFIER différents formats de réponse
+    if (result) {
+      // Format 1: {success: true, anamnese: {...}}
+      if (result.success === true) {
+        isSuccessful = true;
+        anamneseId = result.anamnese?.ana_id || result.anamnese?.id;
       }
-    } catch (error) {
-      console.error("Erreur création anamnèse:", error);
-      Alert.alert("Erreur", "Impossible de créer l'anamnèse. Veuillez réessayer.");
-    } finally {
-      setIsLoading(false);
+      // Format 2: {anamnese: {...}} sans success
+      else if (result.anamnese && (result.anamnese.ana_id || result.anamnese.id)) {
+        isSuccessful = true;
+        anamneseId = result.anamnese.ana_id || result.anamnese.id;
+      }
+      // Format 3: Objet anamnèse direct
+      else if (result.ana_id || result.id) {
+        isSuccessful = true;
+        anamneseId = result.ana_id || result.id;
+      }
+      // Format 4: Réponse avec status HTTP 201/200
+      else if (!result.error && !result.message?.includes('erreur')) {
+        isSuccessful = true;
+        anamneseId = result.id || result.ana_id || 'créé';
+      }
     }
-  };
+
+    console.log('🔍 Analyse réponse:', { isSuccessful, anamneseId, result });
+
+    if (isSuccessful) {
+      console.log('✅ Anamnèse créée avec succès, ID:', anamneseId);
+      
+      // SUPPRIMER le brouillon en cas de succès
+      if (draftKey) {
+        try {
+          await AsyncStorage.removeItem(draftKey);
+          console.log('🗑️ Brouillon supprimé');
+        } catch (error) {
+          console.warn('⚠️ Erreur suppression brouillon:', error);
+        }
+      }
+      
+      Alert.alert(
+        "Succès", 
+        "Votre anamnèse a été créée avec succès !",
+        [{ 
+          text: "OK", 
+          onPress: () => {
+            // NAVIGATION plus robuste
+            try {
+              router.replace('/(tabs)/profil');
+            } catch (navError) {
+              console.warn('Navigation error, trying replace:', navError);
+              router.replace('/(tabs)/profil');
+            }
+          }
+        }]
+      );
+    } else {
+      // ÉCHEC mais peut-être que les données sont quand même sauvées
+      console.warn('⚠️ Réponse inattendue mais pas forcément une erreur');
+      console.warn('📊 Structure de la réponse:', JSON.stringify(result, null, 2));
+      
+      throw new Error(
+        result?.message || 
+        result?.error || 
+        "Format de réponse inattendu de l'API"
+      );
+    }
+  } catch (error) {
+    console.error("❌ Erreur création anamnèse:", error);
+    
+    // GESTION D'ERREURS PLUS FINE
+    let errorMessage = "Impossible de créer l'anamnèse. Veuillez réessayer.";
+    let shouldNavigateToLogin = false;
+    
+    if (error instanceof Error) {
+      const errorMsg = error.message;
+      
+      if (errorMsg.includes('Session expirée') || errorMsg.includes('401')) {
+        errorMessage = "Votre session a expiré. Veuillez vous reconnecter.";
+        shouldNavigateToLogin = true;
+      } else if (errorMsg.includes('validation') || errorMsg.includes('422')) {
+        errorMessage = "Données invalides. Vérifiez vos informations.";
+      } else if (errorMsg.includes('403')) {
+        errorMessage = "Vous n'avez pas l'autorisation de créer une anamnèse.";
+      } else if (errorMsg.includes('Network') || errorMsg.includes('Failed to fetch')) {
+        errorMessage = "Problème de connexion. Vérifiez votre réseau et réessayez.";
+      } else if (errorMsg.includes('Format de réponse inattendu')) {
+        // CAS SPÉCIAL : L'anamnèse est peut-être créée malgré l'erreur
+        errorMessage = "L'anamnèse a peut-être été créée. Vérifiez dans votre profil.";
+      }
+    }
+    
+    if (shouldNavigateToLogin) {
+      Alert.alert(
+        "Session expirée", 
+        errorMessage,
+        [
+          { 
+            text: "Se reconnecter", 
+            onPress: () => router.replace('/(auth)/login') 
+          }
+        ]
+      );
+    } else {
+      Alert.alert("Erreur", errorMessage, [
+        { text: "OK" },
+        // ✅ OPTION pour vérifier le profil en cas de doute
+        { 
+          text: "Voir profil", 
+          onPress: () => router.replace('/(tabs)/profil'),
+          style: 'default'
+        }
+      ]);
+    }
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+  // VÉRIFICATION d'authentification au niveau du composant
+  if (!isAuthenticated) {
+    return (
+      <View style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: theme.colors.background,
+        padding: 20
+      }}>
+        <FontAwesome name="lock" size={50} color="#ccc" style={{ marginBottom: 20 }} />
+        <Text style={{ 
+          fontSize: 18, 
+          textAlign: 'center', 
+          marginBottom: 20,
+          color: theme.colors.primary 
+        }}>
+          Vous devez être connecté pour créer une anamnèse
+        </Text>
+        <Pressable
+          onPress={() => router.replace('/(auth)/login')}
+          style={{
+            backgroundColor: theme.colors.accent,
+            paddingHorizontal: 20,
+            paddingVertical: 10,
+            borderRadius: 8
+          }}
+        >
+          <Text style={{ color: 'white', fontWeight: 'bold' }}>Se connecter</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <ScrollView 
@@ -278,7 +472,7 @@ export default function CreationAnamneseScreen() {
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
-      {/* ✅ HEADER MODERNISÉ */}
+      {/* HEADER avec état de connexion */}
       <View style={[anamneseStyles.header, { backgroundColor: theme.colors.surface }, theme.shadows]}>
         <View style={anamneseStyles.headerContent}>
           <Pressable
@@ -295,6 +489,12 @@ export default function CreationAnamneseScreen() {
             <Text style={[anamneseStyles.subtitle, { color: theme.colors.secondary }]}>
               Informations personnelles et médicales
             </Text>
+            {/* AFFICHER l'utilisateur connecté */}
+            {user && (
+              <Text style={[anamneseStyles.subtitle, { color: theme.colors.accent, fontSize: 12 }]}>
+                {user.email}
+              </Text>
+            )}
           </View>
 
           {isKeyboardVisible && (
@@ -307,14 +507,14 @@ export default function CreationAnamneseScreen() {
           )}
         </View>
 
-        {/* ✅ BARRE DE PROGRESSION MODERNE - 13 champs au lieu de 14 */}
+        {/* BARRE DE PROGRESSION (13 champs) */}
         <View style={anamneseStyles.progressSection}>
           <View style={[anamneseStyles.progressBar, { backgroundColor: theme.colors.surfaceVariant }]}>
             <View 
               style={[
                 anamneseStyles.progressFill, 
                 { 
-                  width: `${(filledCount / 13) * 100}%`, // ✅ 13 au lieu de 14
+                  width: `${(filledCount / 13) * 100}%`,
                   backgroundColor: theme.colors.accent
                 }
               ]} 
@@ -322,11 +522,12 @@ export default function CreationAnamneseScreen() {
           </View>
           <Text style={[anamneseStyles.progressText, { color: theme.colors.secondary }]}>
             {filledCount}/13 champs complétés
+            {calculatedAge && ` • Âge: ${calculatedAge} ans`}
           </Text>
         </View>
       </View>
 
-      {/* ✅ LOADING STATE */}
+      {/* LOADING STATE */}
       {isLoading && (
         <View style={[anamneseStyles.loadingCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
           <ActivityIndicator size="large" color={theme.colors.accent} />
@@ -336,400 +537,391 @@ export default function CreationAnamneseScreen() {
         </View>
       )}
 
-      {/* ✅ FORMULAIRE MODERNISÉ */}
+      {/* FORMULAIRE MODERNISÉ */}
       <View style={anamneseStyles.formSection}>
-        {/* Informations personnelles */}
-        // app/(tabs)/creationAnamnese.tsx - CORRIGER les zones de texte
-
-{/* Informations personnelles */}
-<View style={[anamneseStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
-  <Text style={[anamneseStyles.fieldTitle, { color: theme.colors.primary }]}>
-    Informations personnelles
-  </Text>
-  <Text style={[anamneseStyles.fieldDescription, { color: theme.colors.secondary }]}>
-    Données de base nécessaires pour votre profil
-  </Text>
-  
-  {/* Sexe */}
-  <View style={anamneseStyles.inputGroup}>
-    <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
-      Sexe <Text style={[anamneseStyles.required, { color: theme.colors.error }]}>*</Text>
-    </Text>
-    <View style={anamneseStyles.chipsContainer}>
-      {["Masculin", "Féminin", "Autre"].map((option) => {
-        const selected = formData.sexe === option;
-        return (
-          <Pressable
-            key={option}
-            onPress={() => setFormData(prev => ({ 
-              ...prev, 
-              sexe: formData.sexe === option ? "" : option 
-            }))}
-            style={[
-              anamneseStyles.chip,
-              { 
-                backgroundColor: selected ? theme.colors.accent : theme.colors.surfaceVariant,
-                borderColor: selected ? theme.colors.accent : theme.colors.border
-              }
-            ]}
-          >
-            <Text style={[
-              anamneseStyles.chipText,
-              { color: selected ? 'white' : theme.colors.primary }
-            ]}>
-              {option}
+        
+        {/* INFORMATIONS PERSONNELLES */}
+        <View style={[anamneseStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
+          <Text style={[anamneseStyles.fieldTitle, { color: theme.colors.primary }]}>
+            Informations personnelles
+          </Text>
+          <Text style={[anamneseStyles.fieldDescription, { color: theme.colors.secondary }]}>
+            Données de base nécessaires pour votre profil
+          </Text>
+          
+          {/* Sexe */}
+          <View style={anamneseStyles.inputGroup}>
+            <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
+              Sexe <Text style={[anamneseStyles.required, { color: theme.colors.error }]}>*</Text>
             </Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  </View>
+            <View style={anamneseStyles.chipsContainer}>
+              {["Masculin", "Féminin", "Autre"].map((option) => {
+                const selected = formData.sexe === option;
+                return (
+                  <Pressable
+                    key={option}
+                    onPress={() => setFormData(prev => ({ 
+                      ...prev, 
+                      sexe: formData.sexe === option ? "" : option 
+                    }))}
+                    style={[
+                      anamneseStyles.chip,
+                      { 
+                        backgroundColor: selected ? theme.colors.accent : theme.colors.surfaceVariant,
+                        borderColor: selected ? theme.colors.accent : theme.colors.border
+                      }
+                    ]}
+                  >
+                    <Text style={[
+                      anamneseStyles.chipText,
+                      { color: selected ? 'white' : theme.colors.primary }
+                    ]}>
+                      {option}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
 
-  {/* ✅ RETIRER COMPLÈTEMENT l'affichage de l'âge calculé */}
-  
-  {/* ✅ GARDER l'alerte si pas de date de naissance (mais sans mentionner l'âge) */}
-  {!userBirthDate && (
-    <View style={[anamneseStyles.warningContainer, { backgroundColor: theme.colors.warning + '20', borderColor: theme.colors.warning }]}>
-      <FontAwesome name="exclamation-triangle" size={16} color={theme.colors.warning} />
-      <Text style={[anamneseStyles.warningText, { color: theme.colors.warning }]}>
-        Date de naissance manquante dans votre profil.
-      </Text>
-    </View>
-  )}
-  
-  {/* Poids et Taille - GARDER le style existant */}
-  <View style={anamneseStyles.row}>
-    <View style={[anamneseStyles.inputContainer, { marginRight: 10 }]}>
-      <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
-        Poids (kg) <Text style={[anamneseStyles.required, { color: theme.colors.error }]}>*</Text>
-      </Text>
-      <TextInput
-        ref={(ref) => {
-          inputRefs.current["poids_kg"] = ref;
-        }}
-        style={[
-          anamneseStyles.input, 
-          { 
-            backgroundColor: theme.colors.background,
-            color: theme.colors.primary,
-            borderColor: theme.colors.border
-          }
-        ]}
-        value={formData.poids_kg}
-        onChangeText={(text) => setFormData(prev => ({ ...prev, poids_kg: text.replace(/[^\d.,]/g, "") }))}
-        placeholder="Poids"
-        placeholderTextColor="#666666"
-        keyboardType="decimal-pad"
-        onSubmitEditing={() => focusNextInput("taille_cm")}
-      />
-    </View>
-    
-    <View style={anamneseStyles.inputContainer}>
-      <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
-        Taille (cm) <Text style={[anamneseStyles.required, { color: theme.colors.error }]}>*</Text>
-      </Text>
-      <TextInput
-        ref={(ref) => {
-          inputRefs.current["taille_cm"] = ref;
-        }}
-        style={[
-          anamneseStyles.input, 
-          { 
-            backgroundColor: theme.colors.background,
-            color: theme.colors.primary,
-            borderColor: theme.colors.border
-          }
-        ]}
-        value={formData.taille_cm}
-        onChangeText={(text) => setFormData(prev => ({ ...prev, taille_cm: text.replace(/[^\d.,]/g, "") }))}
-        placeholder="Taille"
-        placeholderTextColor="#666666"
-        keyboardType="decimal-pad"
-        onSubmitEditing={() => focusNextInput("diagnostics")}
-      />
-    </View>
-  </View>
+          {/* ALERTE si pas de date de naissance */}
+          {!userBirthDate && (
+            <View style={[
+              anamneseStyles.warningContainer, 
+              { 
+                backgroundColor: theme.colors.warning + '20', 
+                borderColor: theme.colors.warning 
+              }
+            ]}>
+              <FontAwesome name="exclamation-triangle" size={16} color={theme.colors.warning} />
+              <Text style={[anamneseStyles.warningText, { color: theme.colors.warning }]}>
+                Date de naissance manquante dans votre profil. L'âge ne peut pas être calculé.
+              </Text>
+            </View>
+          )}
+          
+          {/* Poids et Taille */}
+          <View style={anamneseStyles.row}>
+            <View style={[anamneseStyles.inputContainer, { marginRight: 10 }]}>
+              <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
+                Poids (kg) <Text style={[anamneseStyles.required, { color: theme.colors.error }]}>*</Text>
+              </Text>
+              <TextInput
+                ref={(ref) => { inputRefs.current["poids_kg"] = ref; }}
+                style={[
+                  anamneseStyles.input, 
+                  { 
+                    backgroundColor: theme.colors.background,
+                    color: theme.colors.primary,
+                    borderColor: theme.colors.border
+                  }
+                ]}
+                value={formData.poids_kg}
+                onChangeText={(text) => setFormData(prev => ({ 
+                  ...prev, 
+                  poids_kg: text.replace(/[^\d.,]/g, "") 
+                }))}
+                placeholder="Ex: 70.5"
+                placeholderTextColor="#666666"
+                keyboardType="decimal-pad"
+                onSubmitEditing={() => focusNextInput("taille_cm")}
+              />
+            </View>
+            
+            <View style={anamneseStyles.inputContainer}>
+              <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
+                Taille (cm) <Text style={[anamneseStyles.required, { color: theme.colors.error }]}>*</Text>
+              </Text>
+              <TextInput
+                ref={(ref) => { inputRefs.current["taille_cm"] = ref; }}
+                style={[
+                  anamneseStyles.input, 
+                  { 
+                    backgroundColor: theme.colors.background,
+                    color: theme.colors.primary,
+                    borderColor: theme.colors.border
+                  }
+                ]}
+                value={formData.taille_cm}
+                onChangeText={(text) => setFormData(prev => ({ 
+                  ...prev, 
+                  taille_cm: text.replace(/[^\d.,]/g, "") 
+                }))}
+                placeholder="Ex: 175"
+                placeholderTextColor="#666666"
+                keyboardType="decimal-pad"
+                onSubmitEditing={() => focusNextInput("diagnostics")}
+              />
+            </View>
+          </View>
 
-  {/* IMC */}
-  {formData.imc && (
-    <View style={[anamneseStyles.imcContainer, { backgroundColor: theme.colors.background }]}>
-      <Text style={[anamneseStyles.imcText, { color: theme.colors.primary }]}>
-        IMC calculé: {formData.imc}
-      </Text>
-    </View>
-  )}
-</View>
+          
+        </View>
 
-{/* ✅ CORRIGER toutes les autres zones de texte avec le même style que poids/taille */}
+        {/* INFORMATIONS MÉDICALES */}
+        <View style={[anamneseStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
+          <Text style={[anamneseStyles.fieldTitle, { color: theme.colors.primary }]}>
+            Informations médicales
+          </Text>
 
-{/* Informations médicales */}
-<View style={[anamneseStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
-  <Text style={[anamneseStyles.fieldTitle, { color: theme.colors.primary }]}>
-    {'Informations médicales'}
-  </Text>
+          {/* Antécédents médicaux */}
+          <View style={anamneseStyles.inputContainer}>
+            <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
+              Antécédents médicaux et/ou diagnostics
+            </Text>
+            <Text style={[anamneseStyles.helperText, { color: theme.colors.secondary }]}>
+              Maladies, opérations, diagnostics médicaux importants
+            </Text>
+            <TextInput
+              ref={(ref) => { inputRefs.current["diagnostics"] = ref; }}
+              style={[
+                anamneseStyles.input,
+                { 
+                  backgroundColor: theme.colors.background,
+                  color: theme.colors.primary,
+                  borderColor: theme.colors.border,
+                  minHeight: 80,
+                  textAlignVertical: 'top',
+                }
+              ]}
+              value={formData.diagnostics}
+              onChangeText={(text) => setFormData({ ...formData, diagnostics: text })}
+              placeholder="Ex: diabète, scoliose, opération, etc."
+              placeholderTextColor="#666666"
+              multiline
+              numberOfLines={3}
+              onSubmitEditing={() => focusNextInput("blessures")}
+              blurOnSubmit={false}
+            />
+          </View>
 
-  {/* ✅ APPLIQUER le même style que poids/taille */}
-  <View style={anamneseStyles.inputContainer}>
-    <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
-      {'Antécédents médicaux et/ou diagnostics'}
-    </Text>
-    <Text style={[anamneseStyles.helperText, { color: theme.colors.secondary }]}>
-      {'Maladies, opérations, diagnostics médicaux importants'}
-    </Text>
-    <TextInput
-      ref={(ref) => {
-        inputRefs.current["diagnostics"] = ref;
-      }}
-      style={[
-        anamneseStyles.input, // ✅ UTILISER input au lieu de textArea
-        { 
-          backgroundColor: theme.colors.background,
-          color: theme.colors.primary,
-          borderColor: theme.colors.border,
-          minHeight: 80, // ✅ AJOUTER une hauteur minimum pour multiline
-        }
-      ]}
-      value={formData.diagnostics}
-      onChangeText={(text) => setFormData({ ...formData, diagnostics: text })}
-      placeholder="Ex: diabète, scoliose, opération, etc."
-      placeholderTextColor="#666666"
-      multiline
-      numberOfLines={3}
-      textAlignVertical="top"
-      onSubmitEditing={() => focusNextInput("blessures")}
-    />
-  </View>
+          {/* Blessures actuelles */}
+          <View style={anamneseStyles.inputContainer}>
+            <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
+              Blessures actuelles
+            </Text>
+            <Text style={[anamneseStyles.helperText, { color: theme.colors.secondary }]}>
+              Douleurs, blessures en cours, limitations physiques
+            </Text>
+            <TextInput
+              ref={(ref) => { inputRefs.current["blessures"] = ref; }}
+              style={[
+                anamneseStyles.input,
+                { 
+                  backgroundColor: theme.colors.background,
+                  color: theme.colors.primary,
+                  borderColor: theme.colors.border,
+                  minHeight: 80,
+                  textAlignVertical: 'top',
+                }
+              ]}
+              value={formData.blessures}
+              onChangeText={(text) => setFormData({ ...formData, blessures: text })}
+              placeholder="Ex: entorse, fracture, tendinite, etc."
+              placeholderTextColor="#666666"
+              multiline
+              numberOfLines={3}
+              onSubmitEditing={() => focusNextInput("traitement")}
+              blurOnSubmit={false}
+            />
+          </View>
 
-  <View style={anamneseStyles.inputContainer}>
-    <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
-      {'Blessures actuelles'}
-    </Text>
-    <Text style={[anamneseStyles.helperText, { color: theme.colors.secondary }]}>
-      {'Douleurs, blessures en cours, limitations physiques'}
-    </Text>
-    <TextInput
-      ref={(ref) => {
-        inputRefs.current["blessures"] = ref;
-      }}
-      style={[
-        anamneseStyles.input, // UTILISER input au lieu de textArea
-        { 
-          backgroundColor: theme.colors.background,
-          color: theme.colors.primary,
-          borderColor: theme.colors.border,
-          minHeight: 80,
-        }
-      ]}
-      value={formData.blessures}
-      onChangeText={(text) => setFormData({ ...formData, blessures: text })}
-      placeholder="Ex: entorse, fracture, tendinite, etc."
-      placeholderTextColor="#666666"
-      multiline
-      numberOfLines={3}
-      textAlignVertical="top"
-      onSubmitEditing={() => focusNextInput("traitement")}
-    />
-  </View>
+          {/* Traitements en cours */}
+          <View style={anamneseStyles.inputContainer}>
+            <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
+              Traitements en cours
+            </Text>
+            <Text style={[anamneseStyles.helperText, { color: theme.colors.secondary }]}>
+              Médicaments, thérapies en cours
+            </Text>
+            <TextInput
+              ref={(ref) => { inputRefs.current["traitement"] = ref; }}
+              style={[
+                anamneseStyles.input,
+                { 
+                  backgroundColor: theme.colors.background,
+                  color: theme.colors.primary,
+                  borderColor: theme.colors.border,
+                  minHeight: 80,
+                  textAlignVertical: 'top',
+                }
+              ]}
+              value={formData.traitement}
+              onChangeText={(text) => setFormData({ ...formData, traitement: text })}
+              placeholder="Ex: anti-inflammatoires, physiothérapie, etc."
+              placeholderTextColor="#666666"
+              multiline
+              numberOfLines={3}
+              onSubmitEditing={() => focusNextInput("exp_sportive")}
+              blurOnSubmit={false}
+            />
+          </View>
+        </View>
 
-  <View style={anamneseStyles.inputContainer}>
-    <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
-      {'Traitements en cours'}
-    </Text>
-    <Text style={[anamneseStyles.helperText, { color: theme.colors.secondary }]}>
-      {'Médicaments, thérapies en cours'}
-    </Text>
-    <TextInput
-      ref={(ref) => {
-        inputRefs.current["traitement"] = ref;
-      }}
-      style={[
-        anamneseStyles.input, // UTILISER input au lieu de textArea
-        { 
-          backgroundColor: theme.colors.background,
-          color: theme.colors.primary,
-          borderColor: theme.colors.border,
-          minHeight: 80,
-        }
-      ]}
-      value={formData.traitement}
-      onChangeText={(text) => setFormData({ ...formData, traitement: text })}
-      placeholder={"Ex: anti-inflammatoires, physiothérapie,\netc."}
-      placeholderTextColor="#666666"
-      multiline
-      numberOfLines={3}
-      textAlignVertical="top"
-      onSubmitEditing={() => focusNextInput("exp_sportive")}
-    />
-  </View>
-</View>
+        {/* ACTIVITÉ SPORTIVE */}
+        <View style={[anamneseStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
+          <Text style={[anamneseStyles.fieldTitle, { color: theme.colors.primary }]}>
+            Activité sportive
+          </Text>
 
-{/* Activité sportive */}
-<View style={[anamneseStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
-  <Text style={[anamneseStyles.fieldTitle, { color: theme.colors.primary }]}>
-    {'Activité sportive'}
-  </Text>
-  
+          {/* Expérience sportive */}
+          <View style={anamneseStyles.inputContainer}>
+            <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
+              Expérience sportive
+            </Text>
+            <Text style={[anamneseStyles.helperText, { color: theme.colors.secondary }]}>
+              Sports pratiqués (passés ou actuels), niveau, fréquence d'entraînement
+            </Text>
+            <TextInput
+              ref={(ref) => { inputRefs.current["exp_sportive"] = ref; }}
+              style={[
+                anamneseStyles.input,
+                { 
+                  backgroundColor: theme.colors.background,
+                  color: theme.colors.primary,
+                  borderColor: theme.colors.border,
+                  minHeight: 80,
+                  textAlignVertical: 'top',
+                }
+              ]}
+              value={formData.exp_sportive}
+              onChangeText={(text) => setFormData({ ...formData, exp_sportive: text })}
+              placeholder="Ex: Course à pied en amateur depuis 1 an à environ 3 sorties par semaine"
+              placeholderTextColor="#666666"
+              multiline
+              numberOfLines={3}
+              onSubmitEditing={() => focusNextInput("etat_actuel")}
+              blurOnSubmit={false}
+            />
+          </View>
 
-  <View style={anamneseStyles.inputContainer}>
-    <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
-      {'Expérience sportive'}
-    </Text>
-    <Text style={[anamneseStyles.helperText, { color: theme.colors.secondary }]}>
-      {'Sports pratiqués (passés ou actuels), niveau, fréquence d\'entraînement'}
-    </Text>
-    <TextInput
-      ref={(ref) => {
-        inputRefs.current["exp_sportive"] = ref;
-      }}
-      style={[
-        anamneseStyles.input, // ✅ UTILISER input au lieu de textArea
-        { 
-          backgroundColor: theme.colors.background,
-          color: theme.colors.primary,
-          borderColor: theme.colors.border,
-          minHeight: 80,
-        }
-      ]}
-      value={formData.exp_sportive}
-      onChangeText={(text) => setFormData({ ...formData, exp_sportive: text })}
-      placeholder={"Ex: Course à pied en amateur depuis \n1 an à environ 3 sorties par semaine"}
-      placeholderTextColor="#666666"
-      multiline
-      numberOfLines={3}
-      textAlignVertical="top"
-      onSubmitEditing={() => focusNextInput("etat_actuel")}
-    />
-  </View>
+          {/* État actuel */}
+          <View style={anamneseStyles.inputContainer}>
+            <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
+              État actuel <Text style={[anamneseStyles.required, { color: theme.colors.error }]}>*</Text>
+            </Text>
+            <Text style={[anamneseStyles.helperText, { color: theme.colors.secondary }]}>
+              Santé globale, niveau de fatigue, stress, forme physique actuelle
+            </Text>
+            <TextInput
+              ref={(ref) => { inputRefs.current["etat_actuel"] = ref; }}
+              style={[
+                anamneseStyles.input,
+                { 
+                  backgroundColor: theme.colors.background,
+                  color: theme.colors.primary,
+                  borderColor: theme.colors.border,
+                  minHeight: 80,
+                  textAlignVertical: 'top',
+                }
+              ]}
+              value={formData.etat_actuel}
+              onChangeText={(text) => setFormData({ ...formData, etat_actuel: text })}
+              placeholder="Comment vous sentez-vous actuellement ?"
+              placeholderTextColor="#666666"
+              multiline
+              numberOfLines={3}
+              onSubmitEditing={() => focusNextInput("contrainte_pro")}
+              blurOnSubmit={false}
+            />
+          </View>
+        </View>
 
-  <View style={anamneseStyles.inputContainer}>
-    <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
-      État actuel <Text style={[anamneseStyles.required, { color: theme.colors.error }]}>*</Text>
-    </Text>
-    <Text style={[anamneseStyles.helperText, { color: theme.colors.secondary }]}>
-      {'Santé globale, niveau de fatigue, stress, forme physique actuelle'}
-    </Text>
-    <TextInput
-      ref={(ref) => {
-        inputRefs.current["etat_actuel"] = ref;
-      }}
-      style={[
-        anamneseStyles.input, // UTILISER input au lieu de textArea
-        { 
-          backgroundColor: theme.colors.background,
-          color: theme.colors.primary,
-          borderColor: theme.colors.border,
-          minHeight: 80,
-        }
-      ]}
-      value={formData.etat_actuel}
-      onChangeText={(text) => setFormData({ ...formData, etat_actuel: text })}
-      placeholder={"Comment vous sentez-vous actuellement ?"}
-      placeholderTextColor="#666666"
-      multiline
-      numberOfLines={3}
-      textAlignVertical="top"
-      onSubmitEditing={() => focusNextInput("contrainte_pro")}
-    />
-  </View>
-</View>
+        {/* CONTRAINTES */}
+        <View style={[anamneseStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
+          <Text style={[anamneseStyles.fieldTitle, { color: theme.colors.primary }]}>
+            Contraintes et commentaires
+          </Text>
+          <Text style={[anamneseStyles.fieldDescription, { color: theme.colors.secondary }]}>
+            Facteurs pouvant influencer votre entraînement
+          </Text>
+          
+          {/* Contraintes professionnelles */}
+          <View style={anamneseStyles.inputContainer}>
+            <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
+              Contraintes professionnelles
+            </Text>
+            <TextInput
+              ref={(ref) => { inputRefs.current["contrainte_pro"] = ref; }}
+              style={[
+                anamneseStyles.input,
+                { 
+                  backgroundColor: theme.colors.background,
+                  color: theme.colors.primary,
+                  borderColor: theme.colors.border,
+                  minHeight: 80,
+                  textAlignVertical: 'top',
+                }
+              ]}
+              value={formData.contrainte_pro}
+              onChangeText={(text) => setFormData({ ...formData, contrainte_pro: text })}
+              placeholder="Horaires, stress, voyages, sédentarité..."
+              placeholderTextColor="#666666"
+              multiline
+              numberOfLines={3}
+              onSubmitEditing={() => focusNextInput("contrainte_fam")}
+              blurOnSubmit={false}
+            />
+          </View>
 
-{/* Contraintes */}
-<View style={[anamneseStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
-  <Text style={[anamneseStyles.fieldTitle, { color: theme.colors.primary }]}>
-    {'Contraintes et commentaires'}
-  </Text>
-  <Text style={[anamneseStyles.fieldDescription, { color: theme.colors.secondary }]}>
-    {'Facteurs pouvant influencer votre entraînement :'}
-  </Text>
-  
-  <View style={anamneseStyles.inputContainer}>
-    <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
-      {'Contraintes professionnelles'}
-    </Text>
-    
-    <TextInput
-      ref={(ref) => {
-        inputRefs.current["contrainte_pro"] = ref;
-      }}
-      style={[
-        anamneseStyles.input, // ✅ UTILISER input au lieu de textArea
-        { 
-          backgroundColor: theme.colors.background,
-          color: theme.colors.primary,
-          borderColor: theme.colors.border,
-          minHeight: 80,
-        }
-      ]}
-      value={formData.contrainte_pro}
-      onChangeText={(text) => setFormData({ ...formData, contrainte_pro: text })}
-      placeholder="Horaires, stress, voyages, sédentarité..."
-      placeholderTextColor="#666666"
-      multiline
-      numberOfLines={3}
-      textAlignVertical="top"
-      onSubmitEditing={() => focusNextInput("contrainte_fam")}
-    />
-  </View>
+          {/* Contraintes familiales */}
+          <View style={anamneseStyles.inputContainer}>
+            <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
+              Contraintes familiales
+            </Text>
+            <TextInput
+              ref={(ref) => { inputRefs.current["contrainte_fam"] = ref; }}
+              style={[
+                anamneseStyles.input,
+                { 
+                  backgroundColor: theme.colors.background,
+                  color: theme.colors.primary,
+                  borderColor: theme.colors.border,
+                  minHeight: 80,
+                  textAlignVertical: 'top',
+                }
+              ]}
+              value={formData.contrainte_fam}
+              onChangeText={(text) => setFormData({ ...formData, contrainte_fam: text })}
+              placeholder="Temps disponible, garde d'enfants, obligations familiales..."
+              placeholderTextColor="#666666"
+              multiline
+              numberOfLines={3}
+              onSubmitEditing={() => focusNextInput("commentaire")}
+              blurOnSubmit={false}
+            />
+          </View>
 
-  <View style={anamneseStyles.inputContainer}>
-    <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
-      {`Contraintes familiales`}
-    </Text>
-    
-    <TextInput
-      ref={(ref) => {
-        inputRefs.current["contrainte_fam"] = ref;
-      }}
-      style={[
-        anamneseStyles.input, // ✅ UTILISER input au lieu de textArea
-        { 
-          backgroundColor: theme.colors.background,
-          color: theme.colors.primary,
-          borderColor: theme.colors.border,
-          minHeight: 80,
-        }
-      ]}
-      value={formData.contrainte_fam}
-      onChangeText={(text) => setFormData({ ...formData, contrainte_fam: text })}
-      placeholder="Temps disponible, garde d'enfants, obligations familiales..."
-      placeholderTextColor="#666666"
-      multiline
-      numberOfLines={3}
-      textAlignVertical="top"
-      onSubmitEditing={() => focusNextInput("commentaire")}
-    />
-  </View>
-
-  <View style={anamneseStyles.inputContainer}>
-    <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
-      Commentaire libre
-    </Text>
-    <TextInput
-      ref={(ref) => {
-        inputRefs.current["commentaire"] = ref;
-      }}
-      style={[
-        anamneseStyles.input, // UTILISER input au lieu de textArea
-        { 
-          backgroundColor: theme.colors.background,
-          color: theme.colors.primary,
-          borderColor: theme.colors.border,
-          minHeight: 80,
-        }
-      ]}
-      value={formData.commentaire}
-      onChangeText={(text) => setFormData({ ...formData, commentaire: text })}
-      placeholder="Autres informations importantes..."
-      placeholderTextColor="#666666"
-      multiline
-      numberOfLines={3}
-      textAlignVertical="top"
-    />
-  </View>
-</View>
+          {/* Commentaire libre */}
+          <View style={anamneseStyles.inputContainer}>
+            <Text style={[anamneseStyles.inputLabel, { color: theme.colors.secondary }]}>
+              Commentaire libre
+            </Text>
+            <TextInput
+              ref={(ref) => { inputRefs.current["commentaire"] = ref; }}
+              style={[
+                anamneseStyles.input,
+                { 
+                  backgroundColor: theme.colors.background,
+                  color: theme.colors.primary,
+                  borderColor: theme.colors.border,
+                  minHeight: 80,
+                  textAlignVertical: 'top',
+                }
+              ]}
+              value={formData.commentaire}
+              onChangeText={(text) => setFormData({ ...formData, commentaire: text })}
+              placeholder="Autres informations importantes..."
+              placeholderTextColor="#666666"
+              multiline
+              numberOfLines={3}
+              blurOnSubmit={false}
+            />
+          </View>
+        </View>
       </View>
 
-      {/* ✅ BOUTONS D'ACTION MODERNISÉS */}
+      {/* BOUTONS D'ACTION */}
       <View style={anamneseStyles.actionsSection}>
         <Pressable
           style={[
@@ -755,7 +947,13 @@ export default function CreationAnamneseScreen() {
         </Pressable>
 
         <Pressable
-          style={[anamneseStyles.cancelButton, { backgroundColor: 'transparent', borderColor: theme.colors.error }]}
+          style={[
+            anamneseStyles.cancelButton, 
+            { 
+              backgroundColor: 'transparent', 
+              borderColor: theme.colors.error 
+            }
+          ]}
           onPress={() => router.replace('/(tabs)/profil')}
         >
           <FontAwesome name="times" size={18} color={theme.colors.error} />
@@ -764,6 +962,9 @@ export default function CreationAnamneseScreen() {
           </Text>
         </Pressable>
       </View>
+
+      {/* ESPACE EN BAS pour éviter que le contenu soit coupé */}
+      <View style={{ height: 100 }} />
     </ScrollView>
   );
 }

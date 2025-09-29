@@ -1,6 +1,6 @@
 // components/FeedbackModal.tsx - CORRIGER l'import
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -13,8 +13,9 @@ import {
   Platform,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-// ✅ CORRIGER ce chemin - le fichier est dans styles/screens/ pas components/
 import feedbackModalStyles from '@/styles/screens/FeedbackModalStyles';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiPost } from '@/utils/apiHelper'; 
 
 interface FeedbackModalProps {
   visible: boolean;
@@ -27,62 +28,86 @@ export default function FeedbackModal({
   onClose, 
   onFeedbackSubmitted 
 }: FeedbackModalProps) {
-  const API_BASE_URL = "http://192.168.0.112:8000/api";
 
+  const { user, isAuthenticated, logout } = useAuth(); 
   const [feedback, setFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async () => {
-    if (!feedback.trim()) {
-      Alert.alert('Attention', 'Veuillez saisir votre feedback.');
+
+
+
+const handleSubmit = async () => {
+  if (!feedback.trim()) {
+    Alert.alert('Attention', 'Veuillez saisir votre feedback.');
+    return;
+  }
+
+  setIsSubmitting(true);
+  try {
+    
+    const feedbackData = {
+      ret_commentaire: feedback.trim(), 
+      ret_date: new Date().toISOString().split('T')[0], 
+      // ✅ AJOUTER l'utilisateur si authentifié
+      ...(isAuthenticated && user && {
+        ret_user_id: user.id 
+      })
+    };
+
+    console.log('📤 Envoi feedback:', feedbackData); 
+    const response = await apiPost('/retour', feedbackData);
+
+    Alert.alert(
+      'Merci !',
+      isAuthenticated 
+        ? 'Votre feedback a été envoyé avec succès. Nous l\'examinerons attentivement.'
+        : 'Votre feedback anonyme a été envoyé avec succès.',
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            setFeedback('');
+            onClose();
+            onFeedbackSubmitted?.();
+          }
+        }
+      ]
+    );
+
+  } catch (error) {
+    console.error('❌ Erreur envoi feedback:', error);
+    
+    let errorMessage = 'Impossible d\'envoyer votre feedback. Veuillez réessayer.';
+
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'message' in error &&
+      typeof (error as { message?: string }).message === 'string' &&
+      (error as { message: string }).message.includes('Session expirée')
+    ) {
+      errorMessage = 'Votre session a expiré. Veuillez vous reconnecter.';
+      Alert.alert(
+        'Session expirée', 
+        errorMessage,
+        [
+          { 
+            text: "Se reconnecter", 
+            onPress: () => {
+              logout();
+              onClose();
+            }
+          }
+        ]
+      );
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/feedback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          fee_commentaire: feedback,
-          fee_note: 5,
-          fee_type: 'general',
-          fee_sujet: 'Feedback utilisateur'
-        }),
-      });
-
-      if (response.ok) {
-        Alert.alert(
-          'Merci !', 
-          'Votre feedback a été envoyé avec succès. Nous l\'examinerons attentivement.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                setFeedback('');
-                onClose();
-                if (onFeedbackSubmitted) {
-                  onFeedbackSubmitted();
-                }
-              }
-            }
-          ]
-        );
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erreur lors de l\'envoi');
-      }
-    } catch (error) {
-      console.error('Erreur envoi feedback:', error);
-      Alert.alert('Erreur', 'Impossible d\'envoyer votre feedback. Veuillez réessayer.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
+    Alert.alert('Erreur', errorMessage);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   const handleClose = () => {
     if (feedback.trim()) {
       Alert.alert(
@@ -105,7 +130,7 @@ export default function FeedbackModal({
     }
   };
 
-  // ✅ AJOUTER un console.log pour débugger
+  
   console.log('Modal visible:', visible);
 
   return (
@@ -129,6 +154,16 @@ export default function FeedbackModal({
               <Text style={feedbackModalStyles.subtitle}>
                 Aidez-nous à améliorer Kinesis
               </Text>
+              {/* AFFICHER l'état d'authentification */}
+              {isAuthenticated && user && (
+                <Text style={[feedbackModalStyles.subtitle, { 
+                  fontSize: 12, 
+                  color: '#27ae60',
+                  marginTop: 4 
+                }]}>
+                  Connecté en tant que {user.email}
+                </Text>
+              )}
             </View>
             <Pressable
               onPress={handleClose}
@@ -184,7 +219,8 @@ export default function FeedbackModal({
                 <>
                   <FontAwesome name="send" size={16} color="white" />
                   <Text style={feedbackModalStyles.submitButtonText}>
-                    Envoyer
+                    {/* TEXTE adapté selon l'authentification */}
+                    {isAuthenticated ? 'Envoyer' : 'Envoyer (anonyme)'}
                   </Text>
                 </>
               )}
