@@ -5,7 +5,7 @@ import { StyleSheet, Dimensions, Platform } from 'react-native';
 const { width } = Dimensions.get('window');
 
 const evaluationInitialeStyles = StyleSheet.create({
-  // ✅ CONTAINER PRINCIPAL
+  // CONTAINER PRINCIPAL
   container: {
     flex: 1,
     // backgroundColor sera définie dynamiquement
@@ -14,7 +14,7 @@ const evaluationInitialeStyles = StyleSheet.create({
     paddingBottom: 30,
   },
 
-  // ✅ HEADER MODERNISÉ
+  // HEADER MODERNISÉ
   header: {
     paddingTop: Platform.OS === "ios" ? 50 : 35,
     paddingBottom: 20,
@@ -57,7 +57,7 @@ const evaluationInitialeStyles = StyleSheet.create({
     // backgroundColor sera définie dynamiquement
   },
 
-  // ✅ BARRE DE PROGRESSION
+  // BARRE DE PROGRESSION
   progressSection: {
     gap: 8,
   },
@@ -79,7 +79,7 @@ const evaluationInitialeStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ LOADING STATE
+  // LOADING STATE
   loadingCard: {
     margin: 20,
     padding: 30,
@@ -94,13 +94,13 @@ const evaluationInitialeStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ SECTION FORMULAIRE
+  // SECTION FORMULAIRE
   formSection: {
     padding: 20,
     gap: 20,
   },
 
-  // ✅ CARTES DE CHAMPS
+  // CARTES DE CHAMPS
   fieldCard: {
     borderRadius: 16,
     padding: 20,
@@ -121,7 +121,7 @@ const evaluationInitialeStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ CHIPS POUR NIVEAU D'EXPÉRIENCE
+  // CHIPS POUR NIVEAU D'EXPÉRIENCE
   chipsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -140,7 +140,7 @@ const evaluationInitialeStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ INPUTS
+  // INPUTS
   textArea: {
     borderWidth: 1,
     borderRadius: 12,
@@ -171,7 +171,7 @@ const evaluationInitialeStyles = StyleSheet.create({
     gap: 10,
   },
 
-  // ✅ SECTION EXPANDABLE (TESTS PHYSIQUES)
+  // SECTION EXPANDABLE (TESTS PHYSIQUES)
   expandableHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -200,7 +200,7 @@ const evaluationInitialeStyles = StyleSheet.create({
     gap: 20,
   },
 
-  // ✅ SECTIONS DE TESTS
+  // SECTIONS DE TESTS
   testSection: {
     gap: 15,
   },
@@ -211,7 +211,7 @@ const evaluationInitialeStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ SECTION ACTIONS
+  // SECTION ACTIONS
   actionsSection: {
     padding: 20,
     gap: 15,
@@ -248,7 +248,7 @@ const evaluationInitialeStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ STYLES LEGACY (compatibilité)
+  // STYLES LEGACY (compatibilité)
   headerTop: {
     flexDirection: "row",
     alignItems: "center",
@@ -368,7 +368,7 @@ const evaluationInitialeStyles = StyleSheet.create({
 },
 // styles/screens/EvaluationInitialeStyles.ts - AJOUTER ces styles
 
-// ✅ Styles pour le DatePicker customisé
+// Styles pour le DatePicker customisé
 datePickerContainer: {
   position: 'absolute',
   top: '50%',

@@ -16,8 +16,8 @@ import {
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useTheme } from '@/styles/screens/ThemeStyle';
-import { useAuth } from '@/contexts/AuthContext'; // ✅ AJOUTER le contexte d'auth
-import { apiGet, apiDelete } from '@/utils/apiHelper'; // ✅ UTILISER les helpers authentifiés
+import { useAuth } from '@/contexts/AuthContext';
+import { apiGet, apiDelete } from '@/utils/apiHelper'; 
 
 interface UserSettingsModalProps {
   visible: boolean;
@@ -36,7 +36,7 @@ export default function UserSettingsModal({
   userId 
 }: UserSettingsModalProps) {
   const theme = useTheme();
-  const { user, isAuthenticated, logout } = useAuth(); // ✅ UTILISER le contexte d'auth
+  const { user, isAuthenticated, logout } = useAuth(); // UTILISER le contexte d'auth
   const [userData, setUserData] = useState<UserData>({
     email: '',
     use_date_naissance: ''
@@ -48,7 +48,7 @@ export default function UserSettingsModal({
   const [isDeleting, setIsDeleting] = useState(false);  
   const [mode, setMode] = useState<'view' | 'edit'>('view');
   
-  // ✅ VÉRIFICATION d'authentification
+  // VÉRIFICATION d'authentification
   useEffect(() => {
     if (visible && !isAuthenticated) {
       Alert.alert(
@@ -64,7 +64,7 @@ export default function UserSettingsModal({
       return;
     }
 
-    // ✅ VÉRIFIER que l'utilisateur peut accéder à ces paramètres
+    // VÉRIFIER que l'utilisateur peut accéder à ces paramètres
     if (visible && userId && user && userId !== user.id.toString()) {
       Alert.alert(
         "Accès refusé", 
@@ -80,7 +80,7 @@ export default function UserSettingsModal({
     }
   }, [visible, isAuthenticated, userId, user]);
 
-  // ✅ CHARGER les données utilisateur avec authentification
+  // CHARGER les données utilisateur avec authentification
   useEffect(() => {
     if (visible && userId && isAuthenticated) {
       loadUserData();
@@ -94,7 +94,7 @@ export default function UserSettingsModal({
     try {
       console.log('📡 Chargement données utilisateur:', userId);
       
-      // ✅ UTILISER apiGet qui gère l'authentification automatiquement
+      // UTILISER apiGet qui gère l'authentification automatiquement
       const data = await apiGet(`/users/${userId}`);
       console.log('✅ Données utilisateur reçues:', data);
       
@@ -107,7 +107,7 @@ export default function UserSettingsModal({
     } catch (error) {
       console.error('❌ Erreur chargement données:', error);
       
-      // ✅ GESTION D'ERREURS SPÉCIFIQUE
+      // GESTION D'ERREURS SPÉCIFIQUE
       if (
         typeof error === 'object' &&
         error !== null &&
@@ -137,7 +137,7 @@ export default function UserSettingsModal({
     }
   };
 
-  // ✅ FORMATER la date de naissance
+  // FORMATER la date de naissance
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Non renseignée';
     
@@ -160,7 +160,7 @@ export default function UserSettingsModal({
   };
 
   const deleteAccount = () => {
-    // ✅ VÉRIFICATIONS préliminaires
+    // VÉRIFICATIONS préliminaires
     if (!isAuthenticated) {
       Alert.alert("Non authentifié", "Vous devez être connecté pour supprimer votre compte");
       return;
@@ -184,7 +184,7 @@ export default function UserSettingsModal({
             try {
               console.log('🗑️ Suppression compte utilisateur:', userId);
 
-              // ✅ UTILISER apiDelete qui gère l'authentification automatiquement
+              // UTILISER apiDelete qui gère l'authentification automatiquement
               await apiDelete(`/users/${userId}`);
               console.log('✅ Compte supprimé avec succès');
 
@@ -195,7 +195,7 @@ export default function UserSettingsModal({
                   {
                     text: 'OK',
                     onPress: () => {
-                      // ✅ DÉCONNECTER l'utilisateur après suppression
+                      // DÉCONNECTER l'utilisateur après suppression
                       logout();
                       onClose();
                     }
@@ -205,7 +205,7 @@ export default function UserSettingsModal({
             } catch (error) {
               console.error('❌ Erreur suppression compte:', error);
               
-              // ✅ GESTION D'ERREURS SPÉCIFIQUE
+              // GESTION D'ERREURS SPÉCIFIQUE
               let errorMessage = 'Impossible de supprimer le compte. Veuillez réessayer.';
               
               if (
@@ -250,7 +250,7 @@ export default function UserSettingsModal({
     );
   };
 
-  // ✅ VÉRIFICATION d'authentification au niveau du composant
+  // VÉRIFICATION d'authentification au niveau du composant
   if (!isAuthenticated) {
     return (
       <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
@@ -299,7 +299,7 @@ export default function UserSettingsModal({
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          {/* ✅ HEADER avec informations utilisateur */}
+          {/* HEADER avec informations utilisateur */}
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -321,7 +321,7 @@ export default function UserSettingsModal({
               }}>
                 Paramètres du compte
               </Text>
-              {/* ✅ AFFICHER l'utilisateur connecté */}
+              {/* AFFICHER l'utilisateur connecté */}
               {user && (
                 <Text style={{ 
                   fontSize: 12, 
@@ -336,7 +336,7 @@ export default function UserSettingsModal({
             <View style={{ width: 20 }} />
           </View>
 
-          {/* ✅ CONTENU */}
+          {/* CONTENU */}
           <ScrollView style={{ flex: 1, padding: 20 }}>
             {isLoading ? (
               <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 100 }}>
@@ -350,7 +350,7 @@ export default function UserSettingsModal({
               </View>
             ) : (
               <>
-                {/* ✅ INFORMATIONS PERSONNELLES */}
+                {/* INFORMATIONS PERSONNELLES */}
                 <View style={{
                   backgroundColor: theme.colors.surface,
                   borderRadius: 12,
@@ -413,7 +413,7 @@ export default function UserSettingsModal({
                   </View>
                 </View>
 
-                {/* ✅ SECTION DANGER */}
+                {/* SECTION DANGER */}
                 <View style={{
                   backgroundColor: '#fff3f3',
                   borderRadius: 12,
@@ -442,7 +442,7 @@ export default function UserSettingsModal({
                   </Text>
                 </View>
                
-                {/* ✅ SUPPRESSION COMPTE */}
+                {/* SUPPRESSION COMPTE */}
                 <View style={{ alignItems: 'center', marginTop: 30, marginBottom: 50 }}>
                     <Pressable
                       onPress={deleteAccount}

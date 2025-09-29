@@ -352,7 +352,7 @@ const deleteAnamnese = async () => {
     }
   };
 
-  // ✅ VÉRIFICATION d'authentification au niveau du composant
+  // VÉRIFICATION d'authentification au niveau du composant
   if (!isAuthenticated) {
     return (
       <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
@@ -386,7 +386,7 @@ const deleteAnamnese = async () => {
     >
       <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
         
-        {/* ✅ HEADER avec état de connexion */}
+        {/* HEADER avec état de connexion */}
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
@@ -410,7 +410,7 @@ const deleteAnamnese = async () => {
             )}
           </View>
           
-          {/* ✅ BOUTONS d'action */}
+          {/* BOUTONS d'action */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
             {/* Bouton Supprimer - visible uniquement en mode view */}
             {mode === 'view' && anamneseId && (
@@ -458,7 +458,7 @@ const deleteAnamnese = async () => {
           </View>
         </View>
 
-        {/* ✅ CONTENU */}
+        {/* CONTENU */}
         {(isLoading || isDeleting) ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <ActivityIndicator size="large" color="#007AFF" />
@@ -490,7 +490,7 @@ const deleteAnamnese = async () => {
         ) : (
           <ScrollView style={{ flex: 1, padding: 20 }}>
             
-            {/* ✅ SECTION IDENTIFICATION */}
+            {/* SECTION IDENTIFICATION */}
             <View style={{
               backgroundColor: '#f8f9fa',
               padding: 15,
@@ -640,7 +640,7 @@ const deleteAnamnese = async () => {
               </View>
             ))}
 
-            {/* ✅ ESPACE EN BAS */}
+            {/* ESPACE EN BAS */}
             <View style={{ height: 100 }} />
           </ScrollView>
         )}

@@ -21,13 +21,13 @@ import { useTheme } from '@/styles/screens/ThemeStyle';
 import DateTimePicker from '@react-native-community/datetimepicker'; 
 import { CONFIG } from '@/constants/config';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiPost } from '@/utils/apiHelper'; // ✅ UTILISER les helpers authentifiés
+import { apiPost } from '@/utils/apiHelper'; // UTILISER les helpers authentifiés
 
 const REQUIRED_KEYS = ["exp_triathlon", "objectifs", "echeance", "nb_heure_dispo"];
 
 export default function CreationEvaluationInitialeScreen() {
   const theme = useTheme();
-  const { user, isAuthenticated, token } = useAuth(); // ✅ UTILISER le contexte d'auth
+  const { user, isAuthenticated, token } = useAuth(); // UTILISER le contexte d'auth
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
@@ -81,7 +81,7 @@ export default function CreationEvaluationInitialeScreen() {
     return REQUIRED_KEYS.every(key => formData[key as keyof typeof formData]?.trim() !== "");
   }, [formData]);
 
-  // ✅ VÉRIFICATION d'authentification au chargement
+  // VÉRIFICATION d'authentification au chargement
   useEffect(() => {
     if (!isAuthenticated) {
       Alert.alert(
@@ -97,7 +97,7 @@ export default function CreationEvaluationInitialeScreen() {
       return;
     }
 
-    // ✅ UTILISER l'utilisateur du contexte d'auth
+    // UTILISER l'utilisateur du contexte d'auth
     if (user) {
       setCurrentUserId(user.id.toString());
       console.log('👤 Utilisateur authentifié:', user.email);
@@ -177,17 +177,17 @@ export default function CreationEvaluationInitialeScreen() {
     }
   };
 
-  // ✅ MODIFIER la fonction handleDateChange
+  // MODIFIER la fonction handleDateChange
   const handleDateChange = (event: any, selectedDate?: Date) => {
     if (Platform.OS === 'android') {
-      // ✅ Sur Android, garder le comportement natif
+      // Sur Android, garder le comportement natif
       setShowDatePicker(false);
       if (selectedDate && event.type !== 'dismissed') {
         const formattedDate = selectedDate.toISOString().split('T')[0];
         setFormData(prev => ({ ...prev, echeance: formattedDate }));
       }
     } else {
-      // ✅ Sur iOS, ne pas fermer automatiquement
+      // Sur iOS, ne pas fermer automatiquement
       if (selectedDate && event.type !== 'dismissed') {
         setTempDate(selectedDate);
       } else if (event.type === 'dismissed') {
@@ -197,7 +197,7 @@ export default function CreationEvaluationInitialeScreen() {
     }
   };
 
-  // ✅ FONCTION pour confirmer la date (iOS)
+  // FONCTION pour confirmer la date (iOS)
   const confirmDate = () => {
     if (tempDate) {
       const formattedDate = tempDate.toISOString().split('T')[0];
@@ -207,16 +207,16 @@ export default function CreationEvaluationInitialeScreen() {
     setTempDate(null);
   };
 
-  // ✅ FONCTION pour annuler la sélection
+  // FONCTION pour annuler la sélection
   const cancelDateSelection = () => {
     setShowDatePicker(false);
     setTempDate(null);
   };
 
-  // ✅ FONCTION pour fermer le calendrier si on clique sur un autre champ
+  // FONCTION pour fermer le calendrier si on clique sur un autre champ
   const handleInputFocus = (inputKey: string) => {
     if (showDatePicker) {
-      confirmDate(); // ✅ Valider la date en cours si le calendrier est ouvert
+      confirmDate(); // Valider la date en cours si le calendrier est ouvert
     }
     const input = inputRefs.current[inputKey];
     if (input) {
@@ -236,9 +236,9 @@ export default function CreationEvaluationInitialeScreen() {
     }
   };
 
-  // ✅ HANDLE SUBMIT avec authentification
+  // HANDLE SUBMIT avec authentification
   const handleSubmit = async () => {
-  // ✅ VÉRIFICATIONS préliminaires (garder le code existant)
+  // VÉRIFICATIONS préliminaires (garder le code existant)
   if (!isAuthenticated) {
     Alert.alert("Non authentifié", "Vous devez être connecté pour créer une évaluation initiale");
     return;
@@ -256,7 +256,7 @@ export default function CreationEvaluationInitialeScreen() {
 
   setIsSubmitting(true);
   try {
-    // ✅ SIMPLIFIER - La date est déjà au bon format YYYY-MM-DD
+    // SIMPLIFIER - La date est déjà au bon format YYYY-MM-DD
     const evaluationData = {
       eva_user_id: parseInt(currentUserId, 10),
       eva_vo2max: formData.vo2max ? parseFloat(formData.vo2max) : null,
@@ -277,15 +277,15 @@ export default function CreationEvaluationInitialeScreen() {
 
     console.log('📤 Envoi évaluation initiale:', evaluationData);
 
-    // ✅ UTILISER apiPost qui gère l'authentification automatiquement
+    // UTILISER apiPost qui gère l'authentification automatiquement
     const result = await apiPost('/evaluation-initiale', evaluationData);
     console.log('✅ Réponse complète de l\'API:', result);
 
-    // ✅ GESTION AMÉLIORÉE de la réponse selon différents formats possibles
+    // GESTION AMÉLIORÉE de la réponse selon différents formats possibles
     let isSuccessful = false;
     let evaluationId = null;
 
-    // ✅ VÉRIFIER différents formats de réponse
+    // VÉRIFIER différents formats de réponse
     if (result) {
       // Format 1: {success: true, evaluation: {...}}
       if (result.success === true) {
@@ -314,7 +314,7 @@ export default function CreationEvaluationInitialeScreen() {
     if (isSuccessful) {
       console.log('✅ Évaluation initiale créée avec succès, ID:', evaluationId);
       
-      // ✅ SUPPRIMER le brouillon en cas de succès
+      // SUPPRIMER le brouillon en cas de succès
       if (draftKey) {
         try {
           await AsyncStorage.removeItem(draftKey);
@@ -330,7 +330,7 @@ export default function CreationEvaluationInitialeScreen() {
         [{ 
           text: "OK", 
           onPress: () => {
-            // ✅ NAVIGATION plus robuste
+            // NAVIGATION plus robuste
             try {
               router.replace('/(tabs)/profil');
             } catch (navError) {
@@ -341,7 +341,7 @@ export default function CreationEvaluationInitialeScreen() {
         }]
       );
     } else {
-      // ✅ ÉCHEC mais peut-être que les données sont quand même sauvées
+      // ÉCHEC mais peut-être que les données sont quand même sauvées
       console.warn('⚠️ Réponse inattendue mais pas forcément une erreur');
       console.warn('📊 Structure de la réponse:', JSON.stringify(result, null, 2));
       
@@ -354,7 +354,7 @@ export default function CreationEvaluationInitialeScreen() {
   } catch (error) {
     console.error("❌ Erreur création évaluation initiale:", error);
     
-    // ✅ GESTION D'ERREURS PLUS FINE
+    // GESTION D'ERREURS PLUS FINE
     let errorMessage = "Impossible de créer l'évaluation initiale. Veuillez réessayer.";
     let shouldNavigateToLogin = false;
     
@@ -371,7 +371,7 @@ export default function CreationEvaluationInitialeScreen() {
       } else if (errorMsg.includes('Network') || errorMsg.includes('Failed to fetch')) {
         errorMessage = "Problème de connexion. Vérifiez votre réseau et réessayez.";
       } else if (errorMsg.includes('Format de réponse inattendu')) {
-        // ✅ CAS SPÉCIAL : L'évaluation est peut-être créée malgré l'erreur
+        // CAS SPÉCIAL : L'évaluation est peut-être créée malgré l'erreur
         errorMessage = "L'évaluation initiale a peut-être été créée. Vérifiez dans votre profil.";
       }
     }
@@ -390,7 +390,7 @@ export default function CreationEvaluationInitialeScreen() {
     } else {
       Alert.alert("Erreur", errorMessage, [
         { text: "OK" },
-        // ✅ OPTION pour vérifier le profil en cas de doute
+        // OPTION pour vérifier le profil en cas de doute
         { 
           text: "Voir profil", 
           onPress: () => router.replace('/(tabs)/profil'),
@@ -403,7 +403,7 @@ export default function CreationEvaluationInitialeScreen() {
   }
 };
 
-  // ✅ VÉRIFICATION d'authentification au niveau du composant
+  // VÉRIFICATION d'authentification au niveau du composant
   if (!isAuthenticated) {
     return (
       <View style={{
@@ -444,7 +444,7 @@ export default function CreationEvaluationInitialeScreen() {
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
-      {/* ✅ HEADER MODERNISÉ */}
+      {/* HEADER MODERNISÉ */}
       <View style={[evaluationInitialeStyles.header, { backgroundColor: theme.colors.surface }, theme.shadows]}>
         <View style={evaluationInitialeStyles.headerContent}>
           <Pressable
@@ -461,7 +461,7 @@ export default function CreationEvaluationInitialeScreen() {
             <Text style={[evaluationInitialeStyles.subtitle, { color: theme.colors.secondary }]}>
               Définissez vos objectifs et capacités
             </Text>
-            {/* ✅ AFFICHER l'utilisateur connecté */}
+            {/* AFFICHER l'utilisateur connecté */}
             {user && (
               <Text style={[evaluationInitialeStyles.subtitle, { color: theme.colors.accent, fontSize: 12 }]}>
                 {user.email}
@@ -479,7 +479,7 @@ export default function CreationEvaluationInitialeScreen() {
           )}
         </View>
 
-        {/* ✅ BARRE DE PROGRESSION MODERNE */}
+        {/* BARRE DE PROGRESSION MODERNE */}
         <View style={evaluationInitialeStyles.progressSection}>
           <View style={[evaluationInitialeStyles.progressBar, { backgroundColor: theme.colors.surfaceVariant }]}>
             <View 
@@ -498,7 +498,7 @@ export default function CreationEvaluationInitialeScreen() {
         </View>
       </View>
 
-      {/* ✅ LOADING STATE */}
+      {/* LOADING STATE */}
       {isSubmitting && (
         <View style={[evaluationInitialeStyles.loadingCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
           <ActivityIndicator size="large" color={theme.colors.accent} />
@@ -508,7 +508,7 @@ export default function CreationEvaluationInitialeScreen() {
         </View>
       )}
 
-      {/* ✅ FORMULAIRE MODERNISÉ */}
+      {/* FORMULAIRE MODERNISÉ */}
       <View style={evaluationInitialeStyles.formSection}>
         {/* Niveau d'expérience */}
         <View style={[evaluationInitialeStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
@@ -592,9 +592,9 @@ export default function CreationEvaluationInitialeScreen() {
             (Dans le cadre de ce travail il sera généré que 2 semaines de plan mais mettez l'échéance à la quelle vous pensiez initialement)
           </Text>
           
-          {/* ✅ ROW avec les deux champs côte à côte */}
+          {/* ROW avec les deux champs côte à côte */}
           <View style={evaluationInitialeStyles.row}>
-            {/* ✅ ÉCHÉANCE - Pressable qui ouvre le calendrier */}
+            {/* ÉCHÉANCE - Pressable qui ouvre le calendrier */}
             <View style={[evaluationInitialeStyles.inputContainer, { marginRight: 10 }]}>
               <Text style={[evaluationInitialeStyles.inputLabel, { color: theme.colors.secondary }]}>Échéance</Text>
               <Pressable
@@ -625,7 +625,7 @@ export default function CreationEvaluationInitialeScreen() {
               </Pressable>
             </View>
             
-            {/* ✅ HEURES/SEMAINE - À côté de l'échéance */}
+            {/* HEURES/SEMAINE - À côté de l'échéance */}
             <View style={evaluationInitialeStyles.inputContainer}>
               <Text style={[evaluationInitialeStyles.inputLabel, { color: theme.colors.secondary }]}>Heures/semaine</Text>
               <TextInput
@@ -683,7 +683,7 @@ export default function CreationEvaluationInitialeScreen() {
             <View style={evaluationInitialeStyles.expandableContent}>
               {/* Tests cardiorespiratoires */}
               <View style={evaluationInitialeStyles.row}>
-                {/* ✅ VO2 MAX avec pastille d'info */}
+                {/* VO2 MAX avec pastille d'info */}
                 <View style={[evaluationInitialeStyles.inputContainer, { marginRight: 10 }]}>
                   <View style={evaluationInitialeStyles.inputLabelContainer}>
                     <Text style={[evaluationInitialeStyles.inputLabel, { color: theme.colors.secondary }]}>VO2 Max</Text>
@@ -716,7 +716,7 @@ export default function CreationEvaluationInitialeScreen() {
                     onSubmitEditing={() => focusNextInput("freq_repo")}
                   />
                   
-                  {/* ✅ TOOLTIP VO2 MAX */}
+                  {/* TOOLTIP VO2 MAX */}
                   {showVo2maxInfo && (
                     <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
                       <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
@@ -727,7 +727,7 @@ export default function CreationEvaluationInitialeScreen() {
                   )}
                 </View>
                 
-                {/* ✅ TEST COOPER avec pastille d'info */}
+                {/* TEST COOPER avec pastille d'info */}
                 <View style={evaluationInitialeStyles.inputContainer}>
                   <View style={evaluationInitialeStyles.inputLabelContainer}>
                     <Text style={[evaluationInitialeStyles.inputLabel, { color: theme.colors.secondary }]}>Test Cooper</Text>
@@ -760,7 +760,7 @@ export default function CreationEvaluationInitialeScreen() {
                     onSubmitEditing={() => focusNextInput("vma")}
                   />
                   
-                  {/* ✅ TOOLTIP COOPER */}
+                  {/* TOOLTIP COOPER */}
                   {showCooperInfo && (
                     <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
                       <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
@@ -772,7 +772,7 @@ export default function CreationEvaluationInitialeScreen() {
                 </View>
               </View>
 
-              {/* ✅ FC REPOS et FC MAX avec pastilles d'info */}
+              {/* FC REPOS et FC MAX avec pastilles d'info */}
               <View style={evaluationInitialeStyles.row}>
                 {/* FC REPOS */}
                 <View style={[evaluationInitialeStyles.inputContainer, { marginRight: 10 }]}>
@@ -807,7 +807,7 @@ export default function CreationEvaluationInitialeScreen() {
                     onSubmitEditing={() => focusNextInput("freq_max")}
                   />
                   
-                  {/* ✅ TOOLTIP FC REPOS */}
+                  {/* TOOLTIP FC REPOS */}
                   {showFcReposInfo && (
                     <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
                       <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
@@ -851,7 +851,7 @@ export default function CreationEvaluationInitialeScreen() {
                     onSubmitEditing={() => focusNextInput("vma")}
                   />
                   
-                  {/* ✅ TOOLTIP FC MAX */}
+                  {/* TOOLTIP FC MAX */}
                   {showFcMaxInfo && (
                     <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
                       <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
@@ -863,7 +863,7 @@ export default function CreationEvaluationInitialeScreen() {
                 </View>
               </View>
 
-              {/* ✅ VMA avec pastille d'info */}
+              {/* VMA avec pastille d'info */}
               <View style={evaluationInitialeStyles.testSection}>
                 <Text style={[evaluationInitialeStyles.sectionTitle, { color: theme.colors.primary }]}>
                   Vitesse Maximale Aérobie
@@ -901,7 +901,7 @@ export default function CreationEvaluationInitialeScreen() {
                     onSubmitEditing={() => focusNextInput("ftp_cyclisme")}
                   />
                   
-                  {/* ✅ TOOLTIP VMA */}
+                  {/* TOOLTIP VMA */}
                   {showVMAInfo && (
                     <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
                       <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
@@ -913,7 +913,7 @@ export default function CreationEvaluationInitialeScreen() {
                 </View>
               </View>
 
-              {/* ✅ FTP CYCLISME avec pastille d'info */}
+              {/* FTP CYCLISME avec pastille d'info */}
               <View style={evaluationInitialeStyles.testSection}>
                 <Text style={[evaluationInitialeStyles.sectionTitle, { color: theme.colors.primary }]}>
                   Tests par discipline
@@ -951,7 +951,7 @@ export default function CreationEvaluationInitialeScreen() {
                     onSubmitEditing={() => focusNextInput("seuil_natation")}
                   />
                   
-                  {/* ✅ TOOLTIP FTP */}
+                  {/* TOOLTIP FTP */}
                   {showFTPInfo && (
                     <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
                       <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
@@ -963,7 +963,7 @@ export default function CreationEvaluationInitialeScreen() {
                 </View>
               </View>
 
-              {/* ✅ SEUILS avec pastilles d'info */}
+              {/* SEUILS avec pastilles d'info */}
               <View style={evaluationInitialeStyles.testSection}>
                 <Text style={[evaluationInitialeStyles.sectionTitle, { color: theme.colors.primary }]}>
                   Allures seuil
@@ -1001,7 +1001,7 @@ export default function CreationEvaluationInitialeScreen() {
                     onSubmitEditing={() => focusNextInput("seuil_cyclisme")}
                   />
                   
-                  {/* ✅ TOOLTIP SEUIL NATATION */}
+                  {/* TOOLTIP SEUIL NATATION */}
                   {showSeuilNatationInfo && (
                     <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
                       <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
@@ -1045,7 +1045,7 @@ export default function CreationEvaluationInitialeScreen() {
                     onSubmitEditing={() => focusNextInput("seuil_course")}
                   />
                   
-                  {/* ✅ TOOLTIP SEUIL CYCLISME */}
+                  {/* TOOLTIP SEUIL CYCLISME */}
                   {showSeuilCyclismeInfo && (
                     <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
                       <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
@@ -1088,7 +1088,7 @@ export default function CreationEvaluationInitialeScreen() {
                     onSubmitEditing={() => focusNextInput("commentaire")}
                   />
                   
-                  {/* ✅ TOOLTIP SEUIL COURSE */}
+                  {/* TOOLTIP SEUIL COURSE */}
                   {showSeuilCourseInfo && (
                     <View style={[evaluationInitialeStyles.infoTooltip, { backgroundColor: theme.colors.surfaceVariant }]}>
                       <FontAwesome name="lightbulb-o" size={12} color={theme.colors.accent} />
@@ -1137,7 +1137,7 @@ export default function CreationEvaluationInitialeScreen() {
         </View>
       </View>
 
-      {/* ✅ BOUTONS D'ACTION MODERNISÉS */}
+      {/* BOUTONS D'ACTION MODERNISÉS */}
       <View style={evaluationInitialeStyles.actionsSection}>
         <Pressable
           style={[
@@ -1173,7 +1173,7 @@ export default function CreationEvaluationInitialeScreen() {
         </Pressable>
       </View>
 
-      {/* ✅ DateTimePicker avec contrôle iOS/Android */}
+      {/* DateTimePicker avec contrôle iOS/Android */}
       {showDatePicker && Platform.OS === 'ios' && (
   <Modal
     visible={showDatePicker}
@@ -1235,7 +1235,7 @@ export default function CreationEvaluationInitialeScreen() {
   />
 )}
 
-      {/* ✅ ESPACE EN BAS pour éviter que le contenu soit coupé */}
+      {/* ESPACE EN BAS pour éviter que le contenu soit coupé */}
       <View style={{ height: 100 }} />
     </ScrollView>
   );

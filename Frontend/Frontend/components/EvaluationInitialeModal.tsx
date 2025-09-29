@@ -20,7 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { apiGet, apiPut, apiDelete } from '@/utils/apiHelper';
 import { useTheme } from '@/styles/screens/ThemeStyle';
 
- // ✅ UTILISER les helpers authentifiés
+ // UTILISER les helpers authentifiés
 
 interface EvaluationInitialeModalProps {
   visible: boolean;
@@ -30,7 +30,7 @@ interface EvaluationInitialeModalProps {
 
 export default function EvaluationInitialeModal({ visible, onClose, userId }: EvaluationInitialeModalProps) {
 const theme = useTheme();
-  const { user, isAuthenticated, logout, token } = useAuth(); // ✅ UTILISER le contexte d'auth
+  const { user, isAuthenticated, logout, token } = useAuth(); // UTILISER le contexte d'auth
   const [mode, setMode] = useState<'view' | 'edit'>('view');
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -57,7 +57,7 @@ const theme = useTheme();
     exp_triathlon: ""
   });
 
-  // ✅ VÉRIFICATION d'authentification
+  // VÉRIFICATION d'authentification
   useEffect(() => {
     if (visible && !isAuthenticated) {
       Alert.alert(
@@ -73,7 +73,7 @@ const theme = useTheme();
       return;
     }
 
-    // ✅ VÉRIFIER que l'utilisateur peut accéder à cette évaluation
+    // VÉRIFIER que l'utilisateur peut accéder à cette évaluation
     if (visible && userId && user && userId !== user.id.toString()) {
       Alert.alert(
         "Accès refusé", 
@@ -97,7 +97,7 @@ const theme = useTheme();
     });
   };
 
-  // ✅ FONCTION pour parser une date existante
+  // FONCTION pour parser une date existante
   const parseDate = (dateString: string) => {
     if (!dateString) return new Date();
     try {
@@ -117,7 +117,7 @@ const theme = useTheme();
     }
   };
 
-  // ✅ GESTIONNAIRE de changement de date
+  // GESTIONNAIRE de changement de date
   const onDateChange = (event: any, selectedDate?: Date) => {
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
@@ -138,7 +138,7 @@ const theme = useTheme();
     }
   };
 
-  // ✅ CONFIRMER la date (iOS)
+  // CONFIRMER la date (iOS)
   const confirmDate = () => {
     if (tempDate) {
       setSelectedDate(tempDate);
@@ -151,13 +151,13 @@ const theme = useTheme();
     setTempDate(null);
   };
 
-  // ✅ ANNULER la sélection de date
+  // ANNULER la sélection de date
   const cancelDateSelection = () => {
     setShowDatePicker(false);
     setTempDate(null);
   };
 
-  // ✅ CHARGER les données avec authentification
+  // CHARGER les données avec authentification
   const loadEvaluationData = async () => {
     if (!userId || !isAuthenticated) {
       console.log('❌ Utilisateur non authentifié ou userId manquant');
@@ -168,7 +168,7 @@ const theme = useTheme();
     try {
       console.log('📡 Chargement évaluation pour userId:', userId);
 
-      // ✅ UTILISER apiGet qui gère l'authentification automatiquement
+      // UTILISER apiGet qui gère l'authentification automatiquement
       const data = await apiGet(`/evaluation-initiale/user/${userId}`);
       console.log('📋 Modal Evaluation - Données reçues:', data);
       
@@ -179,7 +179,7 @@ const theme = useTheme();
         console.log('✅ Chargement évaluation ID:', evaluation.eva_id);
         setEvaluationId(evaluation.eva_id.toString());
         
-        // ✅ PARSER la date existante
+        // PARSER la date existante
         if (evaluation.eva_echeance) {
           const parsedDate = parseDate(evaluation.eva_echeance);
           setSelectedDate(parsedDate);
@@ -207,7 +207,7 @@ const theme = useTheme();
     } catch (error) {
       console.error('❌ Erreur chargement évaluation:', error);
       
-      // ✅ GESTION D'ERREURS SPÉCIFIQUE
+      // GESTION D'ERREURS SPÉCIFIQUE
       if (
         typeof error === "object" &&
         error !== null &&
@@ -237,7 +237,7 @@ const theme = useTheme();
     }
   };
 
-  // ✅ SAUVEGARDER avec authentification
+  // SAUVEGARDER avec authentification
   const saveChanges = async () => {
     if (!userId || !evaluationId || !isAuthenticated) {
       Alert.alert("Erreur", "Données manquantes pour la sauvegarde");
@@ -246,7 +246,7 @@ const theme = useTheme();
     
     setIsSaving(true);
     try {
-      // ✅ CONVERSION de la date pour l'API
+      // CONVERSION de la date pour l'API
       let echeanceForAPI = null;
       if (formData.echeance) {
         // Convertir dd/mm/yyyy vers format ISO pour l'API
@@ -265,7 +265,7 @@ const theme = useTheme();
         eva_seuil_natation: formData.seuil_natation || null,
         eva_seuil_cyclisme: formData.seuil_cyclisme || null,
         eva_seuil_course: formData.seuil_course || null,
-        eva_echeance: echeanceForAPI, // ✅ UTILISER le format converti
+        eva_echeance: echeanceForAPI, // UTILISER le format converti
         eva_nb_heure_dispo: formData.nb_heure_dispo ? parseInt(formData.nb_heure_dispo, 10) : null,
         eva_commentaire: formData.commentaire || null,
         eva_objectif: formData.objectif || null,
@@ -274,7 +274,7 @@ const theme = useTheme();
 
       console.log('📤 Sauvegarde évaluation:', evaluationData);
 
-      // ✅ UTILISER apiPut qui gère l'authentification automatiquement
+      // UTILISER apiPut qui gère l'authentification automatiquement
       const result = await apiPut(`/evaluation-initiale/${evaluationId}`, evaluationData);
       console.log('✅ Évaluation mise à jour:', result);
 
@@ -284,7 +284,7 @@ const theme = useTheme();
     } catch (error) {
       console.error('❌ Erreur sauvegarde:', error);
       
-      // ✅ GESTION D'ERREURS SPÉCIFIQUE
+      // GESTION D'ERREURS SPÉCIFIQUE
       let errorMessage = "Impossible de sauvegarder l'évaluation. Veuillez réessayer.";
       
       if (typeof error === "object" && error !== null && "message" in error && typeof (error as any).message === "string") {
@@ -328,14 +328,14 @@ const theme = useTheme();
     onClose();
   };
 
-  // ✅ FONCTION DE SUPPRESSION avec authentification
+  // FONCTION DE SUPPRESSION avec authentification
   const deleteEvaluation = async () => {
     if (!userId || !evaluationId || !isAuthenticated) {
       Alert.alert("Erreur", "Données manquantes pour la suppression");
       return;
     }
     
-    // ✅ CONFIRMATION avant suppression
+    // CONFIRMATION avant suppression
     Alert.alert(
       "Supprimer l'évaluation initiale",
       "Êtes-vous sûr de vouloir supprimer définitivement cette évaluation ? Cette action est irréversible.",
@@ -352,7 +352,7 @@ const theme = useTheme();
             try {
               console.log('🗑️ Suppression évaluation:', evaluationId);
 
-              // ✅ UTILISER apiDelete qui gère l'authentification automatiquement
+              // UTILISER apiDelete qui gère l'authentification automatiquement
               await apiDelete(`/evaluation-initiale/${evaluationId}`);
               console.log('✅ Évaluation supprimée avec succès');
 
@@ -363,7 +363,7 @@ const theme = useTheme();
                   { 
                     text: "OK", 
                     onPress: () => {
-                      // ✅ FERMER le modal et réinitialiser
+                      // FERMER le modal et réinitialiser
                       setFormData({
                         vo2max: "",
                         freq_repos: "",
@@ -390,7 +390,7 @@ const theme = useTheme();
             } catch (error) {
               console.error('❌ Erreur suppression:', error);
               
-              // ✅ GESTION D'ERREURS SPÉCIFIQUE
+              // GESTION D'ERREURS SPÉCIFIQUE
               let errorMessage = "Impossible de supprimer l'évaluation. Veuillez réessayer.";
               
               if (
@@ -436,14 +436,14 @@ const theme = useTheme();
   };
   const handleDateChange = (event: any, selectedDate?: Date) => {
       if (Platform.OS === 'android') {
-        // ✅ Sur Android, garder le comportement natif
+        // Sur Android, garder le comportement natif
         setShowDatePicker(false);
         if (selectedDate && event.type !== 'dismissed') {
           const formattedDate = selectedDate.toISOString().split('T')[0];
           setFormData(prev => ({ ...prev, echeance: formattedDate }));
         }
       } else {
-        // ✅ Sur iOS, ne pas fermer automatiquement
+        // Sur iOS, ne pas fermer automatiquement
         if (selectedDate && event.type !== 'dismissed') {
           setTempDate(selectedDate);
         } else if (event.type === 'dismissed') {
@@ -453,7 +453,7 @@ const theme = useTheme();
       }
     };
 
-  // ✅ VÉRIFICATION d'authentification au niveau du composant
+  // VÉRIFICATION d'authentification au niveau du composant
   if (!isAuthenticated) {
     return (
       <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
@@ -499,7 +499,7 @@ const theme = useTheme();
     >
       <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
         
-        {/* ✅ HEADER MODERNISÉ avec bouton supprimer */}
+        {/* HEADER MODERNISÉ avec bouton supprimer */}
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
@@ -517,7 +517,7 @@ const theme = useTheme();
             <Text style={{ fontSize: 18, fontWeight: 'bold' }}>
               {mode === 'view' ? 'Consultation' : 'Modification'} évaluation
             </Text>
-            {/* ✅ AFFICHER l'utilisateur */}
+            {/* AFFICHER l'utilisateur */}
             {user && (
               <Text style={{ fontSize: 12, color: '#666', marginTop: 2 }}>
                 {user.email}
@@ -525,7 +525,7 @@ const theme = useTheme();
             )}
           </View>
           
-          {/* ✅ BOUTONS d'action */}
+          {/* BOUTONS d'action */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 15 }}>
             {/* Bouton Supprimer - visible uniquement en mode view */}
             {mode === 'view' && (
@@ -571,7 +571,7 @@ const theme = useTheme();
           </View>
         </View>
 
-        {/* ✅ CONTENU avec état de chargement */}
+        {/* CONTENU avec état de chargement */}
         {(isLoading || isDeleting) ? (
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <ActivityIndicator size="large" color="#007AFF" />
@@ -582,7 +582,7 @@ const theme = useTheme();
         ) : (
           <ScrollView style={{ flex: 1, padding: 20 }}>
             
-            {/* ✅ OBJECTIFS ET EXPÉRIENCE */}
+            {/* OBJECTIFS ET EXPÉRIENCE */}
 <View style={{ marginBottom: 25 }}>
   <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: '#333' }}>
     Objectifs et Expérience
@@ -608,12 +608,12 @@ const theme = useTheme();
     />
   </View>
 
-  {/* ✅ EXPÉRIENCE TRIATHLON AVEC CHIPS */}
+  {/* EXPÉRIENCE TRIATHLON AVEC CHIPS */}
   <View style={{ marginBottom: 15 }}>
     <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 5 }}>Expérience Triathlon</Text>
     
     {mode === 'edit' ? (
-      // ✅ MODE ÉDITION - Chips sélectionnables
+      // MODE ÉDITION - Chips sélectionnables
       <View style={{
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -654,7 +654,7 @@ const theme = useTheme();
         })}
       </View>
     ) : (
-      // ✅ MODE CONSULTATION - TextInput désactivé avec style amélioré
+      // MODE CONSULTATION - TextInput désactivé avec style amélioré
       <View style={{
         borderWidth: 1,
         borderColor: '#ddd',
@@ -672,7 +672,7 @@ const theme = useTheme();
     )}
   </View>
 </View>
-            {/* ✅ PLANNING */}
+            {/* PLANNING */}
             <View style={{ marginBottom: 25 }}>
               <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: '#333' }}>
                 Planning
@@ -729,7 +729,7 @@ const theme = useTheme();
               </View>
             </View>
 
-            {/* ✅ TESTS PHYSIQUES */}
+            {/* TESTS PHYSIQUES */}
             <View style={{ marginBottom: 25 }}>
               <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: '#333' }}>
                 Tests Physiques
@@ -853,7 +853,7 @@ const theme = useTheme();
               </View>
             </View>
 
-            {/* ✅ SEUILS PAR DISCIPLINE */}
+            {/* SEUILS PAR DISCIPLINE */}
             <View style={{ marginBottom: 25 }}>
               <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: '#333' }}>
                 Allures Seuil
@@ -883,7 +883,7 @@ const theme = useTheme();
               ))}
             </View>
 
-            {/* ✅ COMMENTAIRES */}
+            {/* COMMENTAIRES */}
             <View style={{ marginBottom: 25 }}>
               <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: '#333' }}>
                 Commentaires
@@ -912,7 +912,7 @@ const theme = useTheme();
           </ScrollView>
         )}
 
-              {/* ✅ DateTimePicker avec contrôle iOS/Android */}
+              {/* DateTimePicker avec contrôle iOS/Android */}
       {showDatePicker && Platform.OS === 'ios' && (
   <Modal
     visible={showDatePicker}

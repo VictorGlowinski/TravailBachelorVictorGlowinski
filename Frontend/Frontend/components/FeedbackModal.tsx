@@ -13,7 +13,6 @@ import {
   Platform,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-// ✅ CORRIGER ce chemin - le fichier est dans styles/screens/ pas components/
 import feedbackModalStyles from '@/styles/screens/FeedbackModalStyles';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiPost } from '@/utils/apiHelper'; 
@@ -30,12 +29,12 @@ export default function FeedbackModal({
   onFeedbackSubmitted 
 }: FeedbackModalProps) {
 
-  const { user, isAuthenticated, logout } = useAuth(); // ✅ UTILISER le contexte d'auth
+  const { user, isAuthenticated, logout } = useAuth(); 
   const [feedback, setFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
 
-  // ✅ CORRIGER les champs dans FeedbackModal.tsx - ligne 45 environ
+
 
 const handleSubmit = async () => {
   if (!feedback.trim()) {
@@ -45,18 +44,17 @@ const handleSubmit = async () => {
 
   setIsSubmitting(true);
   try {
-    // ✅ UTILISER les bons noms de champs selon votre BDD
+    
     const feedbackData = {
-      ret_commentaire: feedback.trim(), // ✅ ret_commentaire au lieu de fee_commentaire
-      ret_date: new Date().toISOString().split('T')[0], // ✅ Format YYYY-MM-DD pour la date
+      ret_commentaire: feedback.trim(), 
+      ret_date: new Date().toISOString().split('T')[0], 
       // ✅ AJOUTER l'utilisateur si authentifié
       ...(isAuthenticated && user && {
-        ret_user_id: user.id // ✅ ret_user_id au lieu de fee_user_id
+        ret_user_id: user.id 
       })
     };
 
-    console.log('📤 Envoi feedback:', feedbackData); // ✅ DEBUG
-
+    console.log('📤 Envoi feedback:', feedbackData); 
     const response = await apiPost('/retour', feedbackData);
 
     Alert.alert(
@@ -132,7 +130,7 @@ const handleSubmit = async () => {
     }
   };
 
-  // ✅ AJOUTER un console.log pour débugger
+  
   console.log('Modal visible:', visible);
 
   return (
@@ -156,7 +154,7 @@ const handleSubmit = async () => {
               <Text style={feedbackModalStyles.subtitle}>
                 Aidez-nous à améliorer Kinesis
               </Text>
-              {/* ✅ AFFICHER l'état d'authentification */}
+              {/* AFFICHER l'état d'authentification */}
               {isAuthenticated && user && (
                 <Text style={[feedbackModalStyles.subtitle, { 
                   fontSize: 12, 
@@ -221,7 +219,7 @@ const handleSubmit = async () => {
                 <>
                   <FontAwesome name="send" size={16} color="white" />
                   <Text style={feedbackModalStyles.submitButtonText}>
-                    {/* ✅ TEXTE adapté selon l'authentification */}
+                    {/* TEXTE adapté selon l'authentification */}
                     {isAuthenticated ? 'Envoyer' : 'Envoyer (anonyme)'}
                   </Text>
                 </>

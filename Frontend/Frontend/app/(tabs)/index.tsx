@@ -8,11 +8,11 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useTheme } from '@/styles/screens/ThemeStyle';
 import accueilStyles from '@/styles/screens/AccueilStyle';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiGet } from '@/utils/apiHelper'; // ✅ UTILISER les helpers authentifiés
+import { apiGet } from '@/utils/apiHelper'; // UTILISER les helpers authentifiés
 
 export default function HomeScreen() { 
   const theme = useTheme();
-  const { user, isAuthenticated, logout, token } = useAuth(); // ✅ UTILISER le contexte d'auth
+  const { user, isAuthenticated, logout, token } = useAuth(); // UTILISER le contexte d'auth
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [todayActivities, setTodayActivities] = useState<any[]>([]);
@@ -34,7 +34,7 @@ export default function HomeScreen() {
     planData: null
   });
 
-  // ✅ VÉRIFICATION d'authentification au chargement
+  // VÉRIFICATION d'authentification au chargement
   useEffect(() => {
     if (!isAuthenticated) {
       console.log('❌ Utilisateur non authentifié - redirection vers login');
@@ -42,14 +42,14 @@ export default function HomeScreen() {
       return;
     }
 
-    // ✅ UTILISER l'utilisateur du contexte d'auth
+    // UTILISER l'utilisateur du contexte d'auth
     if (user) {
       setCurrentUserId(user.id.toString());
       console.log('👤 Utilisateur authentifié:', user.email);
     }
   }, [isAuthenticated, user]);
 
-  // ✅ DÉPLACER la logique de chargement dans une fonction séparée
+  // DÉPLACER la logique de chargement dans une fonction séparée
   const loadUserData = async () => {
     if (!isAuthenticated || !user) {
       console.log('❌ Pas d\'utilisateur authentifié pour charger les données');
@@ -61,7 +61,7 @@ export default function HomeScreen() {
       const userId = user.id.toString();
       setCurrentUserId(userId);
       
-      // ✅ CHARGER les données en parallèle
+      // CHARGER les données en parallèle
       await Promise.all([
         checkUserData(userId),
         fetchTodayActivities(userId)
@@ -69,7 +69,7 @@ export default function HomeScreen() {
     } catch (error) {
       console.error("❌ Erreur chargement données:", error);
       
-      // ✅ GESTION D'ERREURS SPÉCIFIQUE
+      // GESTION D'ERREURS SPÉCIFIQUE
       if (
         typeof error === 'object' &&
         error !== null &&
@@ -94,14 +94,14 @@ export default function HomeScreen() {
     }
   };
 
-  // ✅ Chargement initial quand l'utilisateur est authentifié
+  // Chargement initial quand l'utilisateur est authentifié
   useEffect(() => {
     if (isAuthenticated && user) {
       loadUserData();
     }
   }, [isAuthenticated, user]);
 
-  // ✅ AJOUTER le refresh à chaque focus sur la page
+  // AJOUTER le refresh à chaque focus sur la page
   useFocusEffect(
     React.useCallback(() => {
       if (isAuthenticated && user) {
@@ -111,7 +111,7 @@ export default function HomeScreen() {
     }, [isAuthenticated, user])
   );
 
-  // ✅ MÉTHODE pour récupérer les données utilisateur avec authentification
+  // MÉTHODE pour récupérer les données utilisateur avec authentification
   const checkUserData = async (userId: string) => {
     if (!isAuthenticated) {
       console.log('❌ Non authentifié - impossible de récupérer les données');
@@ -122,7 +122,7 @@ export default function HomeScreen() {
     console.log(`🔍 Début vérification données pour user ${userId}`);
     
     try {
-      // ✅ Vérifier anamnèse avec apiGet
+      // Vérifier anamnèse avec apiGet
       const checkAnamnese = async () => {
         try {
           console.log('📡 Appel API anamnèse...');
@@ -138,7 +138,7 @@ export default function HomeScreen() {
         }
       };
 
-      // ✅ Vérifier évaluation avec apiGet
+      // Vérifier évaluation avec apiGet
       const checkEvaluation = async () => {
         try {
           console.log('📡 Appel API évaluation...');
@@ -155,7 +155,7 @@ export default function HomeScreen() {
         }
       };
 
-      // ✅ Vérifier plan avec apiGet
+      // Vérifier plan avec apiGet
       const checkPlan = async () => {
         try {
           console.log('📡 Appel API plan...');
@@ -171,7 +171,7 @@ export default function HomeScreen() {
         }
       };
 
-      // ✅ Exécuter toutes les vérifications en parallèle
+      // Exécuter toutes les vérifications en parallèle
       const [anamneseResult, evaluationResult, planResult] = await Promise.all([
         checkAnamnese(),
         checkEvaluation(),
@@ -198,7 +198,7 @@ export default function HomeScreen() {
     } catch (error) {
       console.error('❌ Erreur checkUserData:', error);
       
-      // ✅ GESTION D'ERREURS SPÉCIFIQUE
+      // GESTION D'ERREURS SPÉCIFIQUE
       if (
         typeof error === 'object' &&
         error !== null &&
@@ -206,7 +206,7 @@ export default function HomeScreen() {
         typeof (error as { message?: string }).message === 'string' &&
         (error as { message: string }).message.includes('Session expirée')
       ) {
-        throw error; // ✅ PROPAGER l'erreur pour gestion au niveau supérieur
+        throw error; // PROPAGER l'erreur pour gestion au niveau supérieur
       }
       
       setUserData({ 
@@ -222,7 +222,7 @@ export default function HomeScreen() {
     }
   };
 
-  // ✅ MÉTHODE pour récupérer les activités du jour avec authentification
+  // MÉTHODE pour récupérer les activités du jour avec authentification
   const fetchTodayActivities = async (userId: string) => {
     if (!isAuthenticated) {
       console.log('❌ Non authentifié - impossible de récupérer les activités');
@@ -232,7 +232,7 @@ export default function HomeScreen() {
     try {
       console.log(`🔄 Récupération activités pour user ${userId}`);
       
-      // ✅ UTILISER apiGet qui gère l'authentification automatiquement
+      // UTILISER apiGet qui gère l'authentification automatiquement
       const data = await apiGet(`/jours/user/${userId}/today`);
       console.log('✅ Données activités COMPLÈTES:', JSON.stringify(data, null, 2));
       
@@ -253,7 +253,7 @@ export default function HomeScreen() {
     } catch (error) {
       console.error('❌ Erreur récupération activités du jour:', error);
       
-      // ✅ GESTION D'ERREURS SPÉCIFIQUE
+      // GESTION D'ERREURS SPÉCIFIQUE
       if (
         typeof error === 'object' &&
         error !== null &&
@@ -261,7 +261,7 @@ export default function HomeScreen() {
         typeof (error as { message?: string }).message === 'string' &&
         (error as { message: string }).message.includes('Session expirée')
       ) {
-        throw error; // ✅ PROPAGER l'erreur pour gestion au niveau supérieur
+        throw error; // PROPAGER l'erreur pour gestion au niveau supérieur
       }
       
       setTodayJour(null);
@@ -269,7 +269,7 @@ export default function HomeScreen() {
     }
   };
 
-  // ✅ Formater la date
+  // Formater la date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('fr-FR', {
@@ -280,7 +280,7 @@ export default function HomeScreen() {
     });
   };
 
-  // ✅ GESTION de la déconnexion
+  // GESTION de la déconnexion
   const handleLogout = async () => {
     Alert.alert(
       "Déconnexion",
@@ -307,9 +307,9 @@ export default function HomeScreen() {
     );
   };
 
-  // ✅ Rendu de l'activité du jour
+  // Rendu de l'activité du jour
   const renderTodayActivity = () => {
-    // ✅ DEBUG : Afficher l'état complet
+    // DEBUG : Afficher l'état complet
     console.log('🎭 RENDU - État complet:', {
       isAuthenticated,
       isLoading,
@@ -333,7 +333,7 @@ export default function HomeScreen() {
       );
     }
 
-    // ✅ CONDITION 1 : Utilisateur avec plan + activités
+    // CONDITION 1 : Utilisateur avec plan + activités
     if (userData.hasPlan === true && todayJour && todayActivities.length > 0) {
       console.log('✅ RENDU: Plan avec activités du jour');
       return (
@@ -357,7 +357,7 @@ export default function HomeScreen() {
           
           <View style={accueilStyles.activitiesContainer}>
             {todayActivities.map((activite, index) => {
-    // ✅ VALIDATION des données avant rendu
+    // VALIDATION des données avant rendu
     const safeActivite = {
       id: activite.gen_id || index,
       nom: String(activite.gen_nom || 'Activité sans nom'),
@@ -423,7 +423,7 @@ export default function HomeScreen() {
       );
     }
 
-    // ✅ CONDITION 2 : Utilisateur avec plan mais pas d'activité aujourd'hui
+    // CONDITION 2 : Utilisateur avec plan mais pas d'activité aujourd'hui
     if (userData.hasPlan === true && todayActivities.length === 0) {
       console.log(' RENDU: Plan avec jour de repos');
       return (
@@ -452,7 +452,7 @@ export default function HomeScreen() {
       );
     }
 
-    // ✅ CONDITION 3 : Pas de plan
+    // CONDITION 3 : Pas de plan
     console.log('✅ RENDU: Pas de plan - redirection');
     return (
       <View style={[accueilStyles.card, { backgroundColor: theme.colors.surface }, theme.shadows]}>
@@ -491,7 +491,7 @@ export default function HomeScreen() {
     );
   };
 
-  // ✅ VÉRIFICATION d'authentification au niveau du composant
+  // VÉRIFICATION d'authentification au niveau du composant
   if (!isAuthenticated) {
     return (
       <View style={{
@@ -527,7 +527,7 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={[accueilStyles.container, { backgroundColor: theme.colors.background }]}>
-      {/* ✅ HEADER avec informations utilisateur et déconnexion */}
+      {/* HEADER avec informations utilisateur et déconnexion */}
       <View style={[accueilStyles.header, { backgroundColor: theme.colors.surface }, theme.shadows]}>
         <View style={{ flex: 1 }}>
           <Text style={[accueilStyles.title, { color: theme.colors.primary }]}>
@@ -536,7 +536,7 @@ export default function HomeScreen() {
           <Text style={[accueilStyles.subtitle, { color: theme.colors.secondary }]}>
             {'Votre entraînement triathlon'}
           </Text>
-          {/* ✅ AFFICHER l'utilisateur connecté */}
+          {/* AFFICHER l'utilisateur connecté */}
           {user && (
             <Text style={[accueilStyles.subtitle, { color: theme.colors.accent, fontSize: 12, marginTop: 4 }]}>
               {'Connecté en tant que ' + user.email}
@@ -544,7 +544,7 @@ export default function HomeScreen() {
           )}
         </View>
         
-        {/* ✅ BOUTON de déconnexion */}
+        {/* BOUTON de déconnexion */}
         <Pressable
           onPress={handleLogout}
           style={{
@@ -557,10 +557,10 @@ export default function HomeScreen() {
         </Pressable>
       </View>
       
-      {/* ✅ CONTENU PRINCIPAL */}
+      {/* CONTENU PRINCIPAL */}
       {renderTodayActivity()}
       
-      {/* ✅ RACCOURCIS RAPIDES si utilisateur a des données */}
+      {/* RACCOURCIS RAPIDES si utilisateur a des données */}
       {(userData.hasAnamnese || userData.hasEvaluation || userData.hasPlan) && (
         <View style={[accueilStyles.card, { backgroundColor: theme.colors.surface }, theme.shadows]}>
           <View style={accueilStyles.cardHeader}>
@@ -598,7 +598,7 @@ export default function HomeScreen() {
         </View>
       )}
       
-      {/* ✅ ESPACE EN BAS */}
+      {/* ESPACE EN BAS */}
       <View style={{ height: 100 }} />
     </ScrollView>
   );

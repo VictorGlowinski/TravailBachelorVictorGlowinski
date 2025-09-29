@@ -54,7 +54,7 @@ export default function CreationAnamneseScreen() {
     [currentUserId]
   );
 
-  // ✅ CALCUL AUTOMATIQUE DE L'ÂGE
+  // CALCUL AUTOMATIQUE DE L'ÂGE
   const calculatedAge = useMemo(() => {
     if (!userBirthDate) return null;
     
@@ -75,18 +75,18 @@ export default function CreationAnamneseScreen() {
     }
   }, [userBirthDate]);
 
-  // ✅ CALCUL des champs remplis (incluant l'âge calculé)
+  // CALCUL des champs remplis (incluant l'âge calculé)
   const filledCount = useMemo(() => {
     const baseCount = Object.values(formData).filter(value => value.trim() !== "").length;
     return calculatedAge ? baseCount + 1 : baseCount;
   }, [formData, calculatedAge]);
 
-  // ✅ VALIDATION des champs requis + âge calculé
+  // VALIDATION des champs requis + âge calculé
   const isValid = useMemo(() => {
     return REQUIRED_KEYS.every(key => formData[key as keyof typeof formData]?.trim() !== "") && calculatedAge;
   }, [formData, calculatedAge]);
 
-  // ✅ VÉRIFICATION d'authentification au chargement
+  // VÉRIFICATION d'authentification au chargement
   useEffect(() => {
     if (!isAuthenticated) {
       Alert.alert(
@@ -102,14 +102,14 @@ export default function CreationAnamneseScreen() {
       return;
     }
 
-    // ✅ UTILISER l'utilisateur du contexte d'auth
+    // UTILISER l'utilisateur du contexte d'auth
     if (user) {
       setCurrentUserId(user.id.toString());
       console.log('👤 Utilisateur authentifié:', user.email);
     }
   }, [isAuthenticated, user]);
 
-  // ✅ GESTION du clavier
+  // GESTION du clavier
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
       setKeyboardVisible(true);
@@ -124,7 +124,7 @@ export default function CreationAnamneseScreen() {
     };
   }, []);
 
-  // ✅ RÉCUPÉRER la date de naissance avec authentification
+  // RÉCUPÉRER la date de naissance avec authentification
   useEffect(() => {
     const getUserData = async () => {
       if (!currentUserId || !isAuthenticated) return;
@@ -132,11 +132,11 @@ export default function CreationAnamneseScreen() {
       try {
         console.log('📡 Récupération données utilisateur...');
         
-        // ✅ UTILISER apiGet qui gère l'authentification automatiquement
+        // UTILISER apiGet qui gère l'authentification automatiquement
         const userData = await apiGet(`/users/${currentUserId}`);
         console.log('👤 Données utilisateur reçues:', userData);
         
-        // ✅ ADAPTER selon la structure de votre réponse API
+        // ADAPTER selon la structure de votre réponse API
         const birthDate = userData.user?.use_date_naissance || 
                          userData.use_date_naissance || 
                          userData.date_naissance;
@@ -153,13 +153,13 @@ export default function CreationAnamneseScreen() {
           );
         }
         
-        // ✅ CHARGER le brouillon après avoir récupéré les données utilisateur
+        // CHARGER le brouillon après avoir récupéré les données utilisateur
         loadDraft();
         
       } catch (error) {
         console.error("❌ Erreur récupération données utilisateur:", error);
         
-        // ✅ GESTION D'ERREURS SPÉCIFIQUE
+        // GESTION D'ERREURS SPÉCIFIQUE
         if (typeof error === 'object' && error !== null && 'message' in error && typeof (error as any).message === 'string' && (error as any).message.includes('Session expirée')) {
           Alert.alert(
             'Session expirée', 
@@ -182,14 +182,14 @@ export default function CreationAnamneseScreen() {
     }
   }, [currentUserId, isAuthenticated]);
 
-  // ✅ CHARGER le brouillon quand l'utilisateur est défini
+  // CHARGER le brouillon quand l'utilisateur est défini
   useEffect(() => {
     if (currentUserId && draftKey) {
       loadDraft();
     }
   }, [currentUserId, draftKey]);
 
-  // ✅ SAUVEGARDER automatiquement le brouillon
+  // SAUVEGARDER automatiquement le brouillon
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       saveDraft();
@@ -198,7 +198,7 @@ export default function CreationAnamneseScreen() {
     return () => clearTimeout(timeoutId);
   }, [formData, draftKey]);
 
-  // ✅ CALCULER l'IMC
+  // CALCULER l'IMC
   const calculateBMI = () => {
     const poids = parseFloat(formData.poids_kg.replace(',', '.'));
     const taille = parseFloat(formData.taille_cm.replace(',', '.')) / 100;
@@ -210,7 +210,7 @@ export default function CreationAnamneseScreen() {
     return "";
   };
 
-  // ✅ MISE À JOUR automatique de l'IMC
+  // MISE À JOUR automatique de l'IMC
   useEffect(() => {
     const newIMC = calculateBMI();
     if (newIMC !== formData.imc) {
@@ -218,7 +218,7 @@ export default function CreationAnamneseScreen() {
     }
   }, [formData.poids_kg, formData.taille_cm]);
 
-  // ✅ CHARGER le brouillon sauvegardé
+  // CHARGER le brouillon sauvegardé
   const loadDraft = async () => {
     if (!draftKey) return;
     
@@ -234,7 +234,7 @@ export default function CreationAnamneseScreen() {
     }
   };
 
-  // ✅ SAUVEGARDER le brouillon
+  // SAUVEGARDER le brouillon
   const saveDraft = async () => {
     if (!draftKey) return;
     
@@ -245,7 +245,7 @@ export default function CreationAnamneseScreen() {
     }
   };
 
-  // ✅ FONCTIONS de navigation entre les champs
+  // FONCTIONS de navigation entre les champs
   const dismissKeyboard = () => {
     Keyboard.dismiss();
   };
@@ -257,9 +257,9 @@ export default function CreationAnamneseScreen() {
     }
   };
 
-  // ✅ HANDLE SUBMIT avec authentification
+  // HANDLE SUBMIT avec authentification
   const handleSubmit = async () => {
-  // ✅ VÉRIFICATIONS préliminaires (garder le code existant)
+  // VÉRIFICATIONS préliminaires (garder le code existant)
   if (!isAuthenticated) {
     Alert.alert("Non authentifié", "Vous devez être connecté pour créer une anamnèse");
     return;
@@ -305,15 +305,15 @@ export default function CreationAnamneseScreen() {
     console.log('📤 Envoi anamnèse avec âge calculé:', calculatedAge);
     console.log('📤 Données complètes envoyées:', anamneseData);
 
-    // ✅ UTILISER apiPost qui gère l'authentification automatiquement
+    // UTILISER apiPost qui gère l'authentification automatiquement
     const result = await apiPost('/anamnese', anamneseData);
     console.log('✅ Réponse complète de l\'API:', result);
 
-    // ✅ GESTION AMÉLIORÉE de la réponse selon différents formats possibles
+    // GESTION AMÉLIORÉE de la réponse selon différents formats possibles
     let isSuccessful = false;
     let anamneseId = null;
 
-    // ✅ VÉRIFIER différents formats de réponse
+    // VÉRIFIER différents formats de réponse
     if (result) {
       // Format 1: {success: true, anamnese: {...}}
       if (result.success === true) {
@@ -342,7 +342,7 @@ export default function CreationAnamneseScreen() {
     if (isSuccessful) {
       console.log('✅ Anamnèse créée avec succès, ID:', anamneseId);
       
-      // ✅ SUPPRIMER le brouillon en cas de succès
+      // SUPPRIMER le brouillon en cas de succès
       if (draftKey) {
         try {
           await AsyncStorage.removeItem(draftKey);
@@ -358,7 +358,7 @@ export default function CreationAnamneseScreen() {
         [{ 
           text: "OK", 
           onPress: () => {
-            // ✅ NAVIGATION plus robuste
+            // NAVIGATION plus robuste
             try {
               router.replace('/(tabs)/profil');
             } catch (navError) {
@@ -369,7 +369,7 @@ export default function CreationAnamneseScreen() {
         }]
       );
     } else {
-      // ✅ ÉCHEC mais peut-être que les données sont quand même sauvées
+      // ÉCHEC mais peut-être que les données sont quand même sauvées
       console.warn('⚠️ Réponse inattendue mais pas forcément une erreur');
       console.warn('📊 Structure de la réponse:', JSON.stringify(result, null, 2));
       
@@ -382,7 +382,7 @@ export default function CreationAnamneseScreen() {
   } catch (error) {
     console.error("❌ Erreur création anamnèse:", error);
     
-    // ✅ GESTION D'ERREURS PLUS FINE
+    // GESTION D'ERREURS PLUS FINE
     let errorMessage = "Impossible de créer l'anamnèse. Veuillez réessayer.";
     let shouldNavigateToLogin = false;
     
@@ -399,7 +399,7 @@ export default function CreationAnamneseScreen() {
       } else if (errorMsg.includes('Network') || errorMsg.includes('Failed to fetch')) {
         errorMessage = "Problème de connexion. Vérifiez votre réseau et réessayez.";
       } else if (errorMsg.includes('Format de réponse inattendu')) {
-        // ✅ CAS SPÉCIAL : L'anamnèse est peut-être créée malgré l'erreur
+        // CAS SPÉCIAL : L'anamnèse est peut-être créée malgré l'erreur
         errorMessage = "L'anamnèse a peut-être été créée. Vérifiez dans votre profil.";
       }
     }
@@ -431,7 +431,7 @@ export default function CreationAnamneseScreen() {
   }
 };
 
-  // ✅ VÉRIFICATION d'authentification au niveau du composant
+  // VÉRIFICATION d'authentification au niveau du composant
   if (!isAuthenticated) {
     return (
       <View style={{
@@ -472,7 +472,7 @@ export default function CreationAnamneseScreen() {
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
-      {/* ✅ HEADER avec état de connexion */}
+      {/* HEADER avec état de connexion */}
       <View style={[anamneseStyles.header, { backgroundColor: theme.colors.surface }, theme.shadows]}>
         <View style={anamneseStyles.headerContent}>
           <Pressable
@@ -489,7 +489,7 @@ export default function CreationAnamneseScreen() {
             <Text style={[anamneseStyles.subtitle, { color: theme.colors.secondary }]}>
               Informations personnelles et médicales
             </Text>
-            {/* ✅ AFFICHER l'utilisateur connecté */}
+            {/* AFFICHER l'utilisateur connecté */}
             {user && (
               <Text style={[anamneseStyles.subtitle, { color: theme.colors.accent, fontSize: 12 }]}>
                 {user.email}
@@ -507,7 +507,7 @@ export default function CreationAnamneseScreen() {
           )}
         </View>
 
-        {/* ✅ BARRE DE PROGRESSION (13 champs) */}
+        {/* BARRE DE PROGRESSION (13 champs) */}
         <View style={anamneseStyles.progressSection}>
           <View style={[anamneseStyles.progressBar, { backgroundColor: theme.colors.surfaceVariant }]}>
             <View 
@@ -527,7 +527,7 @@ export default function CreationAnamneseScreen() {
         </View>
       </View>
 
-      {/* ✅ LOADING STATE */}
+      {/* LOADING STATE */}
       {isLoading && (
         <View style={[anamneseStyles.loadingCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
           <ActivityIndicator size="large" color={theme.colors.accent} />
@@ -537,10 +537,10 @@ export default function CreationAnamneseScreen() {
         </View>
       )}
 
-      {/* ✅ FORMULAIRE MODERNISÉ */}
+      {/* FORMULAIRE MODERNISÉ */}
       <View style={anamneseStyles.formSection}>
         
-        {/* ✅ INFORMATIONS PERSONNELLES */}
+        {/* INFORMATIONS PERSONNELLES */}
         <View style={[anamneseStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
           <Text style={[anamneseStyles.fieldTitle, { color: theme.colors.primary }]}>
             Informations personnelles
@@ -584,7 +584,7 @@ export default function CreationAnamneseScreen() {
             </View>
           </View>
 
-          {/* ✅ ALERTE si pas de date de naissance */}
+          {/* ALERTE si pas de date de naissance */}
           {!userBirthDate && (
             <View style={[
               anamneseStyles.warningContainer, 
@@ -658,7 +658,7 @@ export default function CreationAnamneseScreen() {
           
         </View>
 
-        {/* ✅ INFORMATIONS MÉDICALES */}
+        {/* INFORMATIONS MÉDICALES */}
         <View style={[anamneseStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
           <Text style={[anamneseStyles.fieldTitle, { color: theme.colors.primary }]}>
             Informations médicales
@@ -758,7 +758,7 @@ export default function CreationAnamneseScreen() {
           </View>
         </View>
 
-        {/* ✅ ACTIVITÉ SPORTIVE */}
+        {/* ACTIVITÉ SPORTIVE */}
         <View style={[anamneseStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
           <Text style={[anamneseStyles.fieldTitle, { color: theme.colors.primary }]}>
             Activité sportive
@@ -827,7 +827,7 @@ export default function CreationAnamneseScreen() {
           </View>
         </View>
 
-        {/* ✅ CONTRAINTES */}
+        {/* CONTRAINTES */}
         <View style={[anamneseStyles.fieldCard, { backgroundColor: theme.colors.surface }, theme.shadows]}>
           <Text style={[anamneseStyles.fieldTitle, { color: theme.colors.primary }]}>
             Contraintes et commentaires
@@ -921,7 +921,7 @@ export default function CreationAnamneseScreen() {
         </View>
       </View>
 
-      {/* ✅ BOUTONS D'ACTION */}
+      {/* BOUTONS D'ACTION */}
       <View style={anamneseStyles.actionsSection}>
         <Pressable
           style={[
@@ -963,7 +963,7 @@ export default function CreationAnamneseScreen() {
         </Pressable>
       </View>
 
-      {/* ✅ ESPACE EN BAS pour éviter que le contenu soit coupé */}
+      {/* ESPACE EN BAS pour éviter que le contenu soit coupé */}
       <View style={{ height: 100 }} />
     </ScrollView>
   );

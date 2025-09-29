@@ -1,7 +1,8 @@
 // contexts/AuthContext.tsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import * as React from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { CONFIG } from '@/constants/config';
+import { CONFIG } from '../constants/config';
 
 console.log('🌐 API URL détectée:', CONFIG.API_BASE_URL);
 
@@ -15,7 +16,7 @@ interface User {
 
 interface AuthContextType {
     user: User | null;
-    token: string | null; // ✅ AJOUTER le token
+    token: string | null; 
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (email: string, password: string) => Promise<boolean>;
@@ -27,7 +28,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
-    const [token, setToken] = useState<string | null>(null); // ✅ ÉTAT DU TOKEN
+    const [token, setToken] = useState<string | null>(null); // ÉTAT DU TOKEN
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -40,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             const [userData, storedToken, userId] = await Promise.all([
                 AsyncStorage.getItem('user'),
-                AsyncStorage.getItem('authToken'), // ✅ NOM COHÉRENT
+                AsyncStorage.getItem('authToken'), 
                 AsyncStorage.getItem('userId')
             ]);
             
@@ -60,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
         } catch (error) {
             console.error('❌ Erreur vérification auth:', error);
-            // ✅ NETTOYER en cas d'erreur
+            // NETTOYER en cas d'erreur
             await clearAuth();
         } finally {
             setIsLoading(false);
@@ -115,10 +116,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             });
 
             if (result.success && result.user) {
-                // ✅ STOCKER TOUTES LES DONNÉES
+                // STOCKER TOUTES LES DONNÉES
                 await Promise.all([
                     AsyncStorage.setItem('user', JSON.stringify(result.user)),
-                    AsyncStorage.setItem('authToken', result.token || ''), // ✅ Si token fourni
+                    AsyncStorage.setItem('authToken', result.token || ''), // Si token fourni
                     AsyncStorage.setItem('userId', result.user.id.toString())
                 ]);
                 
@@ -175,10 +176,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             });
 
             if (result.success && result.user && result.token) {
-                // ✅ STOCKER USER + TOKEN
+                // STOCKER USER + TOKEN
                 await Promise.all([
                     AsyncStorage.setItem('user', JSON.stringify(result.user)),
-                    AsyncStorage.setItem('authToken', result.token), // ✅ TOKEN OBLIGATOIRE
+                    AsyncStorage.setItem('authToken', result.token), // TOKEN OBLIGATOIRE
                     AsyncStorage.setItem('userId', result.user.id.toString())
                 ]);
                 
@@ -200,7 +201,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             console.log('🔄 Déconnexion en cours...');
             
-            // ✅ APPELER L'API LOGOUT si token disponible
+            // APPELER L'API LOGOUT si token disponible
             if (token) {
                 try {
                     const response = await fetch(`${CONFIG.API_BASE_URL}/logout`, {
@@ -218,21 +219,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
             }
             
-            // ✅ NETTOYER LE STOCKAGE LOCAL dans tous les cas
+            // NETTOYER LE STOCKAGE LOCAL dans tous les cas
             await clearAuth();
             console.log('✅ Déconnexion terminée');
             
         } catch (error) {
             console.error('❌ Erreur logout:', error);
-            // ✅ FORCER LE NETTOYAGE même en cas d'erreur
+            // FORCER LE NETTOYAGE même en cas d'erreur
             await clearAuth();
         }
     };
 
     const value: AuthContextType = {
         user,
-        token, // ✅ EXPOSER LE TOKEN
-        isAuthenticated: !!user && !!token, // ✅ VÉRIFIER USER ET TOKEN
+        token, // EXPOSER LE TOKEN
+        isAuthenticated: !!user && !!token, // VÉRIFIER USER ET TOKEN
         isLoading,
         login,
         register,

@@ -4,31 +4,31 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CONFIG } from '@/constants/config';
 
 /**
- * ✅ HELPER pour faire des requêtes authentifiées
+ * HELPER pour faire des requêtes authentifiées
  */
 export const authenticatedFetch = async (endpoint: string, options: RequestInit = {}) => {
   try {
-    // ✅ RÉCUPÉRER LE TOKEN
+    // RÉCUPÉRER LE TOKEN
     const token = await AsyncStorage.getItem('authToken');
     
     if (!token) {
       throw new Error('Token d\'authentification manquant');
     }
 
-    // ✅ CONSTRUIRE L'URL COMPLÈTE
+    // CONSTRUIRE L'URL COMPLÈTE
     const url = endpoint.startsWith('http') ? endpoint : `${CONFIG.API_BASE_URL}${endpoint}`;
 
-    // ✅ AJOUTER L'AUTHORIZATION HEADER
+    // AJOUTER L'AUTHORIZATION HEADER
     const headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      'Authorization': `Bearer ${token}`, // ✅ TOKEN SANCTUM
+      'Authorization': `Bearer ${token}`, // TOKEN SANCTUM
       ...(options.headers || {})
     };
 
     console.log('📤 Requête authentifiée:', { url, method: options.method || 'GET' });
 
-    // ✅ FAIRE LA REQUÊTE
+    // FAIRE LA REQUÊTE
     const response = await fetch(url, {
       ...options,
       headers
@@ -36,10 +36,10 @@ export const authenticatedFetch = async (endpoint: string, options: RequestInit 
 
     console.log('📥 Réponse:', response.status);
 
-    // ✅ GERER L'EXPIRATION DU TOKEN
+    // GERER L'EXPIRATION DU TOKEN
     if (response.status === 401) {
       console.warn('🔒 Token expiré, nettoyage de la session');
-      await AsyncStorage.multiRemove(['user', 'authToken', 'userId']); // ✅ CORRIGER les clés
+      await AsyncStorage.multiRemove(['user', 'authToken', 'userId']); 
       throw new Error('Session expirée, veuillez vous reconnecter');
     }
 
@@ -51,7 +51,7 @@ export const authenticatedFetch = async (endpoint: string, options: RequestInit 
 };
 
 /**
- * ✅ HELPERS spécifiques
+ * HELPERS spécifiques
  */
 export const apiGet = async (endpoint: string) => {
   const response = await authenticatedFetch(endpoint, { method: 'GET' });

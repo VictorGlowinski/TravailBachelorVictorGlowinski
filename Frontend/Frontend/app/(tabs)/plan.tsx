@@ -10,11 +10,11 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import ActiviteGenereeModal from '@/components/ActiviteGenereeModal';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiGet, apiDelete, apiPost, apiPut } from '@/utils/apiHelper'; // ✅ UTILISER les helpers authentifiés
+import { apiGet, apiDelete, apiPost, apiPut } from '@/utils/apiHelper'; // UTILISER les helpers authentifiés
 
 export default function PlanScreen() {
   const theme = useTheme();
-  const { user, isAuthenticated, logout, token } = useAuth(); // ✅ UTILISER le contexte d'auth
+  const { user, isAuthenticated, logout, token } = useAuth(); // UTILISER le contexte d'auth
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -42,21 +42,21 @@ export default function PlanScreen() {
     planData: null
   });
 
-  // ✅ VÉRIFICATION d'authentification au chargement
+  // VÉRIFICATION d'authentification au chargement
   useEffect(() => {
     if (!isAuthenticated) {
       console.log('🚫 Utilisateur non authentifié - Redirection vers login');
       return;
     }
 
-    // ✅ UTILISER l'utilisateur du contexte d'auth
+    // UTILISER l'utilisateur du contexte d'auth
     if (user) {
       setCurrentUserId(user.id.toString());
       console.log('👤 Utilisateur authentifié:', user.email);
     }
   }, [isAuthenticated, user]);
 
-  // ✅ CHARGEMENT initial et lors du focus
+  // CHARGEMENT initial et lors du focus
   useEffect(() => {
     if (isAuthenticated && user) {
       const userId = user.id.toString();
@@ -65,7 +65,7 @@ export default function PlanScreen() {
     }
   }, [isAuthenticated, user]);
 
-  // ✅ REFRESH à chaque focus sur la page
+  // REFRESH à chaque focus sur la page
   useFocusEffect(
     React.useCallback(() => {
       if (isAuthenticated && user) {
@@ -75,7 +75,7 @@ export default function PlanScreen() {
     }, [isAuthenticated, user])
   );
 
-  // ✅ GESTION des dates
+  // GESTION des dates
   const handleStartDateChange = (event: any, selectedDate?: Date) => {
     if (Platform.OS === 'android') {
       setShowStartDatePicker(false);
@@ -107,7 +107,7 @@ export default function PlanScreen() {
     setTempStartDate(null);
   };
 
-  // ✅ FONCTIONS du modal
+  // FONCTIONS du modal
   const openJourModal = (jour: any, dayNumber: number) => {
     console.log('📱 Ouverture modal pour jour:', dayNumber, jour);
     setSelectedJour(jour);
@@ -121,7 +121,7 @@ export default function PlanScreen() {
     setSelectedDayNumber(0);
   };
 
-  // ✅ FORMATAGE des dates
+  // FORMATAGE des dates
   const formatDateForDisplay = (dateString: string) => {
     if (!dateString) return '';
     try {
@@ -153,9 +153,9 @@ export default function PlanScreen() {
     }
   };
 
-  // ✅ GÉNÉRATION du plan avec authentification
+  // GÉNÉRATION du plan avec authentification
   const generatePlan = async () => {
-    // ✅ VÉRIFICATIONS préliminaires
+    // VÉRIFICATIONS préliminaires
     if (!isAuthenticated) {
       console.log("🚫 Utilisateur non authentifié - Redirection vers login");
       return;
@@ -189,11 +189,11 @@ export default function PlanScreen() {
         start_date: startDate,
       };
 
-      // ✅ UTILISER apiPost qui gère l'authentification automatiquement
+      // UTILISER apiPost qui gère l'authentification automatiquement
       const result = await apiPost('/ai/generate-complete-plan', planData);
       console.log('✅ Plan généré:', result);
       
-      // ✅ VÉRIFIER le succès selon votre structure API
+      // VÉRIFIER le succès selon votre structure API
       if (result.success || result.plan || result.id) {
         // Recharger les données après génération
         if (currentUserId) {
@@ -207,7 +207,7 @@ export default function PlanScreen() {
     } catch (error) {
       console.error("❌ Erreur génération plan:", error);
       
-      // ✅ GESTION D'ERREURS SPÉCIFIQUE
+      // GESTION D'ERREURS SPÉCIFIQUE
       let errorMessage = "Impossible de générer le plan d'entraînement. Veuillez réessayer.";
       
       if (typeof error === 'object' && error !== null && 'message' in error && typeof (error as any).message === 'string' && (error as any).message.includes('Session expirée')) {
@@ -236,10 +236,10 @@ export default function PlanScreen() {
     }
   };
 
-  // ✅ SUPPRESSION du plan avec authentification
+  // SUPPRESSION du plan avec authentification
   const deletePlan = async () => {
     try {
-      // ✅ VÉRIFICATIONS préliminaires
+      // VÉRIFICATIONS préliminaires
       if (!isAuthenticated) {
         Alert.alert("Non authentifié", "Vous devez être connecté pour supprimer un plan");
         return;
@@ -272,11 +272,11 @@ export default function PlanScreen() {
               try {
                 console.log('🗑️ Suppression plan:', userData.planData.pla_id);
 
-                // ✅ UTILISER apiDelete qui gère l'authentification
+                // UTILISER apiDelete qui gère l'authentification
                 const result = await apiDelete(`/plan/${userData.planData.pla_id}`);
                 console.log('✅ Plan supprimé avec succès');
                 
-                // ✅ VÉRIFIER le succès selon votre structure API
+                // VÉRIFIER le succès selon votre structure API
                 if (result.success || result.message?.includes('supprimé')) {
                   // Recharger les données après suppression
                   if (currentUserId) {
@@ -324,7 +324,7 @@ export default function PlanScreen() {
     }
   };
 
-  // ✅ VÉRIFICATION des données utilisateur avec authentification
+  // VÉRIFICATION des données utilisateur avec authentification
   const checkUserData = async (userId: string) => {
     if (!isAuthenticated) {
       console.log('❌ Utilisateur non authentifié');
@@ -335,7 +335,7 @@ export default function PlanScreen() {
     console.log('🔍 Début vérification pour userId:', userId);
     
     try {
-      // ✅ Vérifier anamnèse avec apiGet
+      // Vérifier anamnèse avec apiGet
       const checkAnamnese = async () => {
         try {
           console.log('📡 Appel API anamnèse...');
@@ -351,7 +351,7 @@ export default function PlanScreen() {
         }
       };
 
-      // ✅ Vérifier évaluation avec apiGet
+      // Vérifier évaluation avec apiGet
       const checkEvaluation = async () => {
         try {
           console.log('📡 Appel API évaluation...');
@@ -368,7 +368,7 @@ export default function PlanScreen() {
         }
       };
 
-      // ✅ Vérifier plan avec apiGet
+      // Vérifier plan avec apiGet
       const checkPlan = async () => {
         try {
           console.log('📡 Appel API plan complet...');
@@ -384,7 +384,7 @@ export default function PlanScreen() {
         }
       };
 
-      // ✅ Exécuter toutes les vérifications en parallèle
+      // Exécuter toutes les vérifications en parallèle
       const [anamneseResult, evaluationResult, planResult] = await Promise.all([
         checkAnamnese(),
         checkEvaluation(),
@@ -408,7 +408,7 @@ export default function PlanScreen() {
     } catch (error) {
       console.error('❌ Erreur vérification données:', error);
       
-      // ✅ GESTION D'ERREURS SPÉCIFIQUE
+      // GESTION D'ERREURS SPÉCIFIQUE
       if (
         typeof error === 'object' &&
         error !== null &&
@@ -432,7 +432,7 @@ export default function PlanScreen() {
         return;
       }
       
-      // ✅ RÉINITIALISER en cas d'erreur
+      // RÉINITIALISER en cas d'erreur
       setUserData({
         hasAnamnese: false,
         hasEvaluation: false,
@@ -446,7 +446,7 @@ export default function PlanScreen() {
     }
   };
 
-  // ✅ VÉRIFICATION d'authentification au niveau du composant
+  // VÉRIFICATION d'authentification au niveau du composant
   if (!isAuthenticated) {
     return (
       <View style={{
@@ -486,7 +486,7 @@ export default function PlanScreen() {
       contentContainerStyle={planStyles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {/* ✅ HEADER avec informations utilisateur */}
+      {/* HEADER avec informations utilisateur */}
       <View style={[planStyles.header, { backgroundColor: theme.colors.surface }]}>
         <View style={{ flex: 1 }}>
           <Text style={[planStyles.mainTitle, { color: theme.colors.primary }]}>
@@ -500,7 +500,7 @@ export default function PlanScreen() {
           )}
         </View>
         
-        {/* ✅ BOUTON RAFRAÎCHIR */}
+        {/* BOUTON RAFRAÎCHIR */}
         <Pressable
           style={[
             planStyles.refreshButton,
@@ -525,7 +525,7 @@ export default function PlanScreen() {
         </Pressable>
       </View>
 
-      {/* ✅ LOADING STATE */}
+      {/* LOADING STATE */}
       {isLoading && (
         <View style={planStyles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.accent} />
@@ -535,7 +535,7 @@ export default function PlanScreen() {
         </View>
       )}
 
-      {/* ✅ SECTION GÉNÉRATION DE PLAN */}
+      {/* SECTION GÉNÉRATION DE PLAN */}
       {!isLoading && !userData.hasPlan && (
         <View style={planStyles.generateSection}>
           <View style={[planStyles.prerequisCard, { backgroundColor: theme.colors.surface }]}>
@@ -561,7 +561,7 @@ export default function PlanScreen() {
               </View>
             </View>
 
-            {/* ✅ SECTION DATE DE DÉBUT - OBLIGATOIRE */}
+            {/* SECTION DATE DE DÉBUT - OBLIGATOIRE */}
             {(userData.hasAnamnese && userData.hasEvaluation) && (
               <View style={planStyles.dateSection}>
                 <Text style={[planStyles.dateLabel, { color: theme.colors.primary }]}>
@@ -597,7 +597,7 @@ export default function PlanScreen() {
                   />
                 </Pressable>
 
-                {/* ✅ MESSAGE D'ERREUR si date manquante */}
+                {/* MESSAGE D'ERREUR si date manquante */}
                 {!startDate && (userData.hasAnamnese && userData.hasEvaluation) && (
                   <Text style={[planStyles.errorText, { color: theme.colors.error }]}>
                     La date de début est obligatoire pour générer votre plan
@@ -606,7 +606,7 @@ export default function PlanScreen() {
               </View>
             )}
 
-            {/* ✅ BOUTON pour générer le plan */}
+            {/* BOUTON pour générer le plan */}
             <View style={planStyles.generateButtonContainer}>
               <Pressable
                 style={[
@@ -629,7 +629,7 @@ export default function PlanScreen() {
                 )}
               </Pressable>
 
-              {/* ✅ Messages d'aide conditionnels */}
+              {/* Messages d'aide conditionnels */}
               {(!userData.hasAnamnese || !userData.hasEvaluation) && (
                 <Text style={[planStyles.helpText, { color: theme.colors.warning }]}>
                   Complétez votre anamnèse et évaluation pour générer votre plan personnalisé {'\n'} Allez sous l'onglet profil pour compléter ces sections.
@@ -641,10 +641,10 @@ export default function PlanScreen() {
         </View>
       )}
 
-      {/* ✅ AFFICHAGE DU PLAN */}
+      {/* AFFICHAGE DU PLAN */}
       {!isLoading && userData.hasPlan && userData.planData && (
         <View style={planStyles.planSection}>
-          {/* ✅ BOUTON supprimer avec confirmation */}
+          {/* BOUTON supprimer avec confirmation */}
           <View style={{ padding: 20 }}>
             <Pressable 
               style={[
@@ -668,7 +668,7 @@ export default function PlanScreen() {
             </Pressable>
           </View>
 
-          {/* ✅ HEADER du plan */}
+          {/* HEADER du plan */}
           <View style={[planStyles.planHeader, { backgroundColor: theme.colors.surface }]}>
             <View style={planStyles.planTitleContainer}>
               <Text style={[planStyles.planTitle, { color: theme.colors.primary }]}>
@@ -696,7 +696,7 @@ export default function PlanScreen() {
             </View>
           </View>
 
-          {/* ✅ LISTE des jours avec modal */}
+          {/* LISTE des jours avec modal */}
           {userData.planData.jours && userData.planData.jours.length > 0 ? (
             <View style={planStyles.daysSection}>
               <Text style={[planStyles.sectionTitle, { color: theme.colors.primary }]}>
@@ -726,7 +726,7 @@ export default function PlanScreen() {
                     <FontAwesome name="chevron-right" size={16} color={theme.colors.secondary} />
                   </View>
 
-                  {/* ✅ APERÇU des activités */}
+                  {/* APERÇU des activités */}
                   {jour.activites && jour.activites.length > 0 ? (
                     <View style={[planStyles.activitiesPreview, { backgroundColor: theme.colors.background }]}>
                       <Text style={[planStyles.activitiesCount, { color: theme.colors.accent }]}>
@@ -760,7 +760,7 @@ export default function PlanScreen() {
         </View>
       )}
 
-      {/* ✅ MODAL pour afficher les détails du jour */}
+      {/* MODAL pour afficher les détails du jour */}
       <ActiviteGenereeModal
         visible={modalVisible}
         onClose={closeJourModal}
@@ -768,7 +768,7 @@ export default function PlanScreen() {
         dayNumber={selectedDayNumber}
       />
 
-      {/* ✅ DateTimePicker pour la date de début */}
+      {/* DateTimePicker pour la date de début */}
       {showStartDatePicker && (
         <>
           {Platform.OS === 'ios' && (
@@ -822,7 +822,7 @@ export default function PlanScreen() {
         </>
       )}
 
-      {/* ✅ ESPACE EN BAS */}
+      {/* ESPACE EN BAS */}
       <View style={{ height: 100 }} />
     </ScrollView>
   );

@@ -7,7 +7,6 @@ const { width } = Dimensions.get('window');
 const planStyles = StyleSheet.create({
   container: {
     flex: 1,
-    // ❌ SUPPRIMER : backgroundColor: '#F8F9FA',
   },
   scrollContent: {
     paddingBottom: 30,
@@ -18,7 +17,7 @@ const planStyles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 30,
     paddingBottom: 20,
-    // ❌ SUPPRIMER : backgroundColor: 'white',
+
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     // Les shadows seront appliquées via theme.shadows
@@ -26,12 +25,10 @@ const planStyles = StyleSheet.create({
   mainTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    // ❌ SUPPRIMER : color: '#1A1A1A',
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    // ❌ SUPPRIMER : color: '#666',
     textAlign: 'center',
     marginTop: 5,
   },
@@ -44,7 +41,6 @@ const planStyles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 15,
-    // ❌ SUPPRIMER : color: '#666',
     fontSize: 16,
   },
 
@@ -54,7 +50,6 @@ const planStyles = StyleSheet.create({
     gap: 20,
   },
   prerequisCard: {
-    // ❌ SUPPRIMER : backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
     // Les shadows seront appliquées via theme.shadows
@@ -62,7 +57,6 @@ const planStyles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '600',
-    // ❌ SUPPRIMER : color: '#1A1A1A',
     marginBottom: 15,
   },
   prerequisList: {
@@ -88,7 +82,6 @@ const planStyles = StyleSheet.create({
   },
   prerequisText: {
     fontSize: 16,
-    // ❌ SUPPRIMER : color: '#333',
   },
   generateButton: {
     // La backgroundColor sera définie dynamiquement
@@ -110,7 +103,6 @@ const planStyles = StyleSheet.create({
     gap: 20,
   },
   planHeader: {
-    // ❌ SUPPRIMER : backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
     // Les shadows seront appliquées via theme.shadows
@@ -121,7 +113,6 @@ const planStyles = StyleSheet.create({
   planTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    // ❌ SUPPRIMER : color: '#1A1A1A',
     textAlign: 'center',
   },
   planInfoRow: {
@@ -135,18 +126,15 @@ const planStyles = StyleSheet.create({
   planInfoDivider: {
     width: 1,
     height: 30,
-    // ❌ SUPPRIMER : backgroundColor: '#E0E0E0',
     marginHorizontal: 15,
   },
   planInfoLabel: {
     fontSize: 12,
-    // ❌ SUPPRIMER : color: '#666',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   planInfoValue: {
     fontSize: 14,
-    // ❌ SUPPRIMER : color: '#333',
     fontWeight: '500',
     marginTop: 4,
   },
@@ -172,11 +160,9 @@ const planStyles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    // ❌ SUPPRIMER : color: '#1A1A1A',
     marginBottom: 5,
   },
   dayCard: {
-    // ❌ SUPPRIMER : backgroundColor: 'white',
     borderRadius: 16,
     padding: 20,
     // Les shadows seront appliquées via theme.shadows
@@ -191,12 +177,11 @@ const planStyles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    // ❌ SUPPRIMER : backgroundColor: '#007AFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   dayNumberText: {
-    color: 'white', // ✅ GARDER car toujours blanc sur badge coloré
+    color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -206,21 +191,17 @@ const planStyles = StyleSheet.create({
   dayTitle: {
     fontSize: 18,
     fontWeight: '600',
-    // ❌ SUPPRIMER : color: '#1A1A1A',
   },
   dayDate: {
     fontSize: 14,
-    // ❌ SUPPRIMER : color: '#666',
     marginTop: 2,
   },
   dayDescriptionContainer: {
-    // ❌ SUPPRIMER : backgroundColor: '#F8F9FA',
     borderRadius: 12,
     padding: 15,
   },
   dayDescription: {
     fontSize: 14,
-    // ❌ SUPPRIMER : color: '#555',
     lineHeight: 20,
   },
 
@@ -229,17 +210,15 @@ const planStyles = StyleSheet.create({
     gap: 12,
   },
   activityCard: {
-    // ❌ SUPPRIMER : backgroundColor: '#F8F9FA',
     borderRadius: 12,
     padding: 15,
     borderLeftWidth: 4,
-    borderLeftColor: '#4CAF50', // ✅ GARDER cette couleur d'accent
+    borderLeftColor: '#4CAF50', 
     gap: 10,
   },
   activityName: {
     fontSize: 16,
     fontWeight: '600',
-    // ❌ SUPPRIMER : color: '#1A1A1A',
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -252,22 +231,21 @@ const planStyles = StyleSheet.create({
     borderRadius: 20,
   },
   typeTag: {
-    backgroundColor: '#007AFF', // ✅ GARDER les couleurs des tags
+    backgroundColor: '#007AFF', 
   },
   durationTag: {
-    backgroundColor: '#FF9500', // ✅ GARDER les couleurs des tags
+    backgroundColor: '#FF9500', 
   },
   intensityTag: {
-    backgroundColor: '#34C759', // ✅ GARDER les couleurs des tags
+    backgroundColor: '#34C759',
   },
   tagText: {
-    color: 'white', // ✅ GARDER car toujours blanc sur tags colorés
+    color: 'white',
     fontSize: 12,
     fontWeight: '500',
   },
   activityDescription: {
     fontSize: 14,
-    // ❌ SUPPRIMER : color: '#666',
     lineHeight: 18,
   },
   noActivityContainer: {
@@ -276,13 +254,11 @@ const planStyles = StyleSheet.create({
   },
   noActivityText: {
     fontSize: 14,
-    // ❌ SUPPRIMER : color: '#999',
     fontStyle: 'italic',
   },
 
   // États vides
   noDaysContainer: {
-    // ❌ SUPPRIMER : backgroundColor: 'white',
     borderRadius: 16,
     padding: 30,
     alignItems: 'center',
@@ -290,19 +266,16 @@ const planStyles = StyleSheet.create({
   },
   noDaysText: {
     fontSize: 16,
-    // ❌ SUPPRIMER : color: '#FF9500',
     fontWeight: '500',
     textAlign: 'center',
   },
   noDaysSubtext: {
     fontSize: 14,
-    // ❌ SUPPRIMER : color: '#666',
     textAlign: 'center',
     marginTop: 5,
   },
   // styles/screens/PlanStyles.ts - AJOUTER ces styles
 
-// ✅ Styles pour le bouton de génération
 generateButtonContainer: {
   marginTop: 20,
   gap: 12,
@@ -386,7 +359,7 @@ errorText: {
 },
 // styles/screens/PlanStyles.ts - AJOUTER ces styles
 
-// ✅ Styles pour le DatePicker customisé
+// Styles pour le DatePicker customisé
 datePickerContainer: {
   position: 'absolute',
   top: '50%',

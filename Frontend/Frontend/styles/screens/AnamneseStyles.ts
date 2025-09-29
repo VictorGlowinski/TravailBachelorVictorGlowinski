@@ -1,10 +1,10 @@
-// ✅ STYLES CORRIGÉS
+
 import { StyleSheet, Platform } from 'react-native';
 
 const anamneseStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa", // ✅ CORRECTION : Couleur normale
+    backgroundColor: "#f8f9fa", 
   },
 
   header: {
@@ -94,7 +94,7 @@ const anamneseStyles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     backgroundColor: "white",
-    color: "#333", // ✅ AJOUT : Couleur du texte
+    color: "#333", 
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,

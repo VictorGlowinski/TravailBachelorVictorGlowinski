@@ -49,7 +49,6 @@ const RegisterStyles = StyleSheet.create({
         fontSize: 16,
         backgroundColor: 'white',
     },
-    // ✅ AJOUT : Style pour le texte d'aide
     helpText: {
         fontSize: 12,
         color: '#666',
@@ -128,7 +127,7 @@ const RegisterStyles = StyleSheet.create({
     top: '50%',
     left: 20,
     right: 20,
-    backgroundColor: '#ffffff', // ✅ FOND BLANC PUR
+    backgroundColor: '#ffffff', 
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -137,7 +136,7 @@ const RegisterStyles = StyleSheet.create({
     elevation: 8,
     zIndex: 1000,
     transform: [{ translateY: -150 }],
-    borderWidth: 1, // ✅ AJOUTER une bordure
+    borderWidth: 1,
     borderColor: '#e0e0e0',
 },
 datePickerHeader: {
@@ -148,12 +147,12 @@ datePickerHeader: {
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#e1e8ed',
-    backgroundColor: '#f8f9fa', // ✅ HEADER LÉGÈREMENT GRIS
+    backgroundColor: '#f8f9fa', 
 },
 datePickerTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2c3e50', // ✅ COULEUR FONCÉE
+    color: '#2c3e50', 
 },
 datePickerCancelButton: {
     paddingHorizontal: 16,
@@ -161,11 +160,11 @@ datePickerCancelButton: {
     borderRadius: 8,
     minWidth: 70,
     alignItems: 'center',
-    backgroundColor: '#f8f9fa', // ✅ FOND POUR MEILLEURE VISIBILITÉ
+    backgroundColor: '#f8f9fa',
 },
 datePickerCancelText: {
     fontSize: 14,
-    fontWeight: '600', // ✅ PLUS GRAS
+    fontWeight: '600',
     color: '#e74c3c',
 },
 datePickerConfirmButton: {
@@ -175,7 +174,7 @@ datePickerConfirmButton: {
     backgroundColor: '#007AFF',
     minWidth: 70,
     alignItems: 'center',
-    shadowColor: '#007AFF', // ✅ OMBRE COLORÉE
+    shadowColor: '#007AFF',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -183,13 +182,13 @@ datePickerConfirmButton: {
 },
 datePickerConfirmText: {
     fontSize: 14,
-    fontWeight: '600', // ✅ PLUS GRAS
+    fontWeight: '600',
     color: 'white',
 },
 datePickerIOS: {
     height: 200,
-    backgroundColor: '#ffffff', // ✅ FOND BLANC
-    paddingHorizontal: 20, // ✅ ESPACEMENT
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 20,
 },
 });
 

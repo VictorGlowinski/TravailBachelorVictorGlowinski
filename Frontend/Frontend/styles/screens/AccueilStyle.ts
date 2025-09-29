@@ -5,7 +5,7 @@ import { StyleSheet, Dimensions, Platform } from 'react-native';
 const { width } = Dimensions.get('window');
 
 const accueilStyles = StyleSheet.create({
-  // ✅ CONTAINER PRINCIPAL
+  // CONTAINER PRINCIPAL
   container: {
     flex: 1,
     // backgroundColor sera définie dynamiquement
@@ -14,7 +14,7 @@ const accueilStyles = StyleSheet.create({
     paddingBottom: 30,
   },
 
-  // ✅ HEADER MODERNISÉ
+  // HEADER MODERNISÉ
   header: {
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
@@ -37,7 +37,7 @@ const accueilStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ CARTES PRINCIPALES
+  // CARTES PRINCIPALES
   card: {
     margin: 20,
     borderRadius: 16,
@@ -57,7 +57,7 @@ const accueilStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ ÉTAT DE CHARGEMENT
+  // ÉTAT DE CHARGEMENT
   loadingText: {
     marginTop: 15,
     fontSize: 16,
@@ -65,7 +65,7 @@ const accueilStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ INFORMATIONS DE DATE
+  // INFORMATIONS DE DATE
   dateText: {
     fontSize: 16,
     fontWeight: '500',
@@ -80,7 +80,7 @@ const accueilStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ CONTAINER DES ACTIVITÉS
+  // CONTAINER DES ACTIVITÉS
   activitiesContainer: {
     gap: 12,
   },
@@ -115,7 +115,7 @@ const accueilStyles = StyleSheet.create({
     textTransform: 'uppercase',
   },
 
-  // ✅ DÉTAILS DES ACTIVITÉS
+  // DÉTAILS DES ACTIVITÉS
   activityDetails: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -142,7 +142,7 @@ const accueilStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ ÉTATS VIDES
+  // ÉTATS VIDES
   emptyState: {
     alignItems: 'center',
     gap: 16,
@@ -162,7 +162,7 @@ const accueilStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ BOUTONS D'ACTION
+  // BOUTONS D'ACTION
   actionButtons: {
     width: '100%',
     gap: 12,
@@ -184,7 +184,7 @@ const accueilStyles = StyleSheet.create({
     color: 'white',
   },
 
-  // ✅ ÉTATS SPÉCIAUX
+  // ÉTATS SPÉCIAUX
   restDayContainer: {
     alignItems: 'center',
     paddingVertical: 30,
@@ -205,7 +205,7 @@ const accueilStyles = StyleSheet.create({
     // color sera définie dynamiquement
   },
 
-  // ✅ GUIDE UTILISATEUR (pas de plan)
+  // GUIDE UTILISATEUR (pas de plan)
   guideContainer: {
     alignItems: 'center',
     paddingVertical: 20,
@@ -264,7 +264,7 @@ const accueilStyles = StyleSheet.create({
     opacity: 0.6,
   },
 
-  // ✅ ERREURS ET MESSAGES
+  // ERREURS ET MESSAGES
   errorContainer: {
     alignItems: 'center',
     paddingVertical: 30,
@@ -297,7 +297,7 @@ const accueilStyles = StyleSheet.create({
     color: 'white',
   },
 
-  // ✅ INDICATEURS DE PROGRESSION
+  // INDICATEURS DE PROGRESSION
   progressIndicators: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -314,7 +314,7 @@ const accueilStyles = StyleSheet.create({
     // backgroundColor sera définie dynamiquement (accent)
   },
 
-  // ✅ ANIMATIONS ET TRANSITIONS
+  // ANIMATIONS ET TRANSITIONS
   fadeIn: {
     opacity: 1,
   },
@@ -322,19 +322,19 @@ const accueilStyles = StyleSheet.create({
     opacity: 0.5,
   },
 
-  // ✅ RESPONSIVE
+  // RESPONSIVE
   largeScreen: {
     maxWidth: 600,
     alignSelf: 'center',
   },
 
-  // ✅ ACCESSIBILITÉ
+  // ACCESSIBILITÉ
   accessibilityHint: {
     fontSize: 12,
     // color sera définie dynamiquement
   },
 
-  // ✅ STYLES POUR TAGS/BADGES
+  // STYLES POUR TAGS/BADGES
   tagContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -362,7 +362,7 @@ const accueilStyles = StyleSheet.create({
     backgroundColor: '#2196F3',
   },
 
-  // ✅ STYLES LEGACY (compatibilité avec globalStyles)
+  // STYLES LEGACY (compatibilité avec globalStyles)
   activitiesSection: {
     marginTop: 20,
   },

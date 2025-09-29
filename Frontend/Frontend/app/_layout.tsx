@@ -53,7 +53,7 @@ function RootLayoutNav() {
   const segments = useSegments();
 
   useEffect(() => {
-    if (isLoading) return; // ✅ Attendre la vérification
+    if (isLoading) return; // Attendre la vérification
 
     const inAuthGroup = segments[0] === '(auth)';
     
@@ -65,15 +65,15 @@ function RootLayoutNav() {
     });
 
     if (!isAuthenticated && !inAuthGroup) {
-      // ✅ Utilisateur non connecté ET pas dans auth → aller vers login
+      // Utilisateur non connecté ET pas dans auth → aller vers login
       console.log('🔄 Redirecting to login (not authenticated, not in auth)');
       router.replace('/(auth)/login');
     } else if (isAuthenticated && inAuthGroup) {
-      // ✅ Utilisateur connecté ET dans auth → aller vers l'app
+      // Utilisateur connecté ET dans auth → aller vers l'app
       console.log('🔄 Redirecting to tabs (authenticated, in auth)');
       router.replace('/(tabs)');
     }
-    // ✅ IMPORTANT : Ne rien faire dans les autres cas pour permettre la navigation dans auth
+    // IMPORTANT : Ne rien faire dans les autres cas pour permettre la navigation dans auth
     
   }, [isAuthenticated, isLoading, segments]);
 

@@ -68,7 +68,7 @@ export default function ProfilScreen() {
         setSettingsModalVisible(true);
     };
 
-    // ✅ FONCTION pour vérifier les données utilisateur avec authentification
+    // FONCTION pour vérifier les données utilisateur avec authentification
     const checkUserData = async () => {
         if (!isAuthenticated || !user?.id) {
             console.log('❌ Utilisateur non authentifié');
@@ -115,7 +115,7 @@ export default function ProfilScreen() {
                 }
             };
 
-            // ✅ Exécuter les vérifications en parallèle
+            // Exécuter les vérifications en parallèle
             const [anamneseResult, evaluationResult] = await Promise.all([
                 checkAnamnese(),
                 checkEvaluation()
@@ -135,7 +135,7 @@ export default function ProfilScreen() {
         } catch (error) {
             console.error('❌ Erreur vérification données:', error);
             
-            // ✅ GESTION D'ERREURS SPÉCIFIQUE
+            // GESTION D'ERREURS SPÉCIFIQUE
             if (
                 typeof error === 'object' &&
                 error !== null &&
