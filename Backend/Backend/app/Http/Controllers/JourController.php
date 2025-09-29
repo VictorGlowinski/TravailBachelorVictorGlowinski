@@ -86,20 +86,20 @@ class JourController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            // ✅ VALIDATION des données
+            // VALIDATION des données
             $validated = $request->validate([
                 'jou_plan_id' => 'required|integer|exists:plan,pla_id',
                 'jou_date' => 'required|date',
                 'jou_description' => 'nullable|string|max:1000'
             ]);
             
-            // ✅ CRÉATION avec Eloquent standard
+            // CRÉATION avec Eloquent standard
             $jour = Jour::create($validated);
             
             return response()->json([
                 'success' => true,
                 'message' => 'Jour créé avec succès',
-                'jour' => $jour // ✅ CORRECTION : Format attendu par OpenAIController
+                'jour' => $jour // CORRECTION : Format attendu par OpenAIController
             ], 201);
             
         } catch (ValidationException $e) {
@@ -134,14 +134,14 @@ class JourController extends Controller
                 ], 404);
             }
             
-            // ✅ VALIDATION des données
+            // VALIDATION des données
             $validated = $request->validate([
                 'jou_plan_id' => 'sometimes|required|integer|exists:plan,pla_id',
                 'jou_date' => 'sometimes|required|date',
                 'jou_description' => 'nullable|string|max:1000'
             ]);
             
-            // ✅ MISE À JOUR avec Eloquent
+            // MISE À JOUR avec Eloquent
             $jour->update($validated);
             
             return response()->json([
@@ -198,7 +198,7 @@ class JourController extends Controller
     }
 
     /**
-     * ✅ AJOUT : Récupérer les jours d'un plan spécifique
+     * AJOUT : Récupérer les jours d'un plan spécifique
      */
     public function getByPlan(Request $request, $planId): JsonResponse
     {
@@ -286,7 +286,7 @@ class JourController extends Controller
     public function getTodayActivitiesForUser(Request $request, $userId): JsonResponse
     {
         try {
-            // ✅ Utiliser la nouvelle méthode statique
+            // Utiliser la nouvelle méthode statique
             $jour = Jour::getTodayActivitiesForUser($userId);
 
             if (!$jour) {

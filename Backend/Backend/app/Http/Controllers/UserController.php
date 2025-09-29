@@ -16,7 +16,7 @@ use Exception;
 
 class UserController extends Controller
 {
-    // ✅ MÉTHODE CORRIGÉE : Inscription
+    // MÉTHODE CORRIGÉE : Inscription
     public function register(Request $request): JsonResponse
     {
         try {
@@ -70,7 +70,7 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la création du compte',
-                'error' => $e->getMessage() // ✅ AJOUT : Détail de l'erreur en dev
+                'error' => $e->getMessage() 
             ], 500);
         }
     }
@@ -91,7 +91,7 @@ class UserController extends Controller
             ], 422);
         }
 
-        // ✅ VÉRIFIER les identifiants
+      
         if (!Auth::attempt($request->only('email', 'password'))) {
             return response()->json([
                 'success' => false,
@@ -101,7 +101,6 @@ class UserController extends Controller
 
         $user = Auth::user();
         
-        // ✅ GÉNÉRER LE TOKEN SANCTUM
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
@@ -113,7 +112,7 @@ class UserController extends Controller
                 'use_date_naissance' => $user->use_date_naissance,
                 // Autres champs si nécessaire
             ],
-            'token' => $token, // ✅ ENVOYER LE TOKEN
+            'token' => $token, 
             'token_type' => 'Bearer'
         ], 200);
 
@@ -126,11 +125,10 @@ class UserController extends Controller
     }
 }
 
-// ✅ AJOUTER une méthode logout pour révoquer le token
 public function logout(Request $request): JsonResponse
 {
     try {
-        // ✅ RÉVOQUER LE TOKEN ACTUEL
+        
         $request->user()->currentAccessToken()->delete();
         
         return response()->json([
@@ -147,7 +145,6 @@ public function logout(Request $request): JsonResponse
     }
 }
 
-    // ✅ MÉTHODE CORRIGÉE : Récupérer l'utilisateur connecté
     public function me(Request $request): JsonResponse
     {
         return response()->json([

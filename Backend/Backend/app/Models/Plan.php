@@ -26,7 +26,6 @@ class Plan extends Model
         'pla_fin' => 'date',
     ];
 
-    // ✅ RELATIONS SEULEMENT
     public function user()
     {
         return $this->belongsTo(User::class, 'pla_user_id', 'id');
@@ -49,7 +48,6 @@ class Plan extends Model
         );
     }
 
-    // ✅ SCOPES SI NÉCESSAIRES
     public function scopeSearch($query, ?string $keyword)
     {
         if (!$keyword) return $query;

@@ -92,7 +92,6 @@ class ActiviteGenereeController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            // ✅ VALIDATION des données
             $validated = $request->validate([
                 'gen_jour_id' => 'required|integer|exists:jour,jou_id',
                 'gen_nom' => 'nullable|string|max:255',
@@ -104,13 +103,12 @@ class ActiviteGenereeController extends Controller
                 'gen_source' => 'required|string|max:100'
             ]);
             
-            // ✅ CRÉATION avec Eloquent standard
             $activite = ActiviteGeneree::create($validated);
             
             return response()->json([
                 'success' => true,
                 'message' => 'Activité créée avec succès',
-                'activite_generee' => $activite // ✅ CORRECTION : Format attendu par OpenAIController
+                'activite_generee' => $activite 
             ], 201);
             
         } catch (ValidationException $e) {
@@ -145,7 +143,7 @@ class ActiviteGenereeController extends Controller
                 ], 404);
             }
             
-            // ✅ VALIDATION des données
+            // VALIDATION des données
             $validated = $request->validate([
                 'gen_jour_id' => 'sometimes|required|integer|exists:jour,jou_id',
                 'gen_nom' => 'nullable|string|max:255',
@@ -157,7 +155,7 @@ class ActiviteGenereeController extends Controller
                 'gen_source' => 'sometimes|required|string|max:100'
             ]);
             
-            // ✅ MISE À JOUR avec Eloquent
+            // MISE À JOUR avec Eloquent
             $activite->update($validated);
             
             return response()->json([
@@ -213,9 +211,7 @@ class ActiviteGenereeController extends Controller
         }
     }
 
-    /**
-     * ✅ AJOUT : Récupérer les activités d'un jour spécifique
-     */
+    
     public function getByJour(Request $request, $jourId): JsonResponse
     {
         try {

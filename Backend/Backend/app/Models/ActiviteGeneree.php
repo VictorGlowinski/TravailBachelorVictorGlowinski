@@ -25,11 +25,11 @@ class ActiviteGeneree extends Model
     protected $casts = [
         'gen_id'        => 'integer',
         'gen_jour_id'   => 'integer',
-        'gen_duree'     => 'string', // ✅ Gardé string comme vous l'aviez
+        'gen_duree'     => 'string', 
         'gen_distance'  => 'float',
     ];
 
-    // ✅ RELATIONS SEULEMENT
+    
     public function jour()
     {
         return $this->belongsTo(Jour::class, 'gen_jour_id', 'jou_id');
@@ -47,7 +47,6 @@ class ActiviteGeneree extends Model
         );
     }
 
-    // ✅ SCOPES SEULEMENT
     public function scopeSearch($query, ?string $keyword)
     {
         if (!$keyword) return $query;

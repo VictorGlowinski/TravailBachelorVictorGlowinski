@@ -23,7 +23,7 @@ class Jour extends Model
         'jou_date' => 'date',
     ];
 
-    // ✅ RELATIONS SEULEMENT
+    // RELATIONS SEULEMENT
     public function plan()
     {
         return $this->belongsTo(Plan::class, 'jou_plan_id', 'pla_id');
@@ -34,7 +34,7 @@ class Jour extends Model
         return $this->hasMany(ActiviteGeneree::class, 'gen_jour_id', 'jou_id');
     }
 
-    // ✅ SCOPES SEULEMENT
+    // SCOPES SEULEMENT
     public function scopeSearch($query, ?string $keyword)
     {
         if (!$keyword) return $query;

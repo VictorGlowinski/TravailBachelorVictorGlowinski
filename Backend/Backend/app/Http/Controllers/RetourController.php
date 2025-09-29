@@ -1,5 +1,4 @@
 <?php
-// ✅ CORRIGER RetourController.php
 
 namespace App\Http\Controllers;
 
@@ -38,19 +37,19 @@ class RetourController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            // ✅ VALIDATION avec les bons noms de champs
+            // VALIDATION avec les bons noms de champs
             $validatedData = $request->validate([
                 'ret_commentaire' => 'required|string|max:1000',
                 'ret_date' => 'nullable|date',
                 'ret_user_id' => 'nullable|exists:users,id'
             ]);
 
-            // ✅ AJOUTER l'utilisateur authentifié si non fourni
+            // AJOUTER l'utilisateur authentifié si non fourni
             if (auth()->check() && !isset($validatedData['ret_user_id'])) {
                 $validatedData['ret_user_id'] = auth()->id();
             }
 
-            // ✅ AJOUTER la date actuelle si non fournie
+            // AJOUTER la date actuelle si non fournie
             if (!isset($validatedData['ret_date'])) {
                 $validatedData['ret_date'] = now()->format('Y-m-d');
             }

@@ -20,45 +20,45 @@ Route::post('/login', [UserController::class, 'login']);
 // ROUTES PROTÉGÉES (AUTHENTIFICATION REQUISE)
 Route::middleware('auth:sanctum')->group(function () {
     
-    // 🔐 UTILISATEUR AUTHENTIFIÉ
+    // UTILISATEUR AUTHENTIFIÉ
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
     Route::get('/me', [UserController::class, 'me']);
     Route::post('/logout', [UserController::class, 'logout']);
     
-    // 🔐 GESTION UTILISATEURS (Admin uniquement recommandé)
+    // GESTION UTILISATEURS (Admin uniquement recommandé)
     Route::apiResource('users', UserController::class)->except(['store']); // store = register
     Route::put('/users/{id}/password', [UserController::class, 'updatePassword']);
     
-    // 🔐 ANAMNÈSE (Données sensibles de santé)
+    // ANAMNÈSE (Données sensibles de santé)
     Route::get('/anamnese/user/{userId}', [AnamneseController::class, 'getAnamneseByUserId']);
     Route::apiResource('anamnese', AnamneseController::class);
     
-    // 🔐 ÉVALUATION INITIALE (Données sensibles de santé)
+    // ÉVALUATION INITIALE (Données sensibles de santé)
     Route::get('/evaluation-initiale/user/{userId}', [EvaluationInitialeController::class, 'getEvaluationInitialeByUserId']);
     Route::apiResource('evaluation-initiale', EvaluationInitialeController::class);
     
-    // 🔐 PLANS D'ENTRAÎNEMENT (Données personnelles)
+    // PLANS D'ENTRAÎNEMENT (Données personnelles)
     Route::apiResource('plan', PlanController::class);
     Route::get('/plans/{planId}/jours', [JourController::class, 'getByPlan']);
     Route::get('/plans/user/{userId}', [PlanController::class, 'getPlanByUserID']);
     Route::get('/plans/user/{userId}/complete', [PlanController::class, 'getUserPlanComplete']);
     
-    // 🔐 JOURS ET ACTIVITÉS (Données personnelles)
+    // JOURS ET ACTIVITÉS (Données personnelles)
     Route::apiResource('jour', JourController::class);
     Route::get('/jours/user/{userId}', [JourController::class, 'getUserJours']);
     Route::get('/jours/user/{userId}/today', [JourController::class, 'getTodayActivitiesForUser']);
     Route::get('/jours/{jourId}/activites', [ActiviteGenereeController::class, 'getByJour']);
     
-    // 🔐 ACTIVITÉS GÉNÉRÉES ET RÉALISÉES
+    // ACTIVITÉS GÉNÉRÉES ET RÉALISÉES
     Route::apiResource('activite-generee', ActiviteGenereeController::class);
     Route::apiResource('activite-realisee', ActiviteRealiseeController::class);
     
-    // 🔐 RETOURS/FEEDBACK
+    // RETOURS/FEEDBACK
     Route::apiResource('retour', RetourController::class);
     
-    // 🔐 IA - RESSOURCES COÛTEUSES (Protection contre abus)
+    // IA - RESSOURCES COÛTEUSES (Protection contre abus)
     Route::prefix('ai')->group(function () {
     Route::post('/generate-complete-plan', [OpenAIController::class, 'generateCompleteTrainingPlan']);
     Route::post('/generate-training-plan', [OpenAIController::class, 'generateTrainingPlan']);

@@ -39,14 +39,14 @@ class OpenAIController extends Controller
     public function generateCompleteTrainingPlan(Request $request): JsonResponse
 {
     try {
-        // ✅ AJOUTER la validation de la date de début
+        // AJOUTER la validation de la date de début
         $validated = $request->validate([
             'user_id' => 'required|integer|exists:users,id',
-            'start_date' => 'nullable|date|after_or_equal:today' // ✅ NOUVEAU CHAMP
+            'start_date' => 'nullable|date|after_or_equal:today' // NOUVEAU CHAMP
         ]);
 
         $userId = $validated['user_id'];
-        $startDate = $validated['start_date'] ?? null; // ✅ RÉCUPÉRER la date
+        $startDate = $validated['start_date'] ?? null; // RÉCUPÉRER la date
 
         // 1. Récupérer les données utilisateur (identique)
         $anamnese = Anamnese::where('ana_user_id', $userId)->first();
@@ -65,9 +65,9 @@ class OpenAIController extends Controller
             ], 404);
         }
 
-        // 2. ✅ ÉTAPE 1 : Générer le plan avec IA ET date de début
+        // 2. ÉTAPE 1 : Générer le plan avec IA ET date de début
         $this->openAIService->setUserData($anamnese->toArray(), $evaluationInitiale->toArray());
-        $planResponse = $this->openAIService->generateTrainingPlan($startDate); // ✅ PASSER la date
+        $planResponse = $this->openAIService->generateTrainingPlan($startDate); // PASSER la date
         $planData = json_decode($planResponse, true);
         
         if (!$planData) {
@@ -140,7 +140,7 @@ class OpenAIController extends Controller
                 'plan' => $plan,
                 'jours_count' => count($jours),
                 'activites_count' => count($activitesCreees),
-                'start_date' => $plan['pla_debut'] // ✅ RETOURNER la date utilisée
+                'start_date' => $plan['pla_debut'] 
             ]
         ], 201);
 
@@ -148,7 +148,7 @@ class OpenAIController extends Controller
         Log::error('Erreur génération plan complet IA:', [
             'error' => $e->getMessage(),
             'user_id' => $request->input('user_id'),
-            'start_date' => $request->input('start_date') // ✅ LOGGER la date
+            'start_date' => $request->input('start_date') 
         ]);
 
         return response()->json([
@@ -165,7 +165,7 @@ public function generateTrainingPlan(Request $request): JsonResponse
     try {
         $validated = $request->validate([
             'user_id' => 'required|integer|exists:users,id',
-            'start_date' => 'nullable|date|after_or_equal:today' // ✅ NOUVEAU CHAMP
+            'start_date' => 'nullable|date|after_or_equal:today' 
         ]);
 
         $userId = $validated['user_id'];
@@ -175,7 +175,7 @@ public function generateTrainingPlan(Request $request): JsonResponse
         $evaluationInitiale = EvaluationInitiale::where('eva_user_id', $userId)->firstOrFail();
 
         $this->openAIService->setUserData($anamnese->toArray(), $evaluationInitiale->toArray());
-        $planResponse = $this->openAIService->generateTrainingPlan($startDate); // ✅ PASSER la date
+        $planResponse = $this->openAIService->generateTrainingPlan($startDate); 
         $planData = json_decode($planResponse, true);
         
         if (!$planData) {

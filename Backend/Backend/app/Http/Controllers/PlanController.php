@@ -88,7 +88,7 @@ class PlanController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            // ✅ VALIDATION des données
+            // VALIDATION des données
             $validated = $request->validate([
                 'pla_user_id' => 'required|integer|exists:users,id',
                 'pla_nom' => 'required|string|max:255',
@@ -96,7 +96,7 @@ class PlanController extends Controller
                 'pla_fin' => 'nullable|date|after_or_equal:pla_debut'
             ]);
             
-            // ✅ CRÉATION avec les méthodes Eloquent standard
+            // CRÉATION avec les méthodes Eloquent standard
             $plan = Plan::create($validated);
             
             return response()->json([
@@ -137,7 +137,7 @@ class PlanController extends Controller
                 ], 404);
             }
             
-            // ✅ VALIDATION des données
+            // VALIDATION des données
             $validated = $request->validate([
                 'pla_user_id' => 'sometimes|required|integer|exists:users,id',
                 'pla_nom' => 'sometimes|required|string|max:255',
@@ -145,7 +145,7 @@ class PlanController extends Controller
                 'pla_fin' => 'nullable|date|after_or_equal:pla_debut'
             ]);
             
-            // ✅ MISE À JOUR avec Eloquent
+            // MISE À JOUR avec Eloquent
             $plan->update($validated);
             
             return response()->json([
@@ -185,7 +185,7 @@ class PlanController extends Controller
                 ], 404);
             }
             
-            // ✅ SUPPRESSION avec Eloquent
+            // SUPPRESSION avec Eloquent
             $plan->delete();
             
             return response()->json([
@@ -203,7 +203,7 @@ class PlanController extends Controller
     }
 
     /**
-     * ✅ AJOUT : Récupérer les plans d'un utilisateur spécifique
+     * AJOUT : Récupérer les plans d'un utilisateur spécifique
      */
     public function getByUser($userId): JsonResponse
     {
@@ -242,7 +242,7 @@ class PlanController extends Controller
             return response()->json(['error' => 'Utilisateur non trouvé'], 404);
         }
 
-        // ✅ UTILISER Eloquent avec relations
+        // UTILISER Eloquent avec relations
         $plan = Plan::with(['jours.activites'])
                    ->where('pla_user_id', $userId)
                    ->first();
@@ -251,7 +251,7 @@ class PlanController extends Controller
             return response()->json([], 404);
         }
 
-        // ✅ TRANSFORMER les données pour le frontend
+        // TRANSFORMER les données pour le frontend
         $planData = [
             'pla_id' => $plan->pla_id,
             'pla_nom' => $plan->pla_nom,
@@ -261,7 +261,7 @@ class PlanController extends Controller
             'jours' => []
         ];
 
-        // ✅ TRANSFORMER les jours
+        // TRANSFORMER les jours
         foreach ($plan->jours as $jour) {
             $jourData = [
                 'jou_id' => $jour->jou_id,
@@ -270,7 +270,7 @@ class PlanController extends Controller
                 'activites' => []
             ];
 
-            // ✅ TRANSFORMER les activités
+            // TRANSFORMER les activités
             foreach ($jour->activites as $activite) {
                 $jourData['activites'][] = [
                     'gen_id' => $activite->gen_id,
