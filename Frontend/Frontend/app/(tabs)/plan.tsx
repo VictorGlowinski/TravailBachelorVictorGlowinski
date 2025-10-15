@@ -632,11 +632,29 @@ export default function PlanScreen() {
               {/* Messages d'aide conditionnels */}
               {(!userData.hasAnamnese || !userData.hasEvaluation) && (
                 <Text style={[planStyles.helpText, { color: theme.colors.warning }]}>
-                  Complétez votre anamnèse et évaluation pour générer votre plan personnalisé {'\n'} Allez sous l'onglet profil pour compléter ces sections.
+                  Allez sous l'onglet profil pour compléter ces sections.
 
                 </Text>
+                
+              )}
+              {(!userData.hasAnamnese || !userData.hasEvaluation) && (
+              <View style={planStyles.actionButtons}>
+              <Pressable 
+                style={[
+                  planStyles.actionButton, 
+                  { backgroundColor: theme.colors.accent } 
+                ]} 
+                onPress={() => router.push('/(tabs)/profil')}
+              >
+                <FontAwesome name="user" size={16} color="white" /> 
+                <Text style={planStyles.actionButtonText}>
+                  Aller au profil
+                </Text>
+              </Pressable>
+            </View>
               )}
             </View>
+            
           </View>
         </View>
       )}

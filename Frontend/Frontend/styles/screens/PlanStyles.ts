@@ -427,6 +427,26 @@ lastUpdateText: {
   fontStyle: 'italic',
   textAlign: 'center',
 },
+ actionButtons: {
+    width: '100%',
+    gap: 12,
+    marginTop: 10,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    gap: 10,
+    // backgroundColor sera définie dynamiquement
+  },
+  actionButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+  }, 
 });
 
 export default planStyles;
