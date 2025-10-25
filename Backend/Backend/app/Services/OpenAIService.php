@@ -81,7 +81,16 @@ class OpenAIService
     public function generateTrainingDays($plan)
     {
         $prompt = $this->buildJoursPrompt($plan);
-        return $this->generateText($prompt, 3000);
+        
+        // ✅ CALCULER la durée pour ajuster max_tokens
+        $startDate = $plan['pla_debut'];
+        $endDate = $plan['pla_fin'];
+        $totalDays = (new \DateTime($endDate))->diff(new \DateTime($startDate))->days + 1;
+        
+        // ✅ AJUSTER max_tokens selon la durée (environ 100 tokens par jour)
+        $maxTokens = min(4000, max(1500, $totalDays * 100));
+        
+        return $this->generateText($prompt, $maxTokens);
     }
 
     /**
@@ -93,7 +102,12 @@ class OpenAIService
     public function generateTrainingActivities($plan, $jours)
     {
         $prompt = $this->buildActivitiesPrompt($plan, $jours);
-        return $this->generateText($prompt, 4000);
+        
+        // ✅ CALCULER max_tokens selon le nombre de jours
+        $totalJours = is_array($jours) ? count($jours) : (is_object($jours) ? $jours->count() : 14);
+        $maxTokens = min(8000, max(3000, $totalJours * 200)); // ~200 tokens par jour d'activités
+        
+        return $this->generateText($prompt, $maxTokens);
     }
 
     /**
@@ -129,47 +143,68 @@ class OpenAIService
      * @return string
      */
     private function buildJoursPrompt($plan)
-{
-    $userData = $this->formatUserDataForPrompt();
-    
-    // UTILISER la date de début du plan au lieu de calculer
-    $startDate = $plan['pla_debut']; // Date déjà fournie dans le plan
-    $jours = [];
-    for ($i = 0; $i < 14; $i++) {
-        $jours[] = date('Y-m-d', strtotime($startDate . " +{$i} days"));
+    {
+        $userData = $this->formatUserDataForPrompt();
+        
+        $startDate = $plan['pla_debut'];
+        $endDate = $plan['pla_fin'];
+        
+        // ✅ CALCULER le nombre total de jours entre début et fin
+        $totalDays = (new \DateTime($endDate))->diff(new \DateTime($startDate))->days + 1;
+        
+        // ✅ GÉNÉRER toutes les dates du programme
+        $jours = [];
+        for ($i = 0; $i < $totalDays; $i++) {
+            $jours[] = date('Y-m-d', strtotime($startDate . " +{$i} days"));
+        }
+
+        // ✅ CRÉER le template JSON pour toutes les dates
+        $joursJson = '';
+        foreach ($jours as $index => $date) {
+            $dayName = date('l', strtotime($date));
+            $joursJson .= "            {\n";
+            $joursJson .= "                \"jou_plan_id\": {$plan['pla_id']},\n";
+            $joursJson .= "                \"jou_date\": \"{$date}\",\n";
+            $joursJson .= "                \"jou_description\": \"Séance {$dayName} adaptée au profil\"\n";
+            $joursJson .= "            }" . ($index < $totalDays - 1 ? ',' : '') . "\n";
+        }
+
+        return "
+        Crée un programme d'entraînement triathlon complet de {$totalDays} jours consécutifs basé sur ces données :
+
+        {$userData}
+
+        PLAN GÉNÉRÉ :
+        - Nom : {$plan['pla_nom']}
+        - Date de début : {$startDate} (OBLIGATOIRE - commence exactement à cette date)
+        - Date de fin : {$endDate} (OBLIGATOIRE - termine exactement à cette date)
+        - Durée totale : {$totalDays} jours
+
+        DATES À GÉNÉRER (dans l'ordre chronologique) :
+        " . implode(', ', array_slice($jours, 0, min(10, count($jours)))) . 
+        (count($jours) > 10 ? "... (et " . (count($jours) - 10) . " jours supplémentaires jusqu'au {$endDate})" : "") . "
+
+        INSTRUCTIONS CRITIQUES :
+        - Génère EXACTEMENT {$totalDays} jours d'entraînement consécutifs
+        - Commence OBLIGATOIREMENT le {$startDate}
+        - Termine OBLIGATOIREMENT le {$endDate}
+        - Répartis les {$this->evaluationData['eva_nb_heure_dispo']} heures par semaine intelligemment
+        - Adapte selon les contraintes, blessures et niveau de l'athlète
+        - Planifie une progression logique sur toute la durée
+        - Inclus des jours de repos stratégiques (généralement 1-2 par semaine)
+        - Varie les types d'entraînement selon les cycles (base, intensité, affûtage)
+        - Tiens compte de l'objectif : " . ($this->evaluationData['eva_objectif'] ?? 'Amélioration générale') . "
+        - Échéance prévue : {$this->evaluationData['eva_echeance']}
+
+        PÉRIODISATION SUGGÉRÉE pour {$totalDays} jours :
+        - Phase de base : premiers 60% du programme
+        - Phase d'intensité : 25% suivants
+        - Phase d'affûtage : derniers 15%
+
+        Réponds EXCLUSIVEMENT avec ce format JSON exact (tableau de {$totalDays} jours) :
+        [{$joursJson}]
+        ";
     }
-
-    $joursJson = '';
-    foreach ($jours as $index => $date) {
-        $dayName = date('l', strtotime($date));
-        $joursJson .= "            {\n";
-        $joursJson .= "                \"jou_plan_id\": {$plan['pla_id']},\n";
-        $joursJson .= "                \"jou_date\": \"{$date}\",\n";
-        $joursJson .= "                \"jou_description\": \"Séance {$dayName} adaptée au profil\"\n";
-        $joursJson .= "            }" . ($index < 13 ? ',' : '') . "\n";
-    }
-
-    return "
-    Crée 2 semaines complètes d'entraînement triathlon (14 jours consécutifs) basées sur ces données :
-
-    {$userData}
-
-    PLAN GÉNÉRÉ :
-    - Nom : {$plan['pla_nom']}
-    - Date de début : {$plan['pla_debut']} (OBLIGATOIRE - commence exactement à cette date)
-    - Date de fin : {$plan['pla_fin']}
-
-    INSTRUCTIONS :
-    - Crée exactement 14 jours consécutifs d'entraînement à partir du {$plan['pla_debut']}
-    - Répartis les {$this->evaluationData['eva_nb_heure_dispo']} heures par semaine intelligemment
-    - Adapte selon les contraintes et blessures
-    - Progresse entre semaine 1 et semaine 2
-    - Inclus des jours de repos stratégiques
-
-    Réponds EXCLUSIVEMENT avec ce format JSON exact (tableau de 14 jours) :
-    [{$joursJson}]
-    ";
-}
 
     // MODIFIER les méthodes publiques pour accepter la date de début
     /**
@@ -184,53 +219,117 @@ class OpenAIService
     }
 
     private function buildActivitiesPrompt($plan, $jours)
-    {
-        $userData = $this->formatUserDataForPrompt();
-        
-        if (is_object($jours) && method_exists($jours, 'toArray')) {
-            $joursArray = $jours->toArray();
-        } elseif (is_array($jours)) {
-            $joursArray = $jours;
-        } else {
-            $joursArray = [];
-        }
-        
-        $joursText = json_encode($joursArray, JSON_UNESCAPED_UNICODE);
-        
-        return "
-        Crée des activités détaillées pour CHAQUE jour d'entraînement des 2 semaines.
-        Petite note : mon MLD est conçu de la manière suivante : un PLAN contient plusieurs JOURS, et chaque JOUR contient plusieurs ACTIVITÉS.
-        Il est crucial de respecter cette hiérarchie et que chaque activité soit clairement associée à son jour d'entraînement.
-
-        Voici les données de l'utilisateur : {$userData}
-
-        Voici le PLAN sportif qui a été créé : {$plan['pla_nom']}
-        Voici tous les JOURS D'ENTRAÎNEMENT (14 jours) qui ont été générés : {$joursText}
-
-        INSTRUCTIONS :
-        - Crée 1 à 3 activités par jour d'entraînement, suivant le niveau, les capacités, disponibilités et blessures de l'utilisateur
-        - Adapte les intensités aux capacités (VO2 Max, VMA, FTP et toutes données physiques sur l'utilisateur)
-        - Évite d'aggraver les blessures mentionnées
-        - Assure une progression entre semaine 1 et 2
-        - Inclus des activités de récupération les jours de repos
-        - Utilise des noms d'activités précis et variés
-        - Explique les choix d'activités et d'intensités
-
-        Réponds EXCLUSIVEMENT avec ce format JSON exact (tableau d'activités pour 14 jours) :
-        [
-            {
-                \"gen_jour_id\": \"ID_du_jour_correspondant\",
-                \"gen_nom\": \"Nom précis de l'activité\",
-                \"gen_type\": \"Natation|Cyclisme|Course à pied|Transition|Récupération\",
-                \"gen_duree\": \"Durée en minutes\",
-                \"gen_distance\": \"Distance en km si applicable\",
-                \"gen_intensite\": \"Zone cardiaque ou % FTP/VMA adapté, signification de l'intensité suggérée\",
-                \"gen_commentaire\": \"Instructions techniques adaptées au niveau et blessures et explication du choix de l'activité\",
-                \"gen_source\": \"OpenAI\"
-            }
-        ]
-        ";
+{
+    $userData = $this->formatUserDataForPrompt();
+    
+    // ✅ GESTION ROBUSTE des jours avec extraction des IDs
+    if (is_object($jours) && method_exists($jours, 'toArray')) {
+        $joursArray = $jours->toArray();
+    } elseif (is_array($jours)) {
+        $joursArray = $jours;
+    } else {
+        $joursArray = [];
     }
+    
+    // ✅ VALIDATION
+    if (empty($joursArray)) {
+        throw new \Exception('Aucun jour fourni pour générer les activités');
+    }
+    
+    $totalJours = count($joursArray);
+    
+    // ✅ EXTRAIRE les informations essentielles de chaque jour
+    $joursInfo = [];
+    foreach ($joursArray as $jour) {
+        $joursInfo[] = [
+            'jou_id' => $jour['jou_id'] ?? $jour['id'] ?? null,
+            'jou_date' => $jour['jou_date'] ?? $jour['date'] ?? null,
+            'jou_description' => $jour['jou_description'] ?? $jour['description'] ?? null
+        ];
+    }
+    
+    // ✅ CRÉER la liste des IDs disponibles
+    $idsDisponibles = array_column($joursInfo, 'jou_id');
+    $idsDisponibles = array_filter($idsDisponibles); // Supprimer les nulls
+    
+    // ✅ FORMATAGE pour l'IA avec exemples concrets
+    $exemplesJours = array_slice($joursInfo, 0, 5); // Prendre les 5 premiers pour exemple
+    $exemplesText = '';
+    foreach ($exemplesJours as $jour) {
+        $exemplesText .= "- ID: {$jour['jou_id']}, Date: {$jour['jou_date']}, Description: {$jour['jou_description']}\n";
+    }
+    
+    // ✅ CALCULER les semaines pour la progression
+    $totalSemaines = ceil($totalJours / 7);
+    
+    return "
+    Crée des activités détaillées pour CHAQUE jour d'entraînement du programme complet.
+    
+    ATTENTION CRITIQUE : Tu dois créer des activités pour TOUS les {$totalJours} jours listés ci-dessous.
+    Chaque activité DOIT utiliser le gen_jour_id correspondant au jour exact.
+
+    Données utilisateur : {$userData}
+
+    Plan : {$plan['pla_nom']}
+    Durée totale : {$totalJours} jours ({$totalSemaines} semaines)
+    
+    EXEMPLES DES JOURS À TRAITER :
+    {$exemplesText}
+    " . ($totalJours > 5 ? "... et " . ($totalJours - 5) . " autres jours jusqu'au " . end($joursInfo)['jou_date'] : "") . "
+
+    IDS VALIDES À UTILISER : " . implode(', ', array_slice($idsDisponibles, 0, 10)) . ($totalJours > 10 ? '...' : '') . "
+
+    INSTRUCTIONS CRITIQUES :
+    - Crée 1-3 activités PAR JOUR selon les besoins et le niveau
+    - UTILISE EXACTEMENT les gen_jour_id fournis ci-dessus (exemples: {$idsDisponibles[0]}, {$idsDisponibles[1]}, etc.)
+    - RÉPARTIS intelligemment sur TOUS les {$totalJours} jours
+    - Adapte les intensités aux capacités physiques
+    - Évite d'aggraver les blessures : " . ($this->anamneseData['ana_blessures'] ?? 'aucune') . "
+    - Respecte les contraintes : pro (" . ($this->anamneseData['ana_contrainte_pro'] ?? 'aucune') . "), familiales (" . ($this->anamneseData['ana_contrainte_fam'] ?? 'aucune') . ")
+    - Planifie une progression logique sur {$totalSemaines} semaines
+    - Varie les disciplines (natation, cyclisme, course à pied)
+    - Pour les jours de repos, crée des activités de récupération légères
+    - Objectif : " . ($this->evaluationData['eva_objectif'] ?? 'Amélioration générale') . "
+
+    PÉRIODISATION sur {$totalSemaines} semaines :
+    - Semaines 1-" . ceil($totalSemaines * 0.6) . " : Phase de base (volume, endurance)
+    - Semaines " . (ceil($totalSemaines * 0.6) + 1) . "-" . ceil($totalSemaines * 0.85) . " : Phase d'intensité (qualité, vitesse)
+    - Dernières semaines : Affûtage (récupération, préparation)
+
+    CHARGE D'ENTRAÎNEMENT :
+    - Heures disponibles : " . ($this->evaluationData['eva_nb_heure_dispo'] ?? 'non défini') . "h/semaine
+    - Niveau VO2 Max : " . ($this->evaluationData['eva_vo2max'] ?? 'non testé') . "
+    - FTP Cyclisme : " . ($this->evaluationData['eva_ftp_cyclisme'] ?? 'non testé') . "W
+    - VMA : " . ($this->evaluationData['eva_vma'] ?? 'À évaluer') . "
+
+    EXEMPLE DE FORMAT ATTENDU pour les premiers jours :
+    [
+        {
+            \"gen_jour_id\": {$idsDisponibles[0]},
+            \"gen_nom\": \"Course à pied endurance\",
+            \"gen_type\": \"Course à pied\",
+            \"gen_duree\": \"30\",
+            \"gen_distance\": \"5.0\",
+            \"gen_intensite\": \"Zone 2 - 70-80% FCMax\",
+            \"gen_commentaire\": \"Course en endurance fondamentale, privilégier la durée à l'intensité\",
+            \"gen_source\": \"OpenAI\"
+        },
+        {
+            \"gen_jour_id\": {$idsDisponibles[1]},
+            \"gen_nom\": \"Natation technique\",
+            \"gen_type\": \"Natation\", 
+            \"gen_duree\": \"45\",
+            \"gen_distance\": \"1.5\",
+            \"gen_intensite\": \"Allure confortable\",
+            \"gen_commentaire\": \"Focus sur la technique de nage, travail de la respiration\",
+            \"gen_source\": \"OpenAI\"
+        }
+    ]
+
+    Réponds EXCLUSIVEMENT avec un tableau JSON d'activités pour TOUS les {$totalJours} jours.
+    UTILISE uniquement les gen_jour_id de la liste fournie : " . implode(', ', $idsDisponibles) . "
+    ";
+}
 
     /**
      * Méthode qui nettoie la réponse de l'API OpenAI pour extraire le JSON

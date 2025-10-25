@@ -447,6 +447,81 @@ lastUpdateText: {
     fontWeight: '600',
     color: 'white',
   }, 
+  // ✅ AJOUTER ces styles dans Frontend/Frontend/styles/screens/PlanStyles.ts
+
+planActions: {
+  flexDirection: 'row',
+  padding: 20,
+  gap: 10,
+},
+
+shareMenuOverlay: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 1000,
+},
+
+shareMenuContainer: {
+  margin: 20,
+  borderRadius: 16,
+  minWidth: 300,
+  maxWidth: 400,
+  elevation: 10,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.3,
+  shadowRadius: 8,
+},
+
+shareMenuHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: 20,
+  borderBottomWidth: 1,
+  borderBottomColor: '#e0e0e0',
+},
+
+shareMenuTitle: {
+  fontSize: 18,
+  fontWeight: 'bold',
+},
+
+shareMenuClose: {
+  padding: 5,
+},
+
+shareMenuOptions: {
+  padding: 20,
+  gap: 15,
+},
+
+shareOption: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  padding: 15,
+  borderRadius: 12,
+  gap: 15,
+},
+
+shareOptionText: {
+  flex: 1,
+},
+
+shareOptionTitle: {
+  fontSize: 16,
+  fontWeight: '600',
+  marginBottom: 2,
+},
+
+shareOptionSubtitle: {
+  fontSize: 14,
+},
 });
 
 export default planStyles;

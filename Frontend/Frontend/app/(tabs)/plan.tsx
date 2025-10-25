@@ -12,6 +12,13 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiGet, apiDelete, apiPost, apiPut } from '@/utils/apiHelper'; // UTILISER les helpers authentifiés
 
+// Import des modules pour le partage et l'impression
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+import * as MailComposer from 'expo-mail-composer';
+import { PDFService, type UserData, type User } from '@/utils/PDFService';
+
+
 export default function PlanScreen() {
   const theme = useTheme();
   const { user, isAuthenticated, logout, token } = useAuth(); // UTILISER le contexte d'auth
@@ -25,6 +32,9 @@ export default function PlanScreen() {
   const [startDate, setStartDate] = useState<string>('');
   const [showStartDatePicker, setShowStartDatePicker] = useState<boolean>(false);
   const [tempStartDate, setTempStartDate] = useState<Date | null>(null);
+
+  const [showShareMenu, setShowShareMenu] = useState<boolean>(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
 
   const [userData, setUserData] = useState<{
     hasAnamnese: boolean;
@@ -446,6 +456,98 @@ export default function PlanScreen() {
     }
   };
 
+  //============PDF et PARTAGE============//
+  // GÉNÉRATION et téléchargement PDF
+  const generatePDF = async () => {
+    setIsGeneratingPDF(true);
+    try {
+      await PDFService.generatePDF(userData as UserData, user as User);
+      setShowShareMenu(false);
+    } catch (error) {
+      // L'erreur est déjà gérée dans le service
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  // ENVOI par email
+  const sendByEmail = async () => {
+    setIsGeneratingPDF(true);
+    try {
+      await PDFService.sendByEmail(userData as UserData, user as User);
+      setShowShareMenu(false);
+    } catch (error) {
+      // L'erreur est déjà gérée dans le service
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  // ✅ AJOUTER ce composant après les fonctions (ligne 500 environ)
+
+  const ShareMenu = () => (
+    <View style={[planStyles.shareMenuOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+      <View style={[planStyles.shareMenuContainer, { backgroundColor: theme.colors.surface }]}>
+        <View style={planStyles.shareMenuHeader}>
+          <Text style={[planStyles.shareMenuTitle, { color: theme.colors.primary }]}>
+            Partager le programme
+          </Text>
+          <Pressable 
+            style={planStyles.shareMenuClose}
+            onPress={() => setShowShareMenu(false)}
+          >
+            <FontAwesome name="times" size={20} color={theme.colors.secondary} />
+          </Pressable>
+        </View>
+
+        <View style={planStyles.shareMenuOptions}>
+          <Pressable
+            style={[planStyles.shareOption, { backgroundColor: theme.colors.background }]}
+            onPress={generatePDF}
+            disabled={isGeneratingPDF}
+          >
+            <FontAwesome name="file-pdf-o" size={24} color="#DC3545" />
+            <View style={planStyles.shareOptionText}>
+              <Text style={[planStyles.shareOptionTitle, { color: theme.colors.primary }]}>
+                Télécharger en PDF
+              </Text>
+              <Text style={[planStyles.shareOptionSubtitle, { color: theme.colors.secondary }]}>
+                Sauvegarde locale du programme
+              </Text>
+            </View>
+            {isGeneratingPDF ? (
+              <ActivityIndicator size="small" color="#DC3545" />
+            ) : (
+              <FontAwesome name="download" size={16} color={theme.colors.secondary} />
+            )}
+          </Pressable>
+
+          <Pressable
+            style={[planStyles.shareOption, { backgroundColor: theme.colors.background }]}
+            onPress={sendByEmail}
+            disabled={isGeneratingPDF}
+          >
+            <FontAwesome name="envelope" size={24} color="#007AFF" />
+            <View style={planStyles.shareOptionText}>
+              <Text style={[planStyles.shareOptionTitle, { color: theme.colors.primary }]}>
+                Envoyer par email
+              </Text>
+              <Text style={[planStyles.shareOptionSubtitle, { color: theme.colors.secondary }]}>
+                Partage avec PDF en pièce jointe
+              </Text>
+            </View>
+            {isGeneratingPDF ? (
+              <ActivityIndicator size="small" color="#007AFF" />
+            ) : (
+              <FontAwesome name="send" size={16} color={theme.colors.secondary} />
+            )}
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  );
+
+
   // VÉRIFICATION d'authentification au niveau du composant
   if (!isAuthenticated) {
     return (
@@ -662,6 +764,24 @@ export default function PlanScreen() {
       {/* AFFICHAGE DU PLAN */}
       {!isLoading && userData.hasPlan && userData.planData && (
         <View style={planStyles.planSection}>
+          {/* BOUTON partager */}
+          <Pressable 
+            style={[
+              planStyles.actionButton,
+              { 
+                backgroundColor: theme.colors.accent,
+                flex: 1,
+                marginRight: 10
+              }
+            ]} 
+            onPress={() => setShowShareMenu(true)}
+            disabled={isLoading}
+          >
+            <FontAwesome name="share" size={16} color="white" />
+            <Text style={[planStyles.actionButtonText, { color: 'white' }]}>
+              Partager
+            </Text>
+          </Pressable>
           {/* BOUTON supprimer avec confirmation */}
           <View style={{ padding: 20 }}>
             <Pressable 
@@ -733,8 +853,8 @@ export default function PlanScreen() {
                     </View>
                     <View style={planStyles.dayInfo}>
                       <Text style={[planStyles.dayTitle, { color: theme.colors.primary }]}>
-                        Jour {index + 1}
-                      </Text>
+                        Jour {index + 1} {jour.jou_date && (`- ${formatDateForDisplay(jour.jou_date)}`)}
+                        </Text>
                       {jour.jou_date && (
                         <Text style={[planStyles.dayDate, { color: theme.colors.secondary }]}>
                           {formatDate(jour.jou_date)}
@@ -839,7 +959,8 @@ export default function PlanScreen() {
           )}
         </>
       )}
-
+      {/* MENU DE PARTAGE */}
+      {showShareMenu && <ShareMenu />}
       {/* ESPACE EN BAS */}
       <View style={{ height: 100 }} />
     </ScrollView>
